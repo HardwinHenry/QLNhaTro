@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { X, Loader2, Upload } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,12 +10,12 @@ import { toast } from "sonner";
 import { resolveBackendAssetUrl } from "../utils/url";
 
 const roomSchema = z.object({
-    idPhong: z.string().min(1, "Mã phòng là bắt buộc"),
-    tenPhong: z.string().min(1, "Tên phòng là bắt buộc"),
-    idDayPhong: z.string().min(1, "Dãy phòng là bắt buộc"),
-    giaPhong: z.number().min(0, "Giá phòng phải >= 0"),
-    dienTich: z.number().min(0, "Diện tích phải >= 0"),
-    sucChua: z.number().min(1, "Sức chứa phải ít nhất 1 người"),
+    idPhong: z.string().min(1, "MÃ£ phÃ²ng lÃ  báº¯t buá»™c"),
+    tenPhong: z.string().min(1, "TÃªn phÃ²ng lÃ  báº¯t buá»™c"),
+    idDayPhong: z.string().min(1, "DÃ£y phÃ²ng lÃ  báº¯t buá»™c"),
+    giaPhong: z.number().min(0, "GiÃ¡ phÃ²ng pháº£i >= 0"),
+    dienTich: z.number().min(0, "Diá»‡n tÃ­ch pháº£i >= 0"),
+    sucChua: z.number().min(1, "Sá»©c chá»©a pháº£i Ã­t nháº¥t 1 ngÆ°á»i"),
     loaiPhong: z.string().optional(),
     moTa: z.string().optional(),
     trangThai: z.enum(["Trong", "Da_Thue"]),
@@ -60,7 +60,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                 setDayPhongs(dp);
                 setVatTus(vt);
             } catch (error) {
-                toast.error("Lỗi khi tải dữ liệu bổ trợ");
+                toast.error("Lá»—i khi táº£i dá»¯ liá»‡u bá»• trá»£");
             } finally {
                 // Done loading
             }
@@ -126,15 +126,15 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
 
             if (editingRoom) {
                 await roomService.updatePhong(editingRoom._id, formData);
-                toast.success("Cập nhật phòng thành công");
+                toast.success("Cáº­p nháº­t phÃ²ng thÃ nh cÃ´ng");
             } else {
                 await roomService.createPhong(formData);
-                toast.success("Thêm phòng mới thành công");
+                toast.success("ThÃªm phÃ²ng má»›i thÃ nh cÃ´ng");
             }
             onSuccess();
             onClose();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Có lỗi xảy ra");
+            toast.error(error.response?.data?.message || "CÃ³ lá»—i xáº£y ra");
         } finally {
             setLoading(false);
         }
@@ -157,20 +157,20 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
-                <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-slate-800">
-                        {editingRoom ? "Cập nhật thông tin phòng" : "Thêm phòng mới"}
+            <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+                <div className="p-4 sm:p-6 border-b border-slate-100 flex items-center justify-between">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-800">
+                        {editingRoom ? "Cáº­p nháº­t thÃ´ng tin phÃ²ng" : "ThÃªm phÃ²ng má»›i"}
                     </h2>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                         <X size={20} className="text-slate-400" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="p-6 overflow-y-auto space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 overflow-y-auto space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mã phòng</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">MÃ£ phÃ²ng</label>
                             <input
                                 {...register("idPhong")}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -179,32 +179,32 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                             {errors.idPhong && <p className="text-[10px] text-red-500 font-bold">{errors.idPhong.message}</p>}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tên phòng</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">TÃªn phÃ²ng</label>
                             <input
                                 {...register("tenPhong")}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                placeholder="Phòng 101"
+                                placeholder="PhÃ²ng 101"
                             />
                             {errors.tenPhong && <p className="text-[10px] text-red-500 font-bold">{errors.tenPhong.message}</p>}
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Dãy phòng</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">DÃ£y phÃ²ng</label>
                             <select
                                 {...register("idDayPhong")}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
                             >
-                                <option value="">Chọn dãy phòng</option>
+                                <option value="">Chá»n dÃ£y phÃ²ng</option>
                                 {dayPhongs.map(day => (
-                                    <option key={day._id} value={day._id}>Dãy {day.soDay} - {day.viTri}</option>
+                                    <option key={day._id} value={day._id}>DÃ£y {day.soDay} - {day.viTri}</option>
                                 ))}
                             </select>
                             {errors.idDayPhong && <p className="text-[10px] text-red-500 font-bold">{errors.idDayPhong.message}</p>}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Giá thuê (VNĐ)</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">GiÃ¡ thuÃª (VNÄ)</label>
                             <input
                                 type="number"
                                 {...register("giaPhong", { valueAsNumber: true })}
@@ -213,9 +213,9 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Diện tích (m²)</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Diá»‡n tÃ­ch (mÂ²)</label>
                             <input
                                 type="number"
                                 {...register("dienTich", { valueAsNumber: true })}
@@ -223,7 +223,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sức chứa</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sá»©c chá»©a</label>
                             <input
                                 type="number"
                                 {...register("sucChua", { valueAsNumber: true })}
@@ -232,34 +232,34 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Loại phòng</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Loáº¡i phÃ²ng</label>
                             <select
                                 {...register("loaiPhong")}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
                             >
-                                <option value="">Chọn loại phòng</option>
-                                <option value="Phong_Don">Phòng đơn</option>
-                                <option value="Phong_Doi">Phòng đôi</option>
-                                <option value="Phong_Ghep">Phòng ghép</option>
-                                <option value="Phong_VIP">Phòng VIP</option>
+                                <option value="">Chá»n loáº¡i phÃ²ng</option>
+                                <option value="Phong_Don">PhÃ²ng Ä‘Æ¡n</option>
+                                <option value="Phong_Doi">PhÃ²ng Ä‘Ã´i</option>
+                                <option value="Phong_Ghep">PhÃ²ng ghÃ©p</option>
+                                <option value="Phong_VIP">PhÃ²ng VIP</option>
                             </select>
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Trạng thái</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tráº¡ng thÃ¡i</label>
                             <select
                                 {...register("trangThai")}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                             >
-                                <option value="Trong">Trống</option>
-                                <option value="Da_Thue">Đã thuê</option>
+                                <option value="Trong">Trá»‘ng</option>
+                                <option value="Da_Thue">ÄÃ£ thuÃª</option>
                             </select>
                         </div>
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vật tư trang bị</label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Váº­t tÆ° trang bá»‹</label>
                         <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-32 overflow-y-auto">
                             {vatTus.map(vt => (
                                 <button
@@ -274,12 +274,12 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                                     {vt.tenVatTu}
                                 </button>
                             ))}
-                            {vatTus.length === 0 && <p className="text-xs text-slate-400 italic">Chưa có vật tư nào trong hệ thống</p>}
+                            {vatTus.length === 0 && <p className="text-xs text-slate-400 italic">ChÆ°a cÃ³ váº­t tÆ° nÃ o trong há»‡ thá»‘ng</p>}
                         </div>
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ảnh phòng (Upload)</label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">áº¢nh phÃ²ng (Upload)</label>
                         <div className="flex flex-col gap-3">
                             {imagePreview ? (
                                 <div className="relative w-full h-48 rounded-2xl overflow-hidden group border border-slate-200">
@@ -290,7 +290,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                                             onClick={() => document.getElementById('room-image-upload')?.click()}
                                             className="px-4 py-2 bg-white text-slate-900 rounded-xl hover:bg-slate-100 transition-all font-bold text-xs"
                                         >
-                                            Thay đổi
+                                            Thay Ä‘á»•i
                                         </button>
                                         <button
                                             type="button"
@@ -301,7 +301,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                                             }}
                                             className="px-4 py-2 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-all font-bold text-xs"
                                         >
-                                            Gỡ bỏ
+                                            Gá»¡ bá»
                                         </button>
                                     </div>
                                 </div>
@@ -314,7 +314,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                                     <div className="p-2 bg-slate-50 rounded-full">
                                         <Upload size={20} />
                                     </div>
-                                    <span className="text-xs font-bold">Tải lên hình ảnh phòng</span>
+                                    <span className="text-xs font-bold">Táº£i lÃªn hÃ¬nh áº£nh phÃ²ng</span>
                                 </button>
                             )}
                             <input
@@ -337,33 +337,34 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mô tả</label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">MÃ´ táº£</label>
                         <textarea
                             {...register("moTa")}
                             rows={3}
                             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
-                            placeholder="Chi tiết về tiện ích, nội thất..."
+                            placeholder="Chi tiáº¿t vá» tiá»‡n Ã­ch, ná»™i tháº¥t..."
                         />
                     </div>
                 </form>
 
-                <div className="p-6 border-t border-slate-100 flex gap-3">
+                <div className="p-4 sm:p-6 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
                     <button
                         type="button"
                         onClick={onClose}
                         className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all"
                     >
-                        Hủy
+                        Há»§y
                     </button>
                     <button
                         onClick={handleSubmit(onSubmit)}
                         disabled={loading}
-                        className="flex-[2] px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex items-center justify-center disabled:opacity-50"
+                        className="px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex items-center justify-center disabled:opacity-50 sm:flex-[2]"
                     >
-                        {loading ? <Loader2 className="animate-spin" size={20} /> : (editingRoom ? "Lưu thay đổi" : "Thêm phòng")}
+                        {loading ? <Loader2 className="animate-spin" size={20} /> : (editingRoom ? "LÆ°u thay Ä‘á»•i" : "ThÃªm phÃ²ng")}
                     </button>
                 </div>
             </div>
         </div>
     );
 }
+

@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+﻿import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate, Link } from "react-router";
@@ -9,8 +9,8 @@ import { LogIn, User, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 const loginSchema = z.object({
-    tenDangNhap: z.string().min(3, "Tên đăng nhập phải có ít nhất 3 ký tự"),
-    matKhau: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+    tenDangNhap: z.string().min(3, "TÃªn Ä‘Äƒng nháº­p pháº£i cÃ³ Ã­t nháº¥t 3 kÃ½ tá»±"),
+    matKhau: z.string().min(6, "Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -34,10 +34,10 @@ export default function LoginPage() {
         try {
             const response = await login(data.tenDangNhap, data.matKhau);
             setAuth(response.user, response.accessToken, response.refreshToken);
-            toast.success("Đăng nhập thành công!");
+            toast.success("ÄÄƒng nháº­p thÃ nh cÃ´ng!");
             navigate("/");
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Đăng nhập thất bại");
+            toast.error(error.response?.data?.message || "ÄÄƒng nháº­p tháº¥t báº¡i");
         } finally {
             setLoading(false);
         }
@@ -54,22 +54,22 @@ export default function LoginPage() {
                                 <path d="M3 9.5L12 3l9 6.5V21H3V9.5z" />
                             </svg>
                         </div>
-                        <span className="text-white font-bold text-lg tracking-wide">QL Nhà Trọ</span>
+                        <span className="text-white font-bold text-lg tracking-wide">QL NhÃ  Trá»</span>
                     </div>
                     <h2 className="text-white text-3xl font-bold leading-snug mb-4">
-                        Hệ thống quản lý<br />nhà trọ chuyên nghiệp
+                        Há»‡ thá»‘ng quáº£n lÃ½<br />nhÃ  trá» chuyÃªn nghiá»‡p
                     </h2>
                     <p className="text-blue-200 text-sm leading-relaxed">
-                        Quản lý phòng trọ, hợp đồng và hoá đơn một cách dễ dàng, nhanh chóng và hiệu quả.
+                        Quáº£n lÃ½ phÃ²ng trá», há»£p Ä‘á»“ng vÃ  hoÃ¡ Ä‘Æ¡n má»™t cÃ¡ch dá»… dÃ ng, nhanh chÃ³ng vÃ  hiá»‡u quáº£.
                     </p>
                 </div>
                 <div className="border-t border-blue-800 pt-6">
-                    <p className="text-blue-300 text-xs">© 2025 QL Nhà Trọ. Bảo lưu mọi quyền.</p>
+                    <p className="text-blue-300 text-xs">Â© 2025 QL NhÃ  Trá». Báº£o lÆ°u má»i quyá»n.</p>
                 </div>
             </div>
 
             {/* Right panel */}
-            <div className="flex-1 flex items-center justify-center p-6">
+            <div className="flex-1 flex items-start sm:items-center justify-center p-4 sm:p-6 overflow-y-auto">
                 <div className="w-full max-w-sm">
                     {/* Mobile logo */}
                     <div className="lg:hidden flex items-center gap-2 mb-8">
@@ -78,23 +78,23 @@ export default function LoginPage() {
                                 <path d="M3 9.5L12 3l9 6.5V21H3V9.5z" />
                             </svg>
                         </div>
-                        <span className="font-bold text-blue-900 text-lg">QL Nhà Trọ</span>
+                        <span className="font-bold text-blue-900 text-lg">QL NhÃ  Trá»</span>
                     </div>
 
-                    <h1 className="text-2xl font-bold text-slate-800 mb-1">Đăng nhập</h1>
-                    <p className="text-slate-500 text-sm mb-7">Nhập thông tin tài khoản của bạn để tiếp tục</p>
+                    <h1 className="text-2xl font-bold text-slate-800 mb-1">ÄÄƒng nháº­p</h1>
+                    <p className="text-slate-500 text-sm mb-7">Nháº­p thÃ´ng tin tÃ i khoáº£n cá»§a báº¡n Ä‘á»ƒ tiáº¿p tá»¥c</p>
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Tên đăng nhập
+                                TÃªn Ä‘Äƒng nháº­p
                             </label>
                             <div className="relative">
                                 <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                 <input
                                     {...register("tenDangNhap")}
                                     className="w-full border border-slate-300 rounded bg-white pl-9 pr-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
-                                    placeholder="Nhập tên đăng nhập"
+                                    placeholder="Nháº­p tÃªn Ä‘Äƒng nháº­p"
                                 />
                             </div>
                             {errors.tenDangNhap && (
@@ -104,7 +104,7 @@ export default function LoginPage() {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Mật khẩu
+                                Máº­t kháº©u
                             </label>
                             <div className="relative">
                                 <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -112,7 +112,7 @@ export default function LoginPage() {
                                     type={showPassword ? "text" : "password"}
                                     {...register("matKhau")}
                                     className="w-full border border-slate-300 rounded bg-white pl-9 pr-10 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
-                                    placeholder="••••••••"
+                                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                                 />
                                 <button
                                     type="button"
@@ -136,16 +136,16 @@ export default function LoginPage() {
                                 <Loader2 className="animate-spin" size={16} />
                             ) : (
                                 <>
-                                    <LogIn size={16} /> Đăng nhập
+                                    <LogIn size={16} /> ÄÄƒng nháº­p
                                 </>
                             )}
                         </button>
                     </form>
 
                     <p className="text-center text-slate-500 text-sm mt-6">
-                        Chưa có tài khoản?{" "}
+                        ChÆ°a cÃ³ tÃ i khoáº£n?{" "}
                         <Link to="/register" className="text-blue-700 hover:text-blue-800 font-medium">
-                            Đăng ký ngay
+                            ÄÄƒng kÃ½ ngay
                         </Link>
                     </p>
                 </div>

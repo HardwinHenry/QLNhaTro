@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { X, Loader2, Upload, Trash2 } from "lucide-react";
 import { dayPhongService, type DayPhong } from "../services/dayPhongService";
 import { toast } from "sonner";
@@ -73,15 +73,15 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
 
             if (editingDayPhong) {
                 await dayPhongService.updateDayPhong(editingDayPhong._id, data);
-                toast.success("Cập nhật dãy/tầng thành công");
+                toast.success("Cáº­p nháº­t dÃ£y/táº§ng thÃ nh cÃ´ng");
             } else {
                 await dayPhongService.createDayPhong(data);
-                toast.success("Thêm dãy/tầng thành công");
+                toast.success("ThÃªm dÃ£y/táº§ng thÃ nh cÃ´ng");
             }
             onSuccess();
             onClose();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Có lỗi xảy ra");
+            toast.error(error.response?.data?.message || "CÃ³ lá»—i xáº£y ra");
         } finally {
             setLoading(false);
         }
@@ -91,56 +91,56 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95 duration-200">
-                <div className="p-6 border-b border-slate-100 flex items-center justify-between ">
-                    <h2 className="text-xl font-bold text-slate-800">
-                        {editingDayPhong ? "Chỉnh sửa dãy/tầng" : "Thêm dãy/tầng mới"}
+            <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95 duration-200">
+                <div className="p-4 sm:p-6 border-b border-slate-100 flex items-center justify-between ">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-800">
+                        {editingDayPhong ? "Chá»‰nh sá»­a dÃ£y/táº§ng" : "ThÃªm dÃ£y/táº§ng má»›i"}
                     </h2>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                         <X size={20} className="text-slate-500" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-8 space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="p-4 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Số dãy / Tên dãy</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sá»‘ dÃ£y / TÃªn dÃ£y</label>
                             <input
                                 type="text"
                                 required
                                 value={formData.soDay}
                                 onChange={e => setFormData({ ...formData, soDay: e.target.value.toUpperCase() })}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                                placeholder="Ví dụ: A"
+                                placeholder="VÃ­ dá»¥: A"
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tầng</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Táº§ng</label>
                             <input
                                 type="number"
                                 required
                                 value={formData.tang}
                                 onChange={e => setFormData({ ...formData, tang: Number(e.target.value) })}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                                placeholder="Ví dụ: 1"
+                                placeholder="VÃ­ dá»¥: 1"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vị trí / Mô tả</label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vá»‹ trÃ­ / MÃ´ táº£</label>
                         <input
                             type="text"
                             required
                             value={formData.viTri}
                             onChange={e => setFormData({ ...formData, viTri: e.target.value })}
                             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                            placeholder="Ví dụ: Dãy A - Tầng 1"
+                            placeholder="VÃ­ dá»¥: DÃ£y A - Táº§ng 1"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Hình ảnh đại diện</label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">HÃ¬nh áº£nh Ä‘áº¡i diá»‡n</label>
                         {imagePreview ? (
                             <div className="relative w-full h-48 rounded-2xl overflow-hidden group border border-slate-200">
                                 <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
@@ -150,14 +150,14 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
                                         onClick={() => document.getElementById('image-upload')?.click()}
                                         className="p-2 bg-white text-slate-900 rounded-lg hover:bg-slate-100 transition-all font-bold text-xs flex items-center gap-2"
                                     >
-                                        <Upload size={14} /> Thay đổi
+                                        <Upload size={14} /> Thay Ä‘á»•i
                                     </button>
                                     <button
                                         type="button"
                                         onClick={removeImage}
                                         className="p-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-all font-bold text-xs flex items-center gap-2"
                                     >
-                                        <Trash2 size={14} /> Gỡ bỏ
+                                        <Trash2 size={14} /> Gá»¡ bá»
                                     </button>
                                 </div>
                             </div>
@@ -170,7 +170,7 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
                                 <div className="p-3 bg-slate-50 rounded-full group-hover:bg-blue-100">
                                     <Upload size={24} />
                                 </div>
-                                <span className="text-sm font-bold">Tải lên hình ảnh dãy/tầng</span>
+                                <span className="text-sm font-bold">Táº£i lÃªn hÃ¬nh áº£nh dÃ£y/táº§ng</span>
                             </button>
                         )}
                         <input
@@ -182,20 +182,20 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
                         />
                     </div>
 
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex flex-col sm:flex-row gap-3 pt-4">
                         <button
                             type="button"
                             onClick={onClose}
                             className="flex-1 px-4 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl hover:bg-slate-50 transition-all"
                         >
-                            Hủy
+                            Há»§y
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-[2] px-4 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-black transition-all shadow-lg flex items-center justify-center gap-2"
+                            className="px-4 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-black transition-all shadow-lg flex items-center justify-center gap-2 sm:flex-[2]"
                         >
-                            {loading ? <Loader2 className="animate-spin" size={20} /> : (editingDayPhong ? "Cập nhật" : "Thêm ngay")}
+                            {loading ? <Loader2 className="animate-spin" size={20} /> : (editingDayPhong ? "Cáº­p nháº­t" : "ThÃªm ngay")}
                         </button>
                     </div>
                 </form>
@@ -203,3 +203,4 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
         </div>
     );
 }
+
