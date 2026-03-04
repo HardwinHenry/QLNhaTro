@@ -1,5 +1,6 @@
 import { Bed, Maximize, User, Trash2, Edit, Package, Layers } from "lucide-react";
 import { useNavigate } from "react-router";
+import { resolveBackendAssetUrl } from "../utils/url";
 
 interface RoomCardProps {
     room: {
@@ -35,7 +36,7 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
             <div className="relative h-56 flex gap-1 p-1 bg-slate-50">
                 <div className="flex-1 h-full rounded-l-xl overflow-hidden relative">
                     <img
-                        src={room.images[0]?.startsWith('/uploads') ? `http://localhost:5001${room.images[0]}` : (room.images[0] || "/RoomPlaceholder.jpg")}
+                        src={room.images[0]?.startsWith('/uploads') ? resolveBackendAssetUrl(room.images[0]) : (room.images[0] || "/RoomPlaceholder.jpg")}
                         alt={`${room.name}-1`}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
@@ -46,14 +47,14 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
                 <div className="w-1/3 flex flex-col gap-1">
                     <div className="flex-1 rounded-tr-xl overflow-hidden">
                         <img
-                            src={room.images[1] ? (room.images[1].startsWith('/uploads') ? `http://localhost:5001${room.images[1]}` : room.images[1]) : "/RoomPlaceholder.jpg"}
+                            src={room.images[1] ? (room.images[1].startsWith('/uploads') ? resolveBackendAssetUrl(room.images[1]) : room.images[1]) : "/RoomPlaceholder.jpg"}
                             alt={`${room.name}-2`}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                     </div>
                     <div className="flex-1 rounded-br-xl overflow-hidden relative">
                         <img
-                            src={room.images[2] ? (room.images[2].startsWith('/uploads') ? `http://localhost:5001${room.images[2]}` : room.images[2]) : "/RoomPlaceholder.jpg"}
+                            src={room.images[2] ? (room.images[2].startsWith('/uploads') ? resolveBackendAssetUrl(room.images[2]) : room.images[2]) : "/RoomPlaceholder.jpg"}
                             alt={`${room.name}-3`}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />

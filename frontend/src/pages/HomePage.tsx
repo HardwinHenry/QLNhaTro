@@ -3,6 +3,7 @@ import { LayoutGrid, Loader2 } from "lucide-react";
 import { roomService } from "../services/roomService";
 import type { Room } from "../services/roomService";
 import { toast } from "sonner";
+import { resolveBackendAssetUrl } from "../utils/url";
 
 export default function HomePage() {
     const [rooms, setRooms] = useState<Room[]>([]);
@@ -71,7 +72,7 @@ export default function HomePage() {
                     <div className="bg-slate-50 rounded-[2.5rem] p-10 relative group border border-slate-100">
                         <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
                             <img
-                                src="http://localhost:5001/SoDo.png"
+                                src={resolveBackendAssetUrl("/SoDo.png")}
                                 alt="Sơ đồ nhà trọ"
                                 className="w-full h-auto object-contain max-h-[600px] group-hover:scale-105 transition-transform duration-1000"
                             />

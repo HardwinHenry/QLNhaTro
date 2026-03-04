@@ -7,6 +7,7 @@ import { roomService, type Room } from "../services/roomService";
 import { dayPhongService, type DayPhong } from "../services/dayPhongService";
 import { vatTuService, type VatTu } from "../services/vatTuService";
 import { toast } from "sonner";
+import { resolveBackendAssetUrl } from "../utils/url";
 
 const roomSchema = z.object({
     idPhong: z.string().min(1, "Mã phòng là bắt buộc"),
@@ -85,7 +86,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                 vatTu: editingRoom.vatTu?.map(v => typeof v === 'string' ? v : v._id) || []
             });
             const mainImg = typeof editingRoom.hinhAnh === 'string' ? editingRoom.hinhAnh : editingRoom.hinhAnh?.[0];
-            setImagePreview(mainImg ? (mainImg.startsWith('http') ? mainImg : `http://localhost:5001${mainImg}`) : null);
+            setImagePreview(mainImg ? resolveBackendAssetUrl(mainImg) : null);
         } else {
             reset({
                 idPhong: "",

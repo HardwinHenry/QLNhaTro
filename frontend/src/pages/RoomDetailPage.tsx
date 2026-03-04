@@ -17,6 +17,7 @@ import { utilityService, type GiaDienNuoc } from "../services/utilityService";
 import { bookingService } from "../services/bookingService";
 import { useAuthStore } from "../store/authStore";
 import { toast } from "sonner";
+import { resolveBackendAssetUrl } from "../utils/url";
 
 export default function RoomDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -80,7 +81,7 @@ export default function RoomDetailPage() {
         }
 
         if (rawImages.length > 0) {
-            return rawImages.map(img => img.startsWith('/uploads') ? `http://localhost:5001${img}` : img);
+            return rawImages.map(img => img.startsWith('/uploads') ? resolveBackendAssetUrl(img) : img);
         }
 
         // Placeholder images if none exist

@@ -28,6 +28,7 @@ import { invoiceService, type Invoice } from "../services/invoiceService";
 import { utilityService } from "../services/utilityService";
 import { getAllUsers } from "../services/authService";
 import { toast } from "sonner";
+import { resolveBackendAssetUrl } from "../utils/url";
 
 export default function AdminDashboardPage() {
     const [stats, setStats] = useState({
@@ -332,7 +333,7 @@ export default function AdminDashboardPage() {
                                 {/* @ts-ignore */}
                                 {dp.hinhAnh ? (
                                     /* @ts-ignore */
-                                    <img src={`http://localhost:5001${dp.hinhAnh}`} alt={dp.viTri} className="w-full h-full object-cover" />
+                                    <img src={resolveBackendAssetUrl(dp.hinhAnh)} alt={dp.viTri} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-slate-400">
                                         <Layers size={40} />

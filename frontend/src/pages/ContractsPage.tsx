@@ -5,6 +5,7 @@ import { roomService, type Room } from "../services/roomService";
 import { utilityService } from "../services/utilityService";
 import { getAllUsers } from "../services/authService";
 import { useAuthStore } from "../store/authStore";
+import { resolveBackendAssetUrl } from "../utils/url";
 
 export default function ContractsPage() {
     const { user } = useAuthStore();
@@ -613,7 +614,7 @@ export default function ContractsPage() {
                                     {currentContract.idPhong?.hinhAnh && (
                                         <div className="rounded-[2.5rem] overflow-hidden aspect-[16/9] w-full group relative shadow-2xl border-4 border-white">
                                             <img
-                                                src={`${import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5001"}${Array.isArray(currentContract.idPhong?.hinhAnh) ? currentContract.idPhong.hinhAnh[0] : currentContract.idPhong?.hinhAnh}`}
+                                                src={resolveBackendAssetUrl(Array.isArray(currentContract.idPhong?.hinhAnh) ? currentContract.idPhong.hinhAnh[0] : currentContract.idPhong?.hinhAnh)}
                                                 alt={currentContract.idPhong?.tenPhong}
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                                 onError={(e) => {

@@ -8,6 +8,7 @@ import { dayPhongService, type DayPhong } from "../services/dayPhongService";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
 import RoomFormModal from "../components/RoomFormModal";
+import { resolveBackendAssetUrl } from "../utils/url";
 
 export default function RoomsPage() {
     const [rooms, setRooms] = useState<Room[]>([]);
@@ -113,9 +114,9 @@ export default function RoomsPage() {
             price: room.giaPhong,
             status: room.trangThai === "Trong" ? ("available" as const) : ("occupied" as const),
             images: (Array.isArray(room.hinhAnh) && room.hinhAnh.length > 0)
-                ? room.hinhAnh.map(img => img.startsWith('/uploads') ? `http://localhost:5001${img}` : img)
+                ? room.hinhAnh.map(img => img.startsWith('/uploads') ? resolveBackendAssetUrl(img) : img)
                 : (typeof room.hinhAnh === 'string' && room.hinhAnh)
-                    ? [room.hinhAnh.startsWith('/uploads') ? `http://localhost:5001${room.hinhAnh}` : room.hinhAnh, ...getLocalImages(index).slice(1)]
+                    ? [room.hinhAnh.startsWith('/uploads') ? resolveBackendAssetUrl(room.hinhAnh) : room.hinhAnh, ...getLocalImages(index).slice(1)]
                     : getLocalImages(index),
             area: room.dienTich,
             capacity: room.sucChua,

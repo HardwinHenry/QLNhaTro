@@ -13,6 +13,7 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 5001;
+const isProduction = process.env.NODE_ENV === "production";
 
 app.use(cors());
 app.use(express.json());
@@ -21,20 +22,17 @@ app.use("/uploads", express.static(path.join(__dirname, "../public/uploads"))); 
 
 app.use("/api", router);
 
+if (isProduction) {
+  const frontendDistPath = path.resolve(__dirname, "../../frontend/dist");
+  app.use(express.static(frontendDistPath));
+  app.get("/{*splat}", (req, res) => {
+    res.sendFile(path.join(frontendDistPath, "index.html"));
+  });
+}
+
 connectDB().then(() => {
   console.log("JWT_SECRET is loaded:", !!process.env.JWT_SECRET);
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
-}); 
-
-if (process.env.NODE_ENV != "production") {
-  app.use(cors({ origin: "http://localhost:5173" }));
-}
-
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/build")));
-  app.get("*", (req, res) => {  
-    res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
-  }); 
-}
+});

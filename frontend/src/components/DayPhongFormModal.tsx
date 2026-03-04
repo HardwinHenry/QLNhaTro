@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Loader2, Upload, Trash2 } from "lucide-react";
 import { dayPhongService, type DayPhong } from "../services/dayPhongService";
 import { toast } from "sonner";
+import { resolveBackendAssetUrl } from "../utils/url";
 
 interface DayPhongFormModalProps {
     isOpen: boolean;
@@ -28,7 +29,7 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
                 viTri: editingDayPhong.viTri,
             });
             // @ts-ignore
-            setImagePreview(editingDayPhong.hinhAnh ? `http://localhost:5001${editingDayPhong.hinhAnh}` : null);
+            setImagePreview(editingDayPhong.hinhAnh ? resolveBackendAssetUrl(editingDayPhong.hinhAnh) : null);
         } else {
             setFormData({
                 soDay: "A",
