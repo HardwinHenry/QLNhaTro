@@ -26,4 +26,15 @@ connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
-});
+}); 
+
+if (process.env.NODE_ENV != "production") {
+  app.use(cors({ origin: "http://localhost:5173" }));
+}
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/build")));
+  app.get("*", (req, res) => {  
+    res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
+  }); 
+}
