@@ -44,8 +44,8 @@ export default function RoomsPage() {
             setRooms(data);
             setDayPhongs(dayPhongsData);
         } catch (error) {
-            console.error("Lá»—i khi táº£i danh sÃ¡ch phÃ²ng:", error);
-            toast.error("KhÃ´ng thá»ƒ táº£i danh sÃ¡ch phÃ²ng");
+            console.error("Lỗi khi tải danh sách phòng:", error);
+            toast.error("Không thể tải danh sách phòng");
         } finally {
             setLoading(false);
         }
@@ -74,23 +74,23 @@ export default function RoomsPage() {
 
     const handleDeleteRoom = async (id: string) => {
         const result = await Swal.fire({
-            title: "Báº¡n cÃ³ cháº¯c cháº¯n?",
-            text: "PhÃ²ng nÃ y sáº½ bá»‹ xÃ³a vÄ©nh viá»…n!",
+            title: "Bạn có chắc chắn?",
+            text: "Phòng này sẽ bị xóa vĩnh viễn!",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#2563eb",
             cancelButtonColor: "#64748b",
-            confirmButtonText: "XÃ³a ngay",
-            cancelButtonText: "Há»§y"
+            confirmButtonText: "Xóa ngay",
+            cancelButtonText: "Hủy"
         });
 
         if (result.isConfirmed) {
             try {
                 await roomService.deletePhong(id);
-                toast.success("XÃ³a phÃ²ng thÃ nh cÃ´ng");
+                toast.success("Xóa phòng thành công");
                 fetchRooms();
             } catch (error) {
-                toast.error("Lá»—i khi xÃ³a phÃ²ng");
+                toast.error("Lỗi khi xóa phòng");
             }
         }
     };
@@ -121,7 +121,7 @@ export default function RoomsPage() {
             area: room.dienTich,
             capacity: room.sucChua,
             loaiPhong: room.loaiPhong,
-            dayPhong: room.idDayPhong ? `DÃ£y ${room.idDayPhong.soDay}` : undefined,
+            dayPhong: room.idDayPhong ? `Dãy ${room.idDayPhong.soDay}` : undefined,
             vatTu: room.vatTu
         };
     };
@@ -132,10 +132,10 @@ export default function RoomsPage() {
             <div className="flex flex-col items-center justify-center gap-8 sm:gap-10 bg-white p-6 sm:p-8 lg:p-12 rounded-[2rem] sm:rounded-[3.5rem] border border-slate-200 shadow-2xl shadow-slate-100/50 transition-all duration-500">
                 <div className="flex flex-col items-center text-center space-y-4 w-full">
                     <h1 className="text-3xl sm:text-4xl xl:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-                        Khu vá»±c <span className="text-blue-600">tÃ¬m phÃ²ng</span>
+                        Khu vực <span className="text-blue-600">tìm phòng</span>
                     </h1>
                     <p className="text-slate-500 font-semibold italic text-base sm:text-lg leading-relaxed max-w-md">
-                        Lá»c vÃ  tÃ¬m khÃ´ng gian sá»‘ng theo Ã½ muá»‘n cá»§a báº¡n
+                        Lọc và tìm không gian sống theo ý muốn của bạn
                     </p>
                 </div>
 
@@ -145,7 +145,7 @@ export default function RoomsPage() {
                         <Search size={22} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
                         <input
                             type="text"
-                            placeholder="TÃªn phÃ²ng, Ä‘á»‹a chá»‰..."
+                            placeholder="Tên phòng, địa chỉ..."
                             className="w-full pl-12 sm:pl-14 pr-4 sm:pr-6 py-3 sm:py-4 bg-slate-50/50 border-2 border-slate-100 rounded-3xl text-slate-800 font-bold placeholder:text-slate-300 focus:outline-none focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white transition-all text-base sm:text-lg shadow-sm"
                             value={filters.search}
                             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
@@ -158,7 +158,7 @@ export default function RoomsPage() {
                             className={`flex-1 md:flex-initial flex items-center justify-center gap-3 px-5 sm:px-8 py-3 sm:py-4 rounded-3xl font-black transition-all shadow-lg active:scale-95 text-base sm:text-lg ${showFilters ? "bg-blue-600 text-white shadow-blue-200" : "bg-white text-slate-600 border-2 border-slate-100 shadow-slate-50 hover:bg-slate-50"}`}
                         >
                             <Filter size={20} />
-                            <span>Bá»™ lá»c</span>
+                            <span>Bộ lọc</span>
                         </button>
 
                         {isAdmin && (
@@ -167,7 +167,7 @@ export default function RoomsPage() {
                                 className="flex-1 md:flex-initial flex items-center justify-center gap-3 bg-slate-900 px-5 sm:px-8 py-3 sm:py-4 rounded-3xl font-black text-white hover:bg-blue-600 hover:shadow-2xl hover:shadow-blue-200 transition-all shadow-xl shadow-slate-200 active:scale-95 text-base sm:text-lg"
                             >
                                 <Plus size={20} />
-                                <span>ThÃªm phÃ²ng</span>
+                                <span>Thêm phòng</span>
                             </button>
                         )}
                     </div>
@@ -179,51 +179,51 @@ export default function RoomsPage() {
                 <div className="bg-white p-5 sm:p-8 lg:p-10 rounded-[2rem] sm:rounded-[3rem] border border-slate-200 shadow-2xl shadow-slate-200/50 space-y-6 sm:space-y-10 animate-in slide-in-from-top-4 fade-in duration-500 overflow-hidden relative">
                     <div className="absolute top-0 left-0 w-2 h-full bg-blue-600"></div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-                        {/* Loai Phong */}
+                        {/* Loại phòng */}
                         <div className="space-y-3">
-                            <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Loáº¡i phÃ²ng</label>
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Loại phòng</label>
                             <select
                                 className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-700 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 transition-all appearance-none"
                                 value={filters.loaiPhong}
                                 onChange={(e) => setFilters({ ...filters, loaiPhong: e.target.value })}
                             >
-                                <option value="">Táº¥t cáº£ loáº¡i</option>
-                                <option value="Phong_Don">PhÃ²ng Ä‘Æ¡n</option>
-                                <option value="Phong_Doi">PhÃ²ng Ä‘Ã´i</option>
-                                <option value="Phong_O_Ghep">á»ž ghÃ©p</option>
+                                <option value="">Tất cả loại</option>
+                                <option value="Phong_Don">Phòng đơn</option>
+                                <option value="Phong_Doi">Phòng đôi</option>
+                                <option value="Phong_O_Ghep">Ở ghép</option>
                             </select>
                         </div>
 
-                        {/* Day Phong */}
+                        {/* Dãy / Tầng */}
                         <div className="space-y-3">
-                            <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">DÃ£y / Táº§ng</label>
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Dãy / Tầng</label>
                             <select
                                 className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-700 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 transition-all appearance-none"
                                 value={filters.idDayPhong}
                                 onChange={(e) => setFilters({ ...filters, idDayPhong: e.target.value })}
                             >
-                                <option value="">Táº¥t cáº£ dÃ£y</option>
+                                <option value="">Tất cả dãy</option>
                                 {dayPhongs.map(day => (
-                                    <option key={day._id} value={day._id}>DÃ£y {day.soDay} - {day.viTri}</option>
+                                    <option key={day._id} value={day._id}>Dãy {day.soDay} - {day.viTri}</option>
                                 ))}
                             </select>
                         </div>
 
-                        {/* Status */}
+                        {/* Trạng thái */}
                         <div className="space-y-3">
-                            <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Tráº¡ng thÃ¡i</label>
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Trạng thái</label>
                             <div className="flex p-1.5 bg-slate-50 border border-slate-200 rounded-2xl gap-2">
                                 <button
                                     onClick={() => setFilters({ ...filters, trangThai: "" })}
                                     className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${filters.trangThai === "" ? "bg-white text-blue-600 shadow-md" : "text-slate-400 hover:text-slate-600 hover:bg-white/50"}`}
                                 >
-                                    Táº¤T Cáº¢
+                                    TẤT CẢ
                                 </button>
                                 <button
                                     onClick={() => setFilters({ ...filters, trangThai: "Trong" })}
                                     className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${filters.trangThai === "Trong" ? "bg-white text-green-600 shadow-md" : "text-slate-400 hover:text-slate-600 hover:bg-white/50"}`}
                                 >
-                                    CÃ’N TRá»NG
+                                    CÒN TRỐNG
                                 </button>
                             </div>
                         </div>
@@ -235,7 +235,7 @@ export default function RoomsPage() {
                                 className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-black text-sm hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 active:scale-95"
                             >
                                 <RotateCcw size={18} />
-                                LÃ€M Má»šI Bá»˜ Lá»ŒC
+                                LÀM MỚI BỘ LỌC
                             </button>
                         </div>
                     </div>
@@ -243,24 +243,24 @@ export default function RoomsPage() {
                     {/* Price Range */}
                     <div className="pt-6 border-t border-slate-100">
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-                            <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1 mb-2 md:mb-0">Khoáº£ng giÃ¡ (VNÄ)</label>
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1 mb-2 md:mb-0">Khoảng giá (VNĐ)</label>
                             <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
-                                <span className="text-sm font-black text-blue-600">{Number(filters.minPrice || 0).toLocaleString()}Ä‘</span>
+                                <span className="text-sm font-black text-blue-600">{Number(filters.minPrice || 0).toLocaleString()}đ</span>
                                 <div className="w-8 h-px bg-slate-200"></div>
-                                <span className="text-sm font-black text-blue-600">{filters.maxPrice ? Number(filters.maxPrice).toLocaleString() : "KhÃ´ng giá»›i háº¡n"}Ä‘</span>
+                                <span className="text-sm font-black text-blue-600">{filters.maxPrice ? Number(filters.maxPrice).toLocaleString() : "Không giới hạn"}đ</span>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                             <input
                                 type="number"
-                                placeholder="Tá»«..."
+                                placeholder="Từ..."
                                 className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
                                 value={filters.minPrice}
                                 onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
                             />
                             <input
                                 type="number"
-                                placeholder="Äáº¿n..."
+                                placeholder="Đến..."
                                 className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
                                 value={filters.maxPrice}
                                 onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
@@ -276,7 +276,7 @@ export default function RoomsPage() {
                 loading ? (
                     <div className="flex flex-col items-center justify-center py-32">
                         <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6"></div>
-                        <p className="text-slate-500 font-black text-lg animate-pulse tracking-tight">Äang táº£i phÃ²ng phÃ¹ há»£p...</p>
+                        <p className="text-slate-500 font-black text-lg animate-pulse tracking-tight">Đang tải phòng phù hợp...</p>
                     </div>
                 ) : rooms.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
@@ -295,8 +295,8 @@ export default function RoomsPage() {
                         <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
                             <Search size={40} />
                         </div>
-                        <h3 className="text-2xl font-black text-slate-800 mb-2">KhÃ´ng tÃ¬m tháº¥y phÃ²ng</h3>
-                        <p className="text-slate-400 font-medium max-w-xs mx-auto">Vui lÃ²ng thá»­ Ä‘iá»u chá»‰nh láº¡i bá»™ lá»c hoáº·c tá»« khÃ³a tÃ¬m kiáº¿m cá»§a báº¡n.</p>
+                        <h3 className="text-2xl font-black text-slate-800 mb-2">Không tìm thấy phòng</h3>
+                        <p className="text-slate-400 font-medium max-w-xs mx-auto">Vui lòng thử điều chỉnh lại bộ lọc hoặc từ khóa tìm kiếm của bạn.</p>
                     </div>
                 )
             }
@@ -310,4 +310,3 @@ export default function RoomsPage() {
         </div>
     );
 }
-

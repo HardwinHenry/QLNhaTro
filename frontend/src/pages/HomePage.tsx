@@ -15,8 +15,8 @@ export default function HomePage() {
             const data = await roomService.getAllPhongs();
             setRooms(data);
         } catch (error) {
-            console.error("Lá»—i khi táº£i thÃ´ng tin:", error);
-            toast.error("KhÃ´ng thá»ƒ táº£i thÃ´ng tin trang chá»§");
+            console.error("Lỗi khi tải thông tin:", error);
+            toast.error("Không thể tải thông tin trang chủ");
         } finally {
             setLoading(false);
         }
@@ -30,7 +30,7 @@ export default function HomePage() {
         return (
             <div className="flex flex-col items-center justify-center h-96">
                 <Loader2 size={48} className="text-blue-600 animate-spin mb-4" />
-                <p className="text-slate-500 font-medium">Äang táº£i trang chá»§...</p>
+                <p className="text-slate-500 font-medium">Đang tải trang chủ...</p>
             </div>
         );
     }
@@ -41,17 +41,17 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white p-6 sm:p-8 lg:p-12 rounded-[2rem] sm:rounded-[3rem] shadow-xl shadow-slate-100 border border-slate-100 relative overflow-hidden group">
                 <div className="relative z-10 space-y-4">
                     <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight">
-                        ChÃ o má»«ng báº¡n <br />
-                        Ä‘áº¿n vá»›i <span className="text-blue-600">QL NhÃ  Trá»</span>
+                        Chào mừng bạn <br />
+                        đến với <span className="text-blue-600">QL Nhà Trọ</span>
                     </h1>
                     <p className="text-slate-500 font-medium text-base sm:text-lg max-w-lg leading-relaxed">
-                        Há»‡ thá»‘ng quáº£n lÃ½ phÃ²ng trá» hiá»‡n Ä‘áº¡i, chuyÃªn nghiá»‡p vÃ  dá»… sá»­ dá»¥ng nháº¥t.
-                        NÃ¢ng cao tráº£i nghiá»‡m sá»‘ng vÃ  quáº£n lÃ½ cá»§a báº¡n.
+                        Hệ thống quản lý phòng trọ hiện đại, chuyên nghiệp và dễ sử dụng nhất.
+                        Nâng cao trải nghiệm sống và quản lý của bạn.
                     </p>
                     <div className="pt-2 sm:pt-4 flex items-center">
                         <div className="flex items-center gap-3 bg-blue-50 px-4 sm:px-6 py-3 rounded-2xl border border-blue-100">
                             <LayoutGrid size={20} className="text-blue-600 sm:w-6 sm:h-6" />
-                            <span className="text-base sm:text-lg font-black text-slate-800">{rooms.length} PhÃ²ng Hiá»‡n CÃ³</span>
+                            <span className="text-base sm:text-lg font-black text-slate-800">{rooms.length} Phòng Hiện Có</span>
                         </div>
                     </div>
                 </div>
@@ -64,7 +64,7 @@ export default function HomePage() {
             {/* Boarding House Layout Section */}
             <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                    <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">SÆ¡ Ä‘á»“ tá»•ng thá»ƒ</h2>
+                    <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">Sơ đồ tổng thể</h2>
                     <div className="h-px bg-slate-200 flex-1"></div>
                 </div>
 
@@ -73,12 +73,12 @@ export default function HomePage() {
                         <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
                             <img
                                 src={resolveBackendAssetUrl("/SoDo.png")}
-                                alt="SÆ¡ Ä‘á»“ nhÃ  trá»"
+                                alt="Sơ đồ nhà trọ"
                                 className="w-full h-auto object-contain max-h-[600px] group-hover:scale-105 transition-transform duration-1000"
                             />
                         </div>
                         <div className="mt-8 text-center relative z-10">
-                            <p className="text-slate-500 font-medium italic">Sá»­ dá»¥ng má»¥c <strong>"Xem PhÃ²ng"</strong> á»Ÿ menu bÃªn trÃ¡i Ä‘á»ƒ quáº£n lÃ½ vÃ  xem chi tiáº¿t tá»«ng phÃ²ng.</p>
+                            <p className="text-slate-500 font-medium italic">Sử dụng mục <strong>"Xem Phòng"</strong> ở menu bên trái để quản lý và xem chi tiết từng phòng.</p>
                         </div>
                     </div>
                 </div>
@@ -86,4 +86,3 @@ export default function HomePage() {
         </div>
     );
 }
-

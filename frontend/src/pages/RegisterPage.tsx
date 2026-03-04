@@ -8,15 +8,15 @@ import { UserPlus, User, Lock, Phone, CreditCard, Loader2, Eye, EyeOff } from "l
 import { useState } from "react";
 
 const registerSchema = z.object({
-    hoVaTen: z.string().min(2, "Há» vÃ  tÃªn pháº£i cÃ³ Ã­t nháº¥t 2 kÃ½ tá»±"),
-    tenDangNhap: z.string().min(3, "TÃªn Ä‘Äƒng nháº­p pháº£i cÃ³ Ã­t nháº¥t 3 kÃ½ tá»±"),
+    hoVaTen: z.string().min(2, "Họ và tên phải có ít nhất 2 ký tự"),
+    tenDangNhap: z.string().min(3, "Tên đăng nhập phải có ít nhất 3 ký tự"),
     matKhau: z.string()
-        .min(6, "Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±")
-        .regex(/[A-Z]/, "Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 1 chá»¯ cÃ¡i in hoa")
-        .regex(/[0-9]/, "Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 1 chá»¯ sá»‘")
-        .regex(/[^A-Za-z0-9]/, "Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 1 kÃ½ tá»± Ä‘áº·c biá»‡t"),
-    sdt: z.string().min(10, "Sá»‘ Ä‘iá»‡n thoáº¡i khÃ´ng há»£p lá»‡"),
-    cccd: z.string().min(9, "CCCD khÃ´ng há»£p lá»‡"),
+        .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
+        .regex(/[A-Z]/, "Mật khẩu phải có ít nhất 1 chữ cái in hoa")
+        .regex(/[0-9]/, "Mật khẩu phải có ít nhất 1 chữ số")
+        .regex(/[^A-Za-z0-9]/, "Mật khẩu phải có ít nhất 1 ký tự đặc biệt"),
+    sdt: z.string().min(10, "Số điện thoại không hợp lệ"),
+    cccd: z.string().min(9, "CCCD không hợp lệ"),
     vaiTro: z.enum(["Chu_Tro", "Khach"]),
 });
 
@@ -40,10 +40,10 @@ export default function RegisterPage() {
         setLoading(true);
         try {
             await registerUser(data);
-            toast.success("ÄÄƒng kÃ½ thÃ nh cÃ´ng! Vui lÃ²ng Ä‘Äƒng nháº­p.");
+            toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
             navigate("/login");
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "ÄÄƒng kÃ½ tháº¥t báº¡i");
+            toast.error(error.response?.data?.message || "Đăng ký thất bại");
         } finally {
             setLoading(false);
         }
@@ -60,17 +60,17 @@ export default function RegisterPage() {
                                 <path d="M3 9.5L12 3l9 6.5V21H3V9.5z" />
                             </svg>
                         </div>
-                        <span className="text-white font-bold text-lg tracking-wide">QL NhÃ  Trá»</span>
+                        <span className="text-white font-bold text-lg tracking-wide">QL Nhà Trọ</span>
                     </div>
                     <h2 className="text-white text-3xl font-bold leading-snug mb-4">
-                        Táº¡o tÃ i khoáº£n<br />trong vÃ i giÃ¢y
+                        Tạo tài khoản<br />trong vài giây
                     </h2>
                     <p className="text-blue-200 text-sm leading-relaxed">
-                        ÄÄƒng kÃ½ Ä‘á»ƒ báº¯t Ä‘áº§u quáº£n lÃ½ phÃ²ng trá», theo dÃµi há»£p Ä‘á»“ng vÃ  hoÃ¡ Ä‘Æ¡n ngay hÃ´m nay.
+                        Đăng ký để bắt đầu quản lý phòng trọ, theo dõi hợp đồng và hoá đơn ngay hôm nay.
                     </p>
                 </div>
                 <div className="border-t border-blue-800 pt-6">
-                    <p className="text-blue-300 text-xs">Â© 2025 QL NhÃ  Trá». Báº£o lÆ°u má»i quyá»n.</p>
+                    <p className="text-blue-300 text-xs">© 2025 QL Nhà Trọ. Bảo lưu mọi quyền.</p>
                 </div>
             </div>
 
@@ -84,23 +84,23 @@ export default function RegisterPage() {
                                 <path d="M3 9.5L12 3l9 6.5V21H3V9.5z" />
                             </svg>
                         </div>
-                        <span className="font-bold text-blue-900 text-lg">QL NhÃ  Trá»</span>
+                        <span className="font-bold text-blue-900 text-lg">QL Nhà Trọ</span>
                     </div>
 
-                    <h1 className="text-2xl font-bold text-slate-800 mb-1">Táº¡o tÃ i khoáº£n</h1>
-                    <p className="text-slate-500 text-sm mb-7">Äiá»n Ä‘áº§y Ä‘á»§ thÃ´ng tin Ä‘á»ƒ hoÃ n táº¥t Ä‘Äƒng kÃ½</p>
+                    <h1 className="text-2xl font-bold text-slate-800 mb-1">Tạo tài khoản</h1>
+                    <p className="text-slate-500 text-sm mb-7">Điền đầy đủ thông tin để hoàn tất đăng ký</p>
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Há» vÃ  tÃªn
+                                Họ và tên
                             </label>
                             <div className="relative">
                                 <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                 <input
                                     {...register("hoVaTen")}
                                     className="w-full border border-slate-300 rounded bg-white pl-9 pr-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
-                                    placeholder="Nháº­p há» vÃ  tÃªn"
+                                    placeholder="Nhập họ và tên"
                                 />
                             </div>
                             {errors.hoVaTen && (
@@ -110,14 +110,14 @@ export default function RegisterPage() {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">
-                                TÃªn Ä‘Äƒng nháº­p
+                                Tên đăng nhập
                             </label>
                             <div className="relative">
                                 <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                 <input
                                     {...register("tenDangNhap")}
                                     className="w-full border border-slate-300 rounded bg-white pl-9 pr-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
-                                    placeholder="Nháº­p tÃªn Ä‘Äƒng nháº­p"
+                                    placeholder="Nhập tên đăng nhập"
                                 />
                             </div>
                             {errors.tenDangNhap && (
@@ -128,7 +128,7 @@ export default function RegisterPage() {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Máº­t kháº©u
+                                Mật khẩu
                             </label>
                             <div className="relative">
                                 <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -136,7 +136,7 @@ export default function RegisterPage() {
                                     type={showPassword ? "text" : "password"}
                                     {...register("matKhau")}
                                     className="w-full border border-slate-300 rounded bg-white pl-9 pr-10 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
-                                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                                    placeholder="••••••••"
                                 />
                                 <button
                                     type="button"
@@ -154,7 +154,7 @@ export default function RegisterPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                                    Sá»‘ Ä‘iá»‡n thoáº¡i
+                                    Số điện thoại
                                 </label>
                                 <div className="relative">
                                     <Phone size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -188,14 +188,14 @@ export default function RegisterPage() {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Báº¡n lÃ ?
+                                Bạn là?
                             </label>
                             <select
                                 {...register("vaiTro")}
                                 className="w-full border border-slate-300 rounded bg-white px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
                             >
-                                <option value="Khach">NgÆ°á»i Ä‘i thuÃª (KhÃ¡ch)</option>
-                                <option value="Chu_Tro">Chá»§ nhÃ  trá»</option>
+                                <option value="Khach">Người đi thuê (Khách)</option>
+                                <option value="Chu_Tro">Chủ nhà trọ</option>
                             </select>
                             {errors.vaiTro && (
                                 <p className="text-red-500 text-xs mt-1">{errors.vaiTro.message}</p>
@@ -211,16 +211,16 @@ export default function RegisterPage() {
                                 <Loader2 className="animate-spin" size={16} />
                             ) : (
                                 <>
-                                    <UserPlus size={16} /> Táº¡o tÃ i khoáº£n
+                                    <UserPlus size={16} /> Tạo tài khoản
                                 </>
                             )}
                         </button>
                     </form>
 
                     <p className="text-center text-slate-500 text-sm mt-6">
-                        ÄÃ£ cÃ³ tÃ i khoáº£n?{" "}
+                        Đã có tài khoản?{" "}
                         <Link to="/login" className="text-blue-700 hover:text-blue-800 font-medium">
-                            ÄÄƒng nháº­p
+                            Đăng nhập
                         </Link>
                     </p>
                 </div>

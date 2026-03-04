@@ -93,7 +93,7 @@ export default function AdminDashboardPage() {
                 tongDoanhThu: invoices.reduce((acc, inv) => acc + (inv.trangThai === "Da_Thanh_Toan" ? inv.tongTien : 0), 0)
             });
         } catch (error) {
-            toast.error("Lá»—i khi táº£i dá»¯ liá»‡u");
+            toast.error("Lỗi khi tải dữ liệu");
         } finally {
             setLoading(false);
         }
@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
             });
             setIsUtilityModalOpen(true);
         } catch (error) {
-            toast.error("Lá»—i khi táº£i chá»‰ sá»‘ cÅ©");
+            toast.error("Lỗi khi tải chỉ số cũ");
         }
     };
 
@@ -131,20 +131,20 @@ export default function AdminDashboardPage() {
                 chiSoNuocCu: utilityForm.nuocCu,
                 chiSoNuocMoi: utilityForm.nuocMoi
             });
-            toast.success("Cáº­p nháº­t Ä‘iá»‡n nÆ°á»›c thÃ nh cÃ´ng");
+            toast.success("Cập nhật điện nước thành công");
             setIsUtilityModalOpen(false);
             fetchData();
         } catch (error) {
-            toast.error("Lá»—i khi cáº­p nháº­t chá»‰ sá»‘");
+            toast.error("Lỗi khi cập nhật chỉ số");
         }
     };
 
     const handleSendReminder = async (invoiceId: string) => {
         try {
             await invoiceService.requestPayment(invoiceId);
-            toast.success("ÄÃ£ gá»­i nháº¯c nhá»Ÿ thanh toÃ¡n");
+            toast.success("Đã gửi nhắc nhở thanh toán");
         } catch (error) {
-            toast.error("Lá»—i khi gá»­i nháº¯c nhá»Ÿ");
+            toast.error("Lỗi khi gửi nhắc nhở");
         }
     };
 
@@ -160,32 +160,32 @@ export default function AdminDashboardPage() {
 
     const handleDeleteDayPhong = async (id: string) => {
         const result = await Swal.fire({
-            title: "XÃ¡c nháº­n xÃ³a?",
-            text: "DÃ£y/táº§ng nÃ y sáº½ bá»‹ xÃ³a vÄ©nh viá»…n vÃ  cÃ³ thá»ƒ áº£nh hÆ°á»Ÿng Ä‘áº¿n cÃ¡c phÃ²ng liÃªn quan!",
+            title: "Xác nhận xóa?",
+            text: "Dãy/tầng này sẽ bị xóa vĩnh viễn và có thể ảnh hưởng đến các phòng liên quan!",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#e11d48",
             cancelButtonColor: "#64748b",
-            confirmButtonText: "XÃ³a ngay",
-            cancelButtonText: "Há»§y"
+            confirmButtonText: "Xóa ngay",
+            cancelButtonText: "Hủy"
         });
 
         if (result.isConfirmed) {
             try {
                 await dayPhongService.deleteDayPhong(id);
-                toast.success("XÃ³a dÃ£y/táº§ng thÃ nh cÃ´ng");
+                toast.success("Xóa dãy/tầng thành công");
                 fetchData();
             } catch (error) {
-                toast.error("KhÃ´ng thá»ƒ xÃ³a dÃ£y/táº§ng");
+                toast.error("Không thể xóa dãy/tầng");
             }
         }
     };
 
     const statsCards = [
-        { label: "Tá»•ng phÃ²ng", value: stats.tongPhong.toString(), icon: DoorOpen, color: "text-blue-600", bg: "bg-blue-50", trend: "+2", colorCode: "#2563eb" },
-        { label: "PhÃ²ng trá»‘ng", value: stats.phongTrong.toString(), icon: LayoutDashboard, color: "text-emerald-600", bg: "bg-emerald-50", trend: "-1", colorCode: "#059669" },
-        { label: "Há»£p Ä‘á»“ng", value: stats.tongHopDong.toString(), icon: FileText, color: "text-indigo-600", bg: "bg-indigo-50", trend: "+4", colorCode: "#4f46e5" },
-        { label: "KhÃ¡ch thuÃª", value: stats.tongKhach.toString(), icon: Users, color: "text-rose-600", bg: "bg-rose-50", trend: "0", colorCode: "#e11d48" },
+        { label: "Tổng phòng", value: stats.tongPhong.toString(), icon: DoorOpen, color: "text-blue-600", bg: "bg-blue-50", trend: "+2", colorCode: "#2563eb" },
+        { label: "Phòng trống", value: stats.phongTrong.toString(), icon: LayoutDashboard, color: "text-emerald-600", bg: "bg-emerald-50", trend: "-1", colorCode: "#059669" },
+        { label: "Hợp đồng", value: stats.tongHopDong.toString(), icon: FileText, color: "text-indigo-600", bg: "bg-indigo-50", trend: "+4", colorCode: "#4f46e5" },
+        { label: "Khách thuê", value: stats.tongKhach.toString(), icon: Users, color: "text-rose-600", bg: "bg-rose-50", trend: "0", colorCode: "#e11d48" },
         { label: "Doanh thu", value: (stats.tongDoanhThu / 1000000).toFixed(1) + "M", icon: Wallet, color: "text-amber-600", bg: "bg-amber-50", trend: "+12%", colorCode: "#d97706" },
     ];
 
@@ -200,7 +200,7 @@ export default function AdminDashboardPage() {
                         <div className="w-10 h-10 bg-black rounded-2xl flex items-center justify-center text-white">
                             <BarChart3 size={24} />
                         </div>
-                        Báº£ng Ä‘iá»u khiá»ƒn
+                        Bảng điều khiển
                     </h1>
                 </div>
             </div>
@@ -228,8 +228,8 @@ export default function AdminDashboardPage() {
             <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 lg:col-span-2">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                        <h2 className="text-2xl font-black text-slate-800">PhÃ²ng Ä‘ang thuÃª</h2>
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">Quáº£n lÃ½ cÃ¡c phÃ²ng cÃ³ khÃ¡ch á»Ÿ vÃ  theo dÃµi cÃ´ng ná»£</p>
+                        <h2 className="text-2xl font-black text-slate-800">Phòng đang thuê</h2>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">Quản lý các phòng có khách ở và theo dõi công nợ</p>
                     </div>
                 </div>
 
@@ -237,11 +237,11 @@ export default function AdminDashboardPage() {
                     <table className="w-full min-w-[720px] text-left border-separate border-spacing-y-4">
                         <thead>
                             <tr className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                                <th className="px-6 py-2">PhÃ²ng</th>
-                                <th className="px-6 py-2">KhÃ¡ch thuÃª</th>
-                                <th className="px-6 py-2">Chá»‰ sá»‘ cÅ©</th>
-                                <th className="px-6 py-2">Thanh toÃ¡n</th>
-                                <th className="px-6 py-2">HÃ nh Ä‘á»™ng</th>
+                                <th className="px-6 py-2">Phòng</th>
+                                <th className="px-6 py-2">Khách thuê</th>
+                                <th className="px-6 py-2">Chỉ số cũ</th>
+                                <th className="px-6 py-2">Thanh toán</th>
+                                <th className="px-6 py-2">Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -261,19 +261,19 @@ export default function AdminDashboardPage() {
                                     <td className="px-6 py-4 border-y border-slate-100">
                                         <div className="flex flex-col gap-1 text-slate-400 italic">
                                             <span className="text-[10px] font-black flex items-center gap-1 uppercase">--- kWh</span>
-                                            <span className="text-[10px] font-black flex items-center gap-1 uppercase">--- mÂ³</span>
+                                            <span className="text-[10px] font-black flex items-center gap-1 uppercase">--- m³</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 border-y border-slate-100">
                                         {room.unpaidInvoice ? (
                                             <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 rounded-full w-fit border border-amber-100 text-amber-600">
                                                 <Receipt size={12} />
-                                                <span className="text-xs font-black uppercase">ChÆ°a Ä‘Ã³ng</span>
+                                                <span className="text-xs font-black uppercase">Chưa đóng</span>
                                             </div>
                                         ) : (
                                             <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 rounded-full w-fit border border-emerald-100 text-emerald-600">
                                                 <CheckCircle2 size={12} />
-                                                <span className="text-xs font-black uppercase">HoÃ n táº¥t</span>
+                                                <span className="text-xs font-black uppercase">Hoàn tất</span>
                                             </div>
                                         )}
                                     </td>
@@ -282,7 +282,7 @@ export default function AdminDashboardPage() {
                                             <button
                                                 onClick={() => handleOpenUtilityModal(room)}
                                                 className="p-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-black hover:text-white transition-all shadow-sm group-hover:border-black"
-                                                title="Cáº­p nháº­t Ä‘iá»‡n nÆ°á»›c"
+                                                title="Cập nhật điện nước"
                                             >
                                                 <Zap size={14} />
                                             </button>
@@ -290,7 +290,7 @@ export default function AdminDashboardPage() {
                                                 <button
                                                     onClick={() => handleSendReminder(room.unpaidInvoice!._id)}
                                                     className="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm"
-                                                    title="Nháº¯c nhá»Ÿ thanh toÃ¡n"
+                                                    title="Nhắc nhở thanh toán"
                                                 >
                                                     <BellRing size={14} />
                                                 </button>
@@ -300,7 +300,7 @@ export default function AdminDashboardPage() {
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td colSpan={5} className="text-center py-12 text-slate-400 italic">Hiá»‡n khÃ´ng cÃ³ phÃ²ng nÃ o Ä‘ang thuÃª</td>
+                                    <td colSpan={5} className="text-center py-12 text-slate-400 italic">Hiện không có phòng nào đang thuê</td>
                                 </tr>
                             )}
                         </tbody>
@@ -312,8 +312,8 @@ export default function AdminDashboardPage() {
             <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 lg:col-span-2">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                        <h2 className="text-2xl font-black text-slate-800">Quáº£n lÃ½ dÃ£y & táº§ng</h2>
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">ThÃªm, sá»­a, xÃ³a vÃ  quáº£n lÃ½ hÃ¬nh áº£nh khu vá»±c</p>
+                        <h2 className="text-2xl font-black text-slate-800">Quản lý dãy & tầng</h2>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">Thêm, sửa, xóa và quản lý hình ảnh khu vực</p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3">
                         <button
@@ -321,7 +321,7 @@ export default function AdminDashboardPage() {
                             className="flex items-center justify-center gap-2 bg-slate-900 px-4 py-2 rounded-xl text-sm font-bold text-white hover:bg-black transition-all shadow-lg w-full sm:w-auto"
                         >
                             <Plus size={18} />
-                            ThÃªm dÃ£y/táº§ng
+                            Thêm dãy/tầng
                         </button>
                     </div>
                 </div>
@@ -340,7 +340,7 @@ export default function AdminDashboardPage() {
                                     </div>
                                 )}
                                 <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase text-slate-900 shadow-sm">
-                                    Táº§ng {dp.tang} - DÃ£y {dp.soDay}
+                                    Tầng {dp.tang} - Dãy {dp.soDay}
                                 </div>
                             </div>
                             <div className="p-6">
@@ -350,7 +350,7 @@ export default function AdminDashboardPage() {
                                         onClick={() => handleEditDayPhong(dp)}
                                         className="flex-1 flex items-center justify-center gap-2 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all"
                                     >
-                                        <Edit3 size={14} /> Sá»­a
+                                        <Edit3 size={14} /> Sửa
                                     </button>
                                     <button
                                         onClick={() => handleDeleteDayPhong(dp._id)}
@@ -363,7 +363,7 @@ export default function AdminDashboardPage() {
                         </div>
                     )) : (
                         <div className="col-span-full py-12 text-center text-slate-400 italic bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                            ChÆ°a cÃ³ dÃ£y/táº§ng nÃ o Ä‘Æ°á»£c táº¡o
+                            Chưa có dãy/tầng nào được tạo
                         </div>
                     )}
                 </div>
@@ -378,18 +378,18 @@ export default function AdminDashboardPage() {
                         <div className="bg-white rounded-[2rem] p-5 sm:p-8 w-full max-w-lg shadow-2xl relative">
                             <button onClick={() => setIsUtilityModalOpen(false)} className="absolute top-6 right-6 p-2 hover:bg-slate-50 rounded-full"><X size={20} /></button>
                             <div className="mb-6">
-                                <h3 className="text-2xl font-black">Cáº­p nháº­t chá»‰ sá»‘ - {utilityForm.roomName}</h3>
-                                <p className="text-sm text-slate-400 font-bold">ThÃ¡ng {utilityForm.thang}</p>
+                                <h3 className="text-2xl font-black">Cập nhật chỉ số - {utilityForm.roomName}</h3>
+                                <p className="text-sm text-slate-400 font-bold">Tháng {utilityForm.thang}</p>
                             </div>
 
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <div className="space-y-4 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
                                         <h4 className="text-xs font-black text-blue-700 uppercase tracking-widest flex items-center gap-2">
-                                            <Zap size={14} /> Äiá»‡n (kWh)
+                                            <Zap size={14} /> Điện (kWh)
                                         </h4>
                                         <div>
-                                            <label className="block text-[10px] font-bold text-slate-400 mb-1">Sá»‘ cÅ©: {utilityForm.dienCu}</label>
+                                            <label className="block text-[10px] font-bold text-slate-400 mb-1">Số cũ: {utilityForm.dienCu}</label>
                                             <input
                                                 type="number"
                                                 className="w-full bg-white border border-blue-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
@@ -400,10 +400,10 @@ export default function AdminDashboardPage() {
                                     </div>
                                     <div className="space-y-4 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
                                         <h4 className="text-xs font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2">
-                                            <Droplets size={14} /> NÆ°á»›c (mÂ³)
+                                            <Droplets size={14} /> Nước (m³)
                                         </h4>
                                         <div>
-                                            <label className="block text-[10px] font-bold text-slate-400 mb-1">Sá»‘ cÅ©: {utilityForm.nuocCu}</label>
+                                            <label className="block text-[10px] font-bold text-slate-400 mb-1">Số cũ: {utilityForm.nuocCu}</label>
                                             <input
                                                 type="number"
                                                 className="w-full bg-white border border-emerald-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
@@ -419,13 +419,13 @@ export default function AdminDashboardPage() {
                                         onClick={() => setIsUtilityModalOpen(false)}
                                         className="flex-1 px-6 py-4 border border-slate-200 text-slate-600 font-black rounded-2xl hover:bg-slate-50 transition-all font-sans"
                                     >
-                                        Há»§y
+                                        Hủy
                                     </button>
                                     <button
                                         onClick={handleSaveUtilities}
                                         className="flex-[2] px-10 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black transition-all shadow-xl font-sans"
                                     >
-                                        LÆ°u chá»‰ sá»‘
+                                        Lưu chỉ số
                                     </button>
                                 </div>
                             </div>
@@ -443,4 +443,3 @@ export default function AdminDashboardPage() {
         </div >
     );
 }
-

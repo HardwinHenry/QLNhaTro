@@ -30,7 +30,7 @@ export default function BookingsPage() {
             const data = await bookingService.getAllBookings();
             setBookings(data);
         } catch (error) {
-            toast.error("KhÃ´ng thá»ƒ táº£i danh sÃ¡ch yÃªu cáº§u");
+            toast.error("Không thể tải danh sách yêu cầu");
         } finally {
             setLoading(false);
         }
@@ -43,42 +43,42 @@ export default function BookingsPage() {
     const handleConfirm = async (id: string) => {
         try {
             await bookingService.confirmBooking(id);
-            toast.success("ÄÃ£ xÃ¡c nháº­n lá»‹ch háº¹n");
+            toast.success("Đã xác nhận lịch hẹn");
             fetchBookings();
         } catch (error) {
-            toast.error("Lá»—i khi xÃ¡c nháº­n");
+            toast.error("Lỗi khi xác nhận");
         }
     };
 
     const handleCancel = async (id: string) => {
         try {
             await bookingService.cancelBooking(id);
-            toast.success("ÄÃ£ há»§y lá»‹ch háº¹n");
+            toast.success("Đã hủy lịch hẹn");
             fetchBookings();
         } catch (error) {
-            toast.error("Lá»—i khi há»§y");
+            toast.error("Lỗi khi hủy");
         }
     };
 
     const handleDelete = async (id: string) => {
         const result = await Swal.fire({
-            title: "XÃ¡c nháº­n xÃ³a?",
-            text: "Báº¡n khÃ´ng thá»ƒ hoÃ n tÃ¡c sau khi xÃ³a!",
+            title: "Xác nhận xóa?",
+            text: "Bạn không thể hoàn tác sau khi xóa!",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#3085d6",
             cancelButtonColor: "#d33",
-            confirmButtonText: "Äá»“ng Ã½, xÃ³a nÃ³!",
-            cancelButtonText: "Há»§y"
+            confirmButtonText: "Đồng ý, xóa nó!",
+            cancelButtonText: "Hủy"
         });
 
         if (result.isConfirmed) {
             try {
                 await bookingService.deleteBooking(id);
-                toast.success("ÄÃ£ xÃ³a lá»‹ch háº¹n");
+                toast.success("Đã xóa lịch hẹn");
                 fetchBookings();
             } catch (error) {
-                toast.error("Lá»—i khi xÃ³a");
+                toast.error("Lỗi khi xóa");
             }
         }
     };
@@ -92,11 +92,11 @@ export default function BookingsPage() {
                 ngayDat: editingBooking.ngayDat,
                 ghiChu: editingBooking.ghiChu
             });
-            toast.success("Cáº­p nháº­t thÃ nh cÃ´ng");
+            toast.success("Cập nhật thành công");
             setEditingBooking(null);
             fetchBookings();
         } catch (error) {
-            toast.error("Lá»—i khi cáº­p nháº­t");
+            toast.error("Lỗi khi cập nhật");
         }
     };
 
@@ -116,9 +116,9 @@ export default function BookingsPage() {
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case "Cho_Xac_Nhan": return "Chá» xÃ¡c nháº­n";
-            case "Da_Xac_Nhan": return "ÄÃ£ xÃ¡c nháº­n";
-            case "Da_Huy": return "ÄÃ£ há»§y";
+            case "Cho_Xac_Nhan": return "Chờ xác nhận";
+            case "Da_Xac_Nhan": return "Đã xác nhận";
+            case "Da_Huy": return "Đã hủy";
             default: return status;
         }
     };
@@ -128,17 +128,17 @@ export default function BookingsPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800 tracking-tight">
-                        Lá»‹ch xem phÃ²ng
+                        Lịch xem phòng
                     </h1>
                     <p className="text-slate-500 mt-1 font-medium italic">
-                        Quáº£n lÃ½ cÃ¡c yÃªu cáº§u háº¹n xem phÃ²ng tá»« khÃ¡ch hÃ ng
+                        Quản lý các yêu cầu hẹn xem phòng từ khách hàng
                     </p>
                 </div>
                 <div className="relative w-full md:w-auto">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
                         type="text"
-                        placeholder="TÃ¬m theo tÃªn khÃ¡ch, phÃ²ng..."
+                        placeholder="Tìm theo tên khách, phòng..."
                         className="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 w-full md:w-80 font-medium"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -149,7 +149,7 @@ export default function BookingsPage() {
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20">
                     <Loader2 size={40} className="text-blue-600 animate-spin mb-4" />
-                    <p className="text-slate-500 font-medium font-sans italic">Äang táº£i dá»¯ liá»‡u...</p>
+                    <p className="text-slate-500 font-medium font-sans italic">Đang tải dữ liệu...</p>
                 </div>
             ) : filteredBookings.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -160,14 +160,14 @@ export default function BookingsPage() {
                                     <button
                                         onClick={() => setEditingBooking({ ...booking })}
                                         className="p-2 bg-white/80 backdrop-blur shadow-sm border border-slate-100 rounded-full text-blue-600 hover:bg-blue-600 hover:text-white transition-all"
-                                        title="Chá»‰nh sá»­a"
+                                        title="Chỉnh sửa"
                                     >
                                         <Edit2 size={16} />
                                     </button>
                                     <button
                                         onClick={() => handleDelete(booking._id)}
                                         className="p-2 bg-white/80 backdrop-blur shadow-sm border border-slate-100 rounded-full text-red-600 hover:bg-red-600 hover:text-white transition-all"
-                                        title="XÃ³a"
+                                        title="Xóa"
                                     >
                                         <Trash2 size={16} />
                                     </button>
@@ -189,8 +189,8 @@ export default function BookingsPage() {
                                             <User size={20} />
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">KhÃ¡ch hÃ ng</p>
-                                            <p className="font-bold text-slate-800">{booking.idKhach?.hoVaTen || "KhÃ¡ch áº©n danh"}</p>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Khách hàng</p>
+                                            <p className="font-bold text-slate-800">{booking.idKhach?.hoVaTen || "Khách ẩn danh"}</p>
                                         </div>
                                     </div>
 
@@ -199,8 +199,8 @@ export default function BookingsPage() {
                                             <Home size={20} />
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">PhÃ²ng Ä‘Äƒng kÃ½</p>
-                                            <p className="font-bold text-slate-800">{booking.idPhong?.tenPhong || "PhÃ²ng Ä‘Ã£ xÃ³a"}</p>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Phòng đăng ký</p>
+                                            <p className="font-bold text-slate-800">{booking.idPhong?.tenPhong || "Phòng đã xóa"}</p>
                                         </div>
                                     </div>
 
@@ -209,7 +209,7 @@ export default function BookingsPage() {
                                             <Calendar size={20} />
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">NgÃ y háº¹n xem</p>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Ngày hẹn xem</p>
                                             <p className="font-bold text-slate-800">{new Date(booking.ngayDat).toLocaleDateString("vi-VN")}</p>
                                         </div>
                                     </div>
@@ -220,7 +220,7 @@ export default function BookingsPage() {
                                                 <Phone size={20} />
                                             </div>
                                             <div>
-                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Sá»‘ Ä‘iá»‡n thoáº¡i</p>
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Số điện thoại</p>
                                                 <p className="font-bold text-slate-800">{booking.idKhach.sdt}</p>
                                             </div>
                                         </div>
@@ -239,13 +239,13 @@ export default function BookingsPage() {
                                             onClick={() => handleConfirm(booking._id)}
                                             className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
                                         >
-                                            <CheckCircle2 size={16} /> XÃ¡c nháº­n
+                                            <CheckCircle2 size={16} /> Xác nhận
                                         </button>
                                         <button
                                             onClick={() => handleCancel(booking._id)}
                                             className="flex-1 bg-slate-100 text-slate-600 py-2.5 rounded-xl font-bold text-sm hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center gap-2"
                                         >
-                                            <XCircle size={16} /> Há»§y bá»
+                                            <XCircle size={16} /> Hủy bỏ
                                         </button>
                                     </div>
                                 )}
@@ -255,7 +255,7 @@ export default function BookingsPage() {
                 </div>
             ) : (
                 <div className="text-center py-20 bg-white border border-dashed border-slate-300 rounded-3xl">
-                    <p className="text-slate-400 font-medium italic">KhÃ´ng cÃ³ yÃªu cáº§u nÃ o phÃ¹ há»£p.</p>
+                    <p className="text-slate-400 font-medium italic">Không có yêu cầu nào phù hợp.</p>
                 </div>
             )}
 
@@ -264,12 +264,12 @@ export default function BookingsPage() {
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
                         <div className="p-6 border-b border-slate-100">
-                            <h2 className="text-xl font-black text-slate-800">Cáº­p nháº­t lá»‹ch xem phÃ²ng</h2>
-                            <p className="text-sm text-slate-500 italic mt-1 font-medium">Thay Ä‘á»•i thÃ´ng tin lá»‹ch háº¹n</p>
+                            <h2 className="text-xl font-black text-slate-800">Cập nhật lịch xem phòng</h2>
+                            <p className="text-sm text-slate-500 italic mt-1 font-medium">Thay đổi thông tin lịch hẹn</p>
                         </div>
                         <form onSubmit={handleUpdate} className="p-5 sm:p-6 space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">NgÃ y háº¹n xem</label>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Ngày hẹn xem</label>
                                 <input
                                     type="date"
                                     required
@@ -279,12 +279,12 @@ export default function BookingsPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Ghi chÃº</label>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Ghi chú</label>
                                 <textarea
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium text-slate-800 h-24 resize-none"
                                     value={editingBooking.ghiChu}
                                     onChange={(e) => setEditingBooking({ ...editingBooking, ghiChu: e.target.value })}
-                                    placeholder="ThÃªm ghi chÃº..."
+                                    placeholder="Thêm ghi chú..."
                                 />
                             </div>
                             <div className="flex gap-3 pt-2">
@@ -293,13 +293,13 @@ export default function BookingsPage() {
                                     onClick={() => setEditingBooking(null)}
                                     className="flex-1 px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all"
                                 >
-                                    Há»§y
+                                    Hủy
                                 </button>
                                 <button
                                     type="submit"
                                     className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all"
                                 >
-                                    LÆ°u thay Ä‘á»•i
+                                    Lưu thay đổi
                                 </button>
                             </div>
                         </form>
@@ -309,4 +309,3 @@ export default function BookingsPage() {
         </div>
     );
 }
-

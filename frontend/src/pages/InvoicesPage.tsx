@@ -37,7 +37,7 @@ export default function InvoicesPage() {
             const data = await invoiceService.getAllHoaDons();
             setInvoices(data);
         } catch (error) {
-            console.error("Lá»—i khi táº£i hÃ³a Ä‘Æ¡n:", error);
+            console.error("Lỗi khi tải hóa đơn:", error);
         } finally {
             setLoading(false);
         }
@@ -131,11 +131,11 @@ export default function InvoicesPage() {
                 tongTien: tongTien || (tienPhong + tienDien + tienNuoc + tienDichVu),
                 trangThai: "Chua_Thanh_Toan"
             });
-            alert("Táº¡o hÃ³a Ä‘Æ¡n thÃ nh cÃ´ng");
+            alert("Tạo hóa đơn thành công");
             setIsCreateModalOpen(false);
             fetchInvoices();
         } catch (error) {
-            alert("Lá»—i khi táº¡o hÃ³a Ä‘Æ¡n");
+            alert("Lỗi khi tạo hóa đơn");
         }
     };
 
@@ -144,20 +144,20 @@ export default function InvoicesPage() {
             const res = await invoiceService.requestPayment(id);
             alert(res.message);
         } catch (error) {
-            alert("Lá»—i khi gá»­i yÃªu cáº§u");
+            alert("Lỗi khi gửi yêu cầu");
         }
     };
 
     const handleDeleteInvoice = async (id: string) => {
-        if (!window.confirm("Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n xÃ³a hÃ³a Ä‘Æ¡n nÃ y? HÃ nh Ä‘á»™ng nÃ y khÃ´ng thá»ƒ hoÃ n tÃ¡c.")) return;
+        if (!window.confirm("Bạn có chắc chắn muốn xóa hóa đơn này? Hành động này không thể hoàn tác.")) return;
 
         setIsDeleting(id);
         try {
             await invoiceService.deleteHoaDon(id);
-            alert("XÃ³a hÃ³a Ä‘Æ¡n thÃ nh cÃ´ng");
+            alert("Xóa hóa đơn thành công");
             fetchInvoices();
         } catch (error) {
-            alert("Lá»—i khi xÃ³a hÃ³a Ä‘Æ¡n");
+            alert("Lỗi khi xóa hóa đơn");
         } finally {
             setIsDeleting(null);
         }
@@ -193,11 +193,11 @@ export default function InvoicesPage() {
                 tienDichVu,
                 tongTien
             });
-            alert("Cáº­p nháº­t hÃ³a Ä‘Æ¡n thÃ nh cÃ´ng");
+            alert("Cập nhật hóa đơn thành công");
             setIsEditModalOpen(false);
             fetchInvoices();
         } catch (error) {
-            alert("Lá»—i khi cáº­p nháº­t hÃ³a Ä‘Æ¡n");
+            alert("Lỗi khi cập nhật hóa đơn");
         }
     };
 
@@ -213,14 +213,14 @@ export default function InvoicesPage() {
     };
 
     const getStatusLabel = (status: string) => {
-        return status === "Da_Thanh_Toan" ? "ÄÃ£ thanh toÃ¡n" : "ChÆ°a thanh toÃ¡n";
+        return status === "Da_Thanh_Toan" ? "Đã thanh toán" : "Chưa thanh toán";
     };
 
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-96">
                 <Loader2 size={48} className="text-blue-600 animate-spin mb-4" />
-                <p className="text-slate-500 font-medium">Äang táº£i danh sÃ¡ch hÃ³a Ä‘Æ¡n...</p>
+                <p className="text-slate-500 font-medium">Đang tải danh sách hóa đơn...</p>
             </div>
         );
     }
@@ -229,8 +229,8 @@ export default function InvoicesPage() {
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-800 tracking-tight">HÃ³a Ä‘Æ¡n</h1>
-                    <p className="text-slate-500 mt-1 font-medium italic">Quáº£n lÃ½ cÃ¡c khoáº£n thanh toÃ¡n cá»§a báº¡n</p>
+                    <h1 className="text-3xl font-black text-slate-800 tracking-tight">Hóa đơn</h1>
+                    <p className="text-slate-500 mt-1 font-medium italic">Quản lý các khoản thanh toán của bạn</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     {isAdmin && (
@@ -239,14 +239,14 @@ export default function InvoicesPage() {
                             className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-black hover:bg-black transition-all shadow-lg shadow-slate-200"
                         >
                             <Plus size={18} />
-                            Táº¡o hÃ³a Ä‘Æ¡n
+                            Tạo hóa đơn
                         </button>
                     )}
                     <div className="relative w-full sm:w-auto">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
-                            placeholder="TÃ¬m kiáº¿m hÃ³a Ä‘Æ¡n..."
+                            placeholder="Tìm kiếm hóa đơn..."
                             className="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all w-full sm:w-64 shadow-sm"
                         />
                     </div>
@@ -258,12 +258,12 @@ export default function InvoicesPage() {
                     <table className="w-full min-w-[900px] text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50/50">
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">HÃ³a Ä‘Æ¡n</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">PhÃ²ng</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thá»i gian</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Tá»•ng tiá»n</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Tráº¡ng thÃ¡i</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thao tÃ¡c</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Hóa đơn</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Phòng</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thời gian</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Tổng tiền</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Trạng thái</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -277,7 +277,7 @@ export default function InvoicesPage() {
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-slate-800 text-sm">#INV-{invoice._id.slice(-6).toUpperCase()}</p>
-                                                    <p className="text-[10px] text-slate-400 font-medium">Táº¡o ngÃ y: {new Date(invoice.createdAt).toLocaleDateString("vi-VN")}</p>
+                                                    <p className="text-[10px] text-slate-400 font-medium">Tạo ngày: {new Date(invoice.createdAt).toLocaleDateString("vi-VN")}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -291,7 +291,7 @@ export default function InvoicesPage() {
                                         </td>
 
                                         <td className="px-6 py-4">
-                                            <p className="text-sm font-black text-blue-600">{invoice.tongTien.toLocaleString("vi-VN")}Ä‘</p>
+                                            <p className="text-sm font-black text-blue-600">{invoice.tongTien.toLocaleString("vi-VN")}đ</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border ${getStatusStyle(invoice.trangThai)}`}>
@@ -308,7 +308,7 @@ export default function InvoicesPage() {
                                                     }}
                                                     className="text-blue-600 hover:text-blue-800 text-sm font-bold transition-colors"
                                                 >
-                                                    Chi tiáº¿t
+                                                    Chi tiết
                                                 </button>
                                                 {isAdmin && (
                                                     <div className="flex items-center gap-1">
@@ -316,7 +316,7 @@ export default function InvoicesPage() {
                                                             <button
                                                                 onClick={() => handleRequestPayment(invoice._id)}
                                                                 className="flex items-center gap-1 bg-amber-50 text-amber-600 px-2.5 py-1 rounded-lg text-xs font-black hover:bg-amber-100 transition-all border border-amber-200"
-                                                                title="Gá»­i yÃªu cáº§u thanh toÃ¡n"
+                                                                title="Gửi yêu cầu thanh toán"
                                                             >
                                                                 <Send size={12} />
                                                             </button>
@@ -324,7 +324,7 @@ export default function InvoicesPage() {
                                                         <button
                                                             onClick={() => handleOpenEdit(invoice)}
                                                             className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                                                            title="Sá»­a"
+                                                            title="Sửa"
                                                         >
                                                             <Edit2 size={16} />
                                                         </button>
@@ -332,7 +332,7 @@ export default function InvoicesPage() {
                                                             onClick={() => handleDeleteInvoice(invoice._id)}
                                                             disabled={isDeleting === invoice._id}
                                                             className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                            title="XÃ³a"
+                                                            title="Xóa"
                                                         >
                                                             {isDeleting === invoice._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                                                         </button>
@@ -349,7 +349,7 @@ export default function InvoicesPage() {
                                             <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-dashed border-slate-200">
                                                 <Receipt size={32} className="text-slate-300" />
                                             </div>
-                                            <p className="text-slate-400 font-medium">Báº¡n chÆ°a cÃ³ hÃ³a Ä‘Æ¡n nÃ o.</p>
+                                            <p className="text-slate-400 font-medium">Bạn chưa có hóa đơn nào.</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -366,7 +366,7 @@ export default function InvoicesPage() {
                         <div className="p-4 sm:p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                             <h2 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-3">
                                 <Plus size={24} className="text-blue-600" />
-                                Táº¡o hÃ³a Ä‘Æ¡n má»›i
+                                Tạo hóa đơn mới
                             </h2>
                             <button onClick={() => setIsCreateModalOpen(false)} className="p-2 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200">
                                 <X size={20} className="text-slate-400" />
@@ -376,14 +376,14 @@ export default function InvoicesPage() {
                         <form onSubmit={handleCreateInvoice} className="p-4 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Há»£p Ä‘á»“ng / PhÃ²ng</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Hợp đồng / Phòng</label>
                                     <select
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
                                         value={selectedContract}
                                         onChange={(e) => handleContractChange(e.target.value)}
                                         required
                                     >
-                                        <option value="">-- Chá»n há»£p Ä‘á»“ng --</option>
+                                        <option value="">-- Chọn hợp đồng --</option>
                                         {contracts.map(c => (
                                             <option key={c._id} value={c._id}>{c.idPhong?.tenPhong} - {c.idKhach?.hoVaTen}</option>
                                         ))}
@@ -391,7 +391,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">NgÃ y láº­p</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Ngày lập</label>
                                     <input
                                         type="date"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
@@ -402,7 +402,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tiá»n phÃ²ng (vnÄ‘)</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tiền phòng (vnđ)</label>
                                     <input
                                         type="number"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none"
@@ -412,7 +412,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chá»‰ sá»‘ Ä‘iá»‡n (má»›i nháº¥t)</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chỉ số điện (mới nhất)</label>
                                     <input
                                         type="number"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
@@ -423,7 +423,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chá»‰ sá»‘ nÆ°á»›c (má»›i nháº¥t)</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chỉ số nước (mới nhất)</label>
                                     <input
                                         type="number"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
@@ -434,7 +434,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Phá»¥ phÃ­ / Dá»‹ch vá»¥</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Phụ phí / Dịch vụ</label>
                                     <input
                                         type="number"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
@@ -444,7 +444,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tá»•ng tiá»n</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tổng tiền</label>
                                     <input
                                         type="number"
                                         className="w-full bg-blue-50 border border-blue-200 text-blue-700 font-black rounded-2xl px-4 py-3 text-sm outline-none"
@@ -456,7 +456,7 @@ export default function InvoicesPage() {
 
                             <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-3xl shadow-2xl transition-all shadow-slate-200 flex items-center justify-center gap-2">
                                 <Plus size={18} />
-                                Táº¡o vÃ  LÆ°u hÃ³a Ä‘Æ¡n
+                                Tạo và Lưu hóa đơn
                             </button>
                         </form>
                     </div>
@@ -470,7 +470,7 @@ export default function InvoicesPage() {
                         <div className="p-4 sm:p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                             <h2 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-3">
                                 <Edit2 size={24} className="text-blue-600" />
-                                Chá»‰nh sá»­a hÃ³a Ä‘Æ¡n
+                                Chỉnh sửa hóa đơn
                             </h2>
                             <button onClick={() => setIsEditModalOpen(false)} className="p-2 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200">
                                 <X size={20} className="text-slate-400" />
@@ -480,7 +480,7 @@ export default function InvoicesPage() {
                         <form onSubmit={handleUpdateInvoice} className="p-4 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Há»£p Ä‘á»“ng / PhÃ²ng</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Hợp đồng / Phòng</label>
                                     <input
                                         className="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none text-slate-500 cursor-not-allowed"
                                         value={`${currentInvoice?.idHopDong?.idPhong?.tenPhong} - ${currentInvoice?.idHopDong?.idKhach?.hoVaTen}`}
@@ -489,7 +489,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">NgÃ y láº­p</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Ngày lập</label>
                                     <input
                                         type="date"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
@@ -500,7 +500,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tiá»n phÃ²ng (vnÄ‘)</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tiền phòng (vnđ)</label>
                                     <input
                                         type="number"
                                         className="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none text-slate-500 cursor-not-allowed"
@@ -510,7 +510,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chá»‰ sá»‘ Ä‘iá»‡n (má»›i nháº¥t)</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chỉ số điện (mới nhất)</label>
                                     <input
                                         type="number"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
@@ -521,7 +521,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chá»‰ sá»‘ nÆ°á»›c (má»›i nháº¥t)</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chỉ số nước (mới nhất)</label>
                                     <input
                                         type="number"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
@@ -532,7 +532,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Phá»¥ phÃ­ / Dá»‹ch vá»¥</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Phụ phí / Dịch vụ</label>
                                     <input
                                         type="number"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
@@ -542,7 +542,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tá»•ng tiá»n</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tổng tiền</label>
                                     <input
                                         type="number"
                                         className="w-full bg-blue-50 border border-blue-200 text-blue-700 font-black rounded-2xl px-4 py-3 text-sm outline-none"
@@ -554,7 +554,7 @@ export default function InvoicesPage() {
 
                             <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-3xl shadow-2xl transition-all shadow-blue-100 flex items-center justify-center gap-2">
                                 <Edit2 size={18} />
-                                Cáº­p nháº­t hÃ³a Ä‘Æ¡n
+                                Cập nhật hóa đơn
                             </button>
                         </form>
                     </div>
@@ -571,8 +571,8 @@ export default function InvoicesPage() {
                                     <Receipt size={24} />
                                 </div>
                                 <div>
-                                    <h2 className="text-2xl font-black tracking-tight">Chi tiáº¿t hÃ³a Ä‘Æ¡n</h2>
-                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">MÃ£ HÄ: #INV-{currentInvoice._id.slice(-8).toUpperCase()}</p>
+                                    <h2 className="text-2xl font-black tracking-tight">Chi tiết hóa đơn</h2>
+                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Mã HĐ: #INV-{currentInvoice._id.slice(-8).toUpperCase()}</p>
                                 </div>
                             </div>
                             <button
@@ -587,23 +587,23 @@ export default function InvoicesPage() {
                             {/* Status and Info Grid */}
                             <div className="flex flex-col md:flex-row justify-between items-start gap-8">
                                 <div className="space-y-1">
-                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Thá»i gian láº­p</p>
-                                    <p className="text-lg font-bold">ThÃ¡ng {new Date(currentInvoice.ngayThangNam).getMonth() + 1}, {new Date(currentInvoice.ngayThangNam).getFullYear()}</p>
-                                    <p className="text-xs text-slate-500">NgÆ°á»i láº­p: Quáº£n trá»‹ viÃªn</p>
+                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Thời gian lập</p>
+                                    <p className="text-lg font-bold">Tháng {new Date(currentInvoice.ngayThangNam).getMonth() + 1}, {new Date(currentInvoice.ngayThangNam).getFullYear()}</p>
+                                    <p className="text-xs text-slate-500">Người lập: Quản trị viên</p>
                                 </div>
                                 <div className="text-right space-y-2">
                                     <span className={`inline-flex items-center gap-2 px-6 py-2 rounded-2xl text-xs font-black border shadow-sm ${getStatusStyle(currentInvoice.trangThai)}`}>
                                         {currentInvoice.trangThai === "Da_Thanh_Toan" ? <CheckCircle2 size={14} /> : <Clock size={14} />}
                                         {getStatusLabel(currentInvoice.trangThai).toUpperCase()}
                                     </span>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">NgÃ y táº¡o: {new Date(currentInvoice.createdAt).toLocaleString("vi-VN")}</p>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Ngày tạo: {new Date(currentInvoice.createdAt).toLocaleString("vi-VN")}</p>
                                 </div>
                             </div>
 
                             {/* Tenant and Room Details */}
                             <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 flex flex-col md:flex-row gap-10">
                                 <div className="flex-1 space-y-4 border-b md:border-b-0 md:border-r border-slate-200 pb-6 md:pb-0 md:pr-10">
-                                    <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4">ThÃ´ng tin khÃ¡ch thuÃª</h4>
+                                    <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4">Thông tin khách thuê</h4>
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-lg font-black text-blue-600 shadow-sm border border-slate-200">
                                             {currentInvoice.idHopDong?.idKhach?.hoVaTen?.charAt(0).toUpperCase()}
@@ -615,10 +615,10 @@ export default function InvoicesPage() {
                                     </div>
                                 </div>
                                 <div className="flex-1 space-y-4">
-                                    <h4 className="text-[10px] font-black text-purple-500 uppercase tracking-widest mb-4">Vá»‹ trÃ­ phÃ²ng</h4>
+                                    <h4 className="text-[10px] font-black text-purple-500 uppercase tracking-widest mb-4">Vị trí phòng</h4>
                                     <div className="space-y-1">
                                         <p className="text-xl font-black text-slate-800">{currentInvoice.idHopDong?.idPhong?.tenPhong}</p>
-                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">DÃ£y {currentInvoice.idHopDong?.idPhong?.idDayPhong?.soDay} - {currentInvoice.idHopDong?.idPhong?.idDayPhong?.viTri}</p>
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Dãy {currentInvoice.idHopDong?.idPhong?.idDayPhong?.soDay} - {currentInvoice.idHopDong?.idPhong?.idDayPhong?.viTri}</p>
                                     </div>
                                 </div>
                             </div>
@@ -627,72 +627,72 @@ export default function InvoicesPage() {
                             <div className="space-y-6">
                                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-3">
                                     <Calculator className="text-blue-600" size={18} />
-                                    Báº£ng kÃª chi tiáº¿t
+                                    Bảng kê chi tiết
                                 </h3>
                                 <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-sm">
                                     <table className="w-full min-w-[720px] text-left">
                                         <thead className="bg-slate-50 border-b border-slate-100">
                                             <tr>
-                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Má»¥c chi phÃ­</th>
-                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Chi tiáº¿t sá»­ dá»¥ng</th>
-                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">ThÃ nh tiá»n</th>
+                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Mục chi phí</th>
+                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Chi tiết sử dụng</th>
+                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Thành tiền</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
                                             {/* Room Rent */}
                                             <tr className="group">
                                                 <td className="px-6 py-5">
-                                                    <p className="font-bold text-slate-700">Tiá»n phÃ²ng</p>
-                                                    <p className="text-[10px] text-slate-400">GiÃ¡ cá»‘ Ä‘á»‹nh hÃ ng thÃ¡ng</p>
+                                                    <p className="font-bold text-slate-700">Tiền phòng</p>
+                                                    <p className="text-[10px] text-slate-400">Giá cố định hàng tháng</p>
                                                 </td>
-                                                <td className="px-6 py-5 text-right font-medium text-slate-500">1 thÃ¡ng</td>
-                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice.tienPhong?.toLocaleString("vi-VN")}Ä‘</td>
+                                                <td className="px-6 py-5 text-right font-medium text-slate-500">1 tháng</td>
+                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice.tienPhong?.toLocaleString("vi-VN")}đ</td>
                                             </tr>
                                             {/* Electricity */}
                                             <tr>
                                                 <td className="px-6 py-5 text-slate-700">
-                                                    <p className="font-bold">Tiá»n Ä‘iá»‡n</p>
+                                                    <p className="font-bold">Tiền điện</p>
                                                     <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-1">
-                                                        <span className="bg-slate-100 px-1.5 py-0.5 rounded">CÅ©: {currentInvoice.chiSoDienCu || 0}</span>
-                                                        <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Má»›i: {currentInvoice.chiSoDienMoi || 0}</span>
+                                                        <span className="bg-slate-100 px-1.5 py-0.5 rounded">Cũ: {currentInvoice.chiSoDienCu || 0}</span>
+                                                        <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Mới: {currentInvoice.chiSoDienMoi || 0}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-5 text-right font-medium text-slate-500">
                                                     <p>{(currentInvoice.chiSoDienMoi || 0) - (currentInvoice.chiSoDienCu || 0)} kWh</p>
-                                                    <p className="text-[10px]">x {currentInvoice.giaDien?.toLocaleString("vi-VN") || 0}Ä‘</p>
+                                                    <p className="text-[10px]">x {currentInvoice.giaDien?.toLocaleString("vi-VN") || 0}đ</p>
                                                 </td>
-                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice.tienDien?.toLocaleString("vi-VN") || 0}Ä‘</td>
+                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice.tienDien?.toLocaleString("vi-VN") || 0}đ</td>
                                             </tr>
                                             {/* Water */}
                                             <tr>
                                                 <td className="px-6 py-5 text-slate-700">
-                                                    <p className="font-bold">Tiá»n nÆ°á»›c</p>
+                                                    <p className="font-bold">Tiền nước</p>
                                                     <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-1">
-                                                        <span className="bg-slate-100 px-1.5 py-0.5 rounded">CÅ©: {currentInvoice.chiSoNuocCu || 0}</span>
-                                                        <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Má»›i: {currentInvoice.chiSoNuocMoi || 0}</span>
+                                                        <span className="bg-slate-100 px-1.5 py-0.5 rounded">Cũ: {currentInvoice.chiSoNuocCu || 0}</span>
+                                                        <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Mới: {currentInvoice.chiSoNuocMoi || 0}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-5 text-right font-medium text-slate-500">
-                                                    <p>{(currentInvoice.chiSoNuocMoi || 0) - (currentInvoice.chiSoNuocCu || 0)} mÂ³</p>
-                                                    <p className="text-[10px]">x {currentInvoice.giaNuoc?.toLocaleString("vi-VN") || 0}Ä‘</p>
+                                                    <p>{(currentInvoice.chiSoNuocMoi || 0) - (currentInvoice.chiSoNuocCu || 0)} m³</p>
+                                                    <p className="text-[10px]">x {currentInvoice.giaNuoc?.toLocaleString("vi-VN") || 0}đ</p>
                                                 </td>
-                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice.tienNuoc?.toLocaleString("vi-VN") || 0}Ä‘</td>
+                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice.tienNuoc?.toLocaleString("vi-VN") || 0}đ</td>
                                             </tr>
                                             {/* Other Services */}
                                             <tr className="bg-slate-50/50">
                                                 <td className="px-6 py-5">
-                                                    <p className="font-bold text-slate-700">Dá»‹ch vá»¥ khÃ¡c</p>
-                                                    <p className="text-[10px] text-slate-400">RÃ¡c, vá»‡ sinh, internet...</p>
+                                                    <p className="font-bold text-slate-700">Dịch vụ khác</p>
+                                                    <p className="text-[10px] text-slate-400">Rác, vệ sinh, internet...</p>
                                                 </td>
                                                 <td className="px-6 py-5 text-right font-medium text-slate-500">-</td>
-                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice.tienDichVu?.toLocaleString("vi-VN")}Ä‘</td>
+                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice.tienDichVu?.toLocaleString("vi-VN")}đ</td>
                                             </tr>
                                         </tbody>
                                         <tfoot>
                                             <tr className="bg-blue-600 text-white">
-                                                <td className="px-6 py-6 font-black text-lg uppercase tracking-widest">Tá»•ng cá»™ng</td>
+                                                <td className="px-6 py-6 font-black text-lg uppercase tracking-widest">Tổng cộng</td>
                                                 <td colSpan={2} className="px-6 py-6 text-right font-black text-3xl">
-                                                    {currentInvoice.tongTien.toLocaleString("vi-VN")}<span className="text-sm ml-1 opacity-70 italic font-medium">vnÄ‘</span>
+                                                    {currentInvoice.tongTien.toLocaleString("vi-VN")}<span className="text-sm ml-1 opacity-70 italic font-medium">vnđ</span>
                                                 </td>
                                             </tr>
                                         </tfoot>
@@ -707,10 +707,10 @@ export default function InvoicesPage() {
                                 onClick={() => setIsDetailsModalOpen(false)}
                                 className="flex-1 bg-slate-900 hover:bg-black text-white font-black py-4 rounded-3xl shadow-xl transition-all active:scale-95"
                             >
-                                ÄÃ³ng hÃ³a Ä‘Æ¡n
+                                Đóng hóa đơn
                             </button>
                             <button className="px-10 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-600 hover:text-blue-600 font-bold py-4 rounded-3xl transition-all shadow-sm active:scale-95 flex items-center gap-2">
-                                <Receipt size={18} /> In hÃ³a Ä‘Æ¡n
+                                <Receipt size={18} /> In hóa đơn
                             </button>
                         </div>
                     </div>
@@ -719,6 +719,3 @@ export default function InvoicesPage() {
         </div>
     );
 }
-
-
-
