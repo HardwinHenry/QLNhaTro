@@ -46,7 +46,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             className={`fixed inset-y-0 left-0 z-30 w-72 max-w-[85vw] bg-blue-900 text-white flex flex-col shadow-xl transform transition-transform duration-300 lg:w-64 ${isOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
         >
             <div className="p-4 sm:p-6 flex items-center justify-between gap-3 border-b border-blue-800">
-                <div className="flex items-center gap-3 min-w-0">
+                <div
+                    onClick={() => window.location.reload()}
+                    className="flex items-center gap-3 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
+                >
                     <div className="w-8 h-8 bg-white rounded flex items-center justify-center shrink-0">
                         <svg viewBox="0 0 24 24" className="w-5 h-5 fill-blue-900">
                             <path d="M3 9.5L12 3l9 6.5V21H3V9.5z" />
