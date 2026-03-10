@@ -4,6 +4,7 @@ import { invoiceService, type Invoice } from "../services/invoiceService";
 import { contractService, type Contract } from "../services/contractService";
 import { utilityService } from "../services/utilityService";
 import { useAuthStore } from "../store/authStore";
+import Swal from "sweetalert2";
 
 export default function InvoicesPage() {
     const { user } = useAuthStore();
@@ -131,33 +132,44 @@ export default function InvoicesPage() {
                 tongTien: tongTien || (tienPhong + tienDien + tienNuoc + tienDichVu),
                 trangThai: "Chua_Thanh_Toan"
             });
-            alert("Tạo hóa đơn thành công");
+            Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Tạo hóa đơn thành công', confirmButtonColor: '#2563eb' });
             setIsCreateModalOpen(false);
             fetchInvoices();
         } catch (error) {
-            alert("Lỗi khi tạo hóa đơn");
+            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi tạo hóa đơn', confirmButtonColor: '#2563eb' });
         }
     };
 
     const handleRequestPayment = async (id: string) => {
         try {
             const res = await invoiceService.requestPayment(id);
-            alert(res.message);
+            Swal.fire({ icon: 'info', title: 'Thông báo', text: res.message, confirmButtonColor: '#2563eb' });
         } catch (error) {
-            alert("Lỗi khi gửi yêu cầu");
+            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi gửi yêu cầu', confirmButtonColor: '#2563eb' });
         }
     };
 
     const handleDeleteInvoice = async (id: string) => {
-        if (!window.confirm("Bạn có chắc chắn muốn xóa hóa đơn này? Hành động này không thể hoàn tác.")) return;
+        const result = await Swal.fire({
+            title: 'Bạn có chắc chắn?',
+            text: 'Bạn có chắc chắn muốn xóa hóa đơn này? Hành động này không thể hoàn tác.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Đồng ý xóa',
+            cancelButtonText: 'Hủy'
+        });
+
+        if (!result.isConfirmed) return;
 
         setIsDeleting(id);
         try {
             await invoiceService.deleteHoaDon(id);
-            alert("Xóa hóa đơn thành công");
+            Swal.fire({ icon: 'success', title: 'Đã xóa!', text: 'Xóa hóa đơn thành công', confirmButtonColor: '#2563eb' });
             fetchInvoices();
         } catch (error) {
-            alert("Lỗi khi xóa hóa đơn");
+            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi xóa hóa đơn', confirmButtonColor: '#2563eb' });
         } finally {
             setIsDeleting(null);
         }
@@ -193,11 +205,11 @@ export default function InvoicesPage() {
                 tienDichVu,
                 tongTien
             });
-            alert("Cập nhật hóa đơn thành công");
+            Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Cập nhật hóa đơn thành công', confirmButtonColor: '#2563eb' });
             setIsEditModalOpen(false);
             fetchInvoices();
         } catch (error) {
-            alert("Lỗi khi cập nhật hóa đơn");
+            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi cập nhật hóa đơn', confirmButtonColor: '#2563eb' });
         }
     };
 

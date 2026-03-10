@@ -6,6 +6,7 @@ import { utilityService } from "../services/utilityService";
 import { getAllUsers } from "../services/authService";
 import { useAuthStore } from "../store/authStore";
 import { resolveBackendAssetUrl } from "../utils/url";
+import Swal from "sweetalert2";
 
 export default function ContractsPage() {
     const { user } = useAuthStore();
@@ -98,34 +99,56 @@ export default function ContractsPage() {
                 giaNuoc,
                 trangThai: "Con_Hieu_Luc"
             });
-            alert("Tạo hợp đồng thành công");
+            Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Tạo hợp đồng thành công', confirmButtonColor: '#2563eb' });
             setIsCreateModalOpen(false);
             fetchContracts();
         } catch (error) {
-            alert("Lỗi khi tạo hợp đồng");
+            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi tạo hợp đồng', confirmButtonColor: '#2563eb' });
         }
     };
 
     const handleDeleteContract = async (id: string) => {
-        if (confirm("Bạn có chắc chắn muốn xóa hợp đồng này? Thao tác này không thể hoàn tác.")) {
+        const result = await Swal.fire({
+            title: 'Bạn có chắc chắn?',
+            text: 'Bạn có chắc chắn muốn xóa hợp đồng này? Thao tác này không thể hoàn tác.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Đồng ý xóa',
+            cancelButtonText: 'Hủy'
+        });
+
+        if (result.isConfirmed) {
             try {
                 await contractService.deleteHopDong(id);
-                alert("Xóa hợp đồng thành công");
+                Swal.fire({ icon: 'success', title: 'Đã xóa!', text: 'Xóa hợp đồng thành công', confirmButtonColor: '#2563eb' });
                 fetchContracts();
             } catch (error) {
-                alert("Lỗi khi xóa hợp đồng");
+                Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi xóa hợp đồng', confirmButtonColor: '#2563eb' });
             }
         }
     };
 
     const handleTerminateContract = async (id: string) => {
-        if (confirm("Bạn có chắc chắn muốn kết thúc hợp đồng này? Phòng sẽ được giải phóng.")) {
+        const result = await Swal.fire({
+            title: 'Kết thúc hợp đồng?',
+            text: 'Bạn có chắc chắn muốn kết thúc hợp đồng này? Phòng sẽ được giải phóng.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Kết thúc',
+            cancelButtonText: 'Hủy'
+        });
+
+        if (result.isConfirmed) {
             try {
                 await contractService.updateHopDong(id, { trangThai: "Ket_Thuc" });
-                alert("Kết thúc hợp đồng thành công");
+                Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Kết thúc hợp đồng thành công', confirmButtonColor: '#2563eb' });
                 fetchContracts();
             } catch (error) {
-                alert("Lỗi khi kết thúc hợp đồng");
+                Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi kết thúc hợp đồng', confirmButtonColor: '#2563eb' });
             }
         }
     };
@@ -141,11 +164,11 @@ export default function ContractsPage() {
                 giaNuoc: editGiaNuoc,
                 ngayKetThuc: editNgayKetThuc || undefined
             });
-            alert("Cập nhật hợp đồng thành công");
+            Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Cập nhật hợp đồng thành công', confirmButtonColor: '#2563eb' });
             setIsEditModalOpen(false);
             fetchContracts();
         } catch (error) {
-            alert("Lỗi khi cập nhật hợp đồng");
+            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi cập nhật hợp đồng', confirmButtonColor: '#2563eb' });
         }
     };
 
@@ -154,11 +177,11 @@ export default function ContractsPage() {
         if (!currentContract || !newEndDate) return;
         try {
             await contractService.extendHopDong(currentContract._id, newEndDate);
-            alert("Gia hạn hợp đồng thành công");
+            Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Gia hạn hợp đồng thành công', confirmButtonColor: '#2563eb' });
             setIsExtendModalOpen(false);
             fetchContracts();
         } catch (error) {
-            alert("Lỗi khi gia hạn hợp đồng");
+            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi gia hạn hợp đồng', confirmButtonColor: '#2563eb' });
         }
     };
 
