@@ -1,13 +1,40 @@
 import Phong from "../models/Phong.js";
+import VatTu from "../models/VatTu.js";
 
 export const getAllPhongs = async (req, res) => {
     try {
         const { minPrice, maxPrice, trangThai, loaiPhong, idDayPhong, search, sort } = req.query;
         let query = {};
 
-        // Search by name
+        // Improved multi-word and amenity search
         if (search) {
-            query.tenPhong = { $regex: search, $options: "i" };
+            // Escape special regex characters
+            const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+            const searchWords = search.trim().split(/\s+/).filter(word => word.length > 0);
+
+            if (searchWords.length > 0) {
+                const searchPattern = searchWords.map(escapeRegex).join("|");
+                const regexOptions = "i";
+
+                // Find VatTu matching any of the search words
+                const matchingVatTus = await VatTu.find({
+                    tenVatTu: { $regex: searchPattern, $options: regexOptions }
+                }).select("_id");
+
+                const vatTuIds = matchingVatTus.map(v => v._id);
+
+                query.$or = [
+                    { tenPhong: { $regex: searchPattern, $options: regexOptions } },
+                    { moTa: { $regex: searchPattern, $options: regexOptions } },
+                    { vatTu: { $in: vatTuIds } }
+                ];
+
+                // Also search for the exact phrase if it contains spaces (for better match relevance if we had scoring)
+                if (search.includes(" ")) {
+                    query.$or.push({ tenPhong: { $regex: escapeRegex(search.trim()), $options: regexOptions } });
+                }
+            }
         }
 
         // Filtering by Price

@@ -1,4 +1,4 @@
-﻿import { Bed, Maximize, User, Trash2, Edit, Package, Layers } from "lucide-react";
+﻿import { Maximize, User, Trash2, Edit, Package, Layers } from "lucide-react";
 import { useNavigate } from "react-router";
 import { resolveBackendAssetUrl } from "../utils/url";
 import { useState } from "react";
@@ -121,9 +121,6 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
                                 </button>
                             </div>
                         )}
-                        <div className={`p-2 rounded-lg ${room.status === "available" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}`}>
-                            <Bed size={20} />
-                        </div>
                     </div>
                 </div>
 

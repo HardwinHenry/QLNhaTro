@@ -127,22 +127,26 @@ export default function BookingsPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800 tracking-tight">
-                        Lịch xem phòng
+                        {isAdmin ? "Lịch xem phòng" : "Lịch hẹn của tôi"}
                     </h1>
                     <p className="text-slate-500 mt-1 font-medium italic">
-                        Quản lý các yêu cầu hẹn xem phòng từ khách hàng
+                        {isAdmin
+                            ? "Quản lý các yêu cầu hẹn xem phòng từ khách hàng"
+                            : "Theo dõi các yêu cầu hẹn xem phòng bạn đã gửi"}
                     </p>
                 </div>
-                <div className="relative w-full md:w-auto">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Tìm theo tên khách, phòng..."
-                        className="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 w-full md:w-80 font-medium"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
+                {isAdmin && (
+                    <div className="relative w-full md:w-auto">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Tìm theo tên khách, phòng..."
+                            className="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 w-full md:w-80 font-medium"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                )}
             </div>
 
             {loading ? (
@@ -154,7 +158,7 @@ export default function BookingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredBookings.map((booking) => (
                         <div key={booking._id} className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all group relative">
-                            {isAdmin && (
+                            {(isAdmin || (!isAdmin && booking.trangThai === "Cho_Xac_Nhan")) && (
                                 <div className="absolute top-4 right-4 flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                     <button
                                         onClick={() => setEditingBooking({ ...booking })}
@@ -163,13 +167,23 @@ export default function BookingsPage() {
                                     >
                                         <Edit2 size={16} />
                                     </button>
-                                    <button
-                                        onClick={() => handleDelete(booking._id)}
-                                        className="p-2 bg-white/80 backdrop-blur shadow-sm border border-slate-100 rounded-full text-red-600 hover:bg-red-600 hover:text-white transition-all"
-                                        title="Xóa"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                                    {!isAdmin ? (
+                                        <button
+                                            onClick={() => handleCancel(booking._id)}
+                                            className="p-2 bg-white/80 backdrop-blur shadow-sm border border-slate-100 rounded-full text-red-600 hover:bg-red-600 hover:text-white transition-all"
+                                            title="Hủy lịch hẹn"
+                                        >
+                                            <XCircle size={16} />
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleDelete(booking._id)}
+                                            className="p-2 bg-white/80 backdrop-blur shadow-sm border border-slate-100 rounded-full text-red-600 hover:bg-red-600 hover:text-white transition-all"
+                                            title="Xóa"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
                                 </div>
                             )}
                             <div className="p-5 sm:p-6 space-y-4">
@@ -183,48 +197,77 @@ export default function BookingsPage() {
                                 </div>
 
                                 <div className="space-y-4">
-                                    {/* Customer Highlight Section */}
-                                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-4 group-hover:bg-blue-50/50 group-hover:border-blue-100 transition-all">
-                                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-slate-100 font-black text-lg group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                            {booking.idKhach?.hoVaTen?.charAt(0).toUpperCase() || "?"}
+                                    {/* Customer Highlight Section (Only for Admin) */}
+                                    {isAdmin ? (
+                                        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-4 group-hover:bg-blue-50/50 group-hover:border-blue-100 transition-all">
+                                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-slate-100 font-black text-lg group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                                {booking.idKhach?.hoVaTen?.charAt(0).toUpperCase() || "?"}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-0.5">Khách hàng</p>
+                                                <h4 className="font-black text-slate-800 truncate text-base leading-tight">
+                                                    {booking.idKhach?.hoVaTen || "Khách ẩn danh"}
+                                                </h4>
+                                                {booking.idKhach?.sdt ? (
+                                                    <div className="flex items-center gap-1.5 mt-1 text-blue-600">
+                                                        <Phone size={12} className="fill-current" />
+                                                        <span className="text-sm font-black">{booking.idKhach.sdt}</span>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-xs text-slate-400 font-medium italic mt-1">Chưa cập nhật SĐT</p>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-0.5">Khách hàng</p>
-                                            <h4 className="font-black text-slate-800 truncate text-base leading-tight">
-                                                {booking.idKhach?.hoVaTen || "Khách ẩn danh"}
-                                            </h4>
-                                            {booking.idKhach?.sdt ? (
-                                                <div className="flex items-center gap-1.5 mt-1 text-blue-600">
-                                                    <Phone size={12} className="fill-current" />
-                                                    <span className="text-sm font-black">{booking.idKhach.sdt}</span>
+                                    ) : (
+                                        <div className="bg-blue-600 border border-blue-500 rounded-2xl p-4 flex items-center gap-4 shadow-lg shadow-blue-100">
+                                            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-sm font-black text-lg">
+                                                <Home size={24} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[10px] font-black text-blue-100 uppercase tracking-[0.1em] mb-0.5">Phòng bạn quan tâm</p>
+                                                <h4 className="font-black text-white truncate text-lg leading-tight">
+                                                    {booking.idPhong?.tenPhong || "Phòng đã xóa"}
+                                                </h4>
+                                                <p className="text-xs text-blue-100 font-bold mt-1">
+                                                    {booking.idPhong?.giaPhong?.toLocaleString("vi-VN")}đ/tháng
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {!isAdmin ? (
+                                        <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                            <div className="w-10 h-10 bg-white text-purple-600 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                                <Calendar size={20} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-tight mb-0.5">Thời gian hẹn</p>
+                                                <p className="font-black text-slate-800 text-base">{new Date(booking.ngayDat).toLocaleDateString("vi-VN", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-transparent group-hover:border-slate-100 transition-all">
+                                                <div className="w-8 h-8 bg-white text-slate-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                                    <Home size={16} />
                                                 </div>
-                                            ) : (
-                                                <p className="text-xs text-slate-400 font-medium italic mt-1">Chưa cập nhật SĐT</p>
-                                            )}
-                                        </div>
-                                    </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">Phòng đăng ký</p>
+                                                    <p className="font-extrabold text-slate-800 text-sm truncate">{booking.idPhong?.tenPhong || "Phòng đã xóa"}</p>
+                                                </div>
+                                            </div>
 
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-transparent group-hover:border-slate-100 transition-all">
-                                            <div className="w-8 h-8 bg-white text-slate-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                                <Home size={16} />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">Phòng đăng ký</p>
-                                                <p className="font-extrabold text-slate-800 text-sm truncate">{booking.idPhong?.tenPhong || "Phòng đã xóa"}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-transparent group-hover:border-slate-100 transition-all">
-                                            <div className="w-8 h-8 bg-white text-purple-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                                <Calendar size={16} />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">Ngày hẹn xem</p>
-                                                <p className="font-extrabold text-slate-800 text-sm">{new Date(booking.ngayDat).toLocaleDateString("vi-VN")}</p>
+                                            <div className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-transparent group-hover:border-slate-100 transition-all">
+                                                <div className="w-8 h-8 bg-white text-purple-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                                    <Calendar size={16} />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">Ngày hẹn xem</p>
+                                                    <p className="font-extrabold text-slate-800 text-sm">{new Date(booking.ngayDat).toLocaleDateString("vi-VN")}</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
 
                                 {booking.ghiChu && (
@@ -240,15 +283,15 @@ export default function BookingsPage() {
                                     <div className="flex gap-2 pt-2">
                                         <button
                                             onClick={() => handleConfirm(booking._id)}
-                                            className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-200"
                                         >
                                             <CheckCircle2 size={16} /> Xác nhận
                                         </button>
                                         <button
                                             onClick={() => handleCancel(booking._id)}
-                                            className="flex-1 bg-slate-100 text-slate-600 py-2.5 rounded-xl font-bold text-sm hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold text-sm hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center gap-2"
                                         >
-                                            <XCircle size={16} /> Hủy bỏ
+                                            <XCircle size={16} /> Từ chối
                                         </button>
                                     </div>
                                 )}
@@ -257,8 +300,26 @@ export default function BookingsPage() {
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-20 bg-white border border-dashed border-slate-300 rounded-3xl">
-                    <p className="text-slate-400 font-medium italic">Không có yêu cầu nào phù hợp.</p>
+                <div className="py-20 text-center bg-white border-2 border-dashed border-slate-200 rounded-[3rem] shadow-sm max-w-2xl mx-auto">
+                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+                        <Calendar size={40} />
+                    </div>
+                    <h3 className="text-2xl font-black text-slate-800 mb-2">
+                        {isAdmin ? "Không có yêu cầu nào" : "Bạn chưa có lịch hẹn nào"}
+                    </h3>
+                    <p className="text-slate-400 font-medium max-w-xs mx-auto mb-8 italic">
+                        {isAdmin
+                            ? "Hiện tại chưa có khách hàng nào đặt lịch xem phòng."
+                            : "Hãy chọn một căn phòng ưng ý và đặt lịch hẹn xem trực tiếp nhé!"}
+                    </p>
+                    {!isAdmin && (
+                        <button
+                            onClick={() => window.location.href = "/rooms"}
+                            className="bg-blue-600 text-white px-8 py-3.5 rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all active:scale-95"
+                        >
+                            Tìm phòng ngay
+                        </button>
+                    )}
                 </div>
             )}
 

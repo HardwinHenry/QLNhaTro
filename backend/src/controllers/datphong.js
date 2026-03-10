@@ -90,6 +90,11 @@ export const updateYeuCau = async (req, res) => {
             return res.status(404).json({ message: "Không tìm thấy yêu cầu" });
         }
 
+        // Ownership check for Guest
+        if (req.user.vaiTro === "Khach" && yeuCau.idKhach.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Bạn không có quyền cập nhật yêu cầu này" });
+        }
+
         if (ngayDat) yeuCau.ngayDat = ngayDat;
         if (ghiChu !== undefined) yeuCau.ghiChu = ghiChu;
 

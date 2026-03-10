@@ -20,6 +20,8 @@ export default function ContractsPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [selectedRoom, setSelectedRoom] = useState("");
     const [selectedUser, setSelectedUser] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const [ngayBatDau, setNgayBatDau] = useState(new Date().toISOString().slice(0, 10));
     const [ngayKetThuc, setNgayKetThuc] = useState("");
     const [giaThue, setGiaThue] = useState(0);
@@ -101,6 +103,8 @@ export default function ContractsPage() {
             });
             Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Tạo hợp đồng thành công', confirmButtonColor: '#2563eb' });
             setIsCreateModalOpen(false);
+            setSearchTerm("");
+            setRooms(prev => prev.filter(r => r._id !== selectedRoom));
             fetchContracts();
         } catch (error) {
             Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi tạo hợp đồng', confirmButtonColor: '#2563eb' });
@@ -228,7 +232,12 @@ export default function ContractsPage() {
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     {isAdmin && (
                         <button
-                            onClick={() => setIsCreateModalOpen(true)}
+                            onClick={() => {
+                                setSelectedRoom("");
+                                setSelectedUser("");
+                                setSearchTerm("");
+                                setIsCreateModalOpen(true);
+                            }}
                             className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-black hover:bg-black transition-all shadow-lg"
                         >
                             <Plus size={18} />
@@ -358,7 +367,13 @@ export default function ContractsPage() {
                                 <FileText size={24} className="text-blue-600" />
                                 Tạo hợp đồng mới
                             </h2>
-                            <button onClick={() => setIsCreateModalOpen(false)} className="p-2 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200">
+                            <button
+                                onClick={() => {
+                                    setIsCreateModalOpen(false);
+                                    setSearchTerm("");
+                                }}
+                                className="p-2 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200"
+                            >
                                 <X size={20} className="text-slate-400" />
                             </button>
                         </div>
@@ -382,17 +397,55 @@ export default function ContractsPage() {
 
                                 <div>
                                     <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chọn khách hàng</label>
-                                    <select
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
-                                        value={selectedUser}
-                                        onChange={(e) => setSelectedUser(e.target.value)}
-                                        required
-                                    >
-                                        <option value="">-- Chọn khách --</option>
-                                        {users.map(user => (
-                                            <option key={user._id} value={user._id}>{user.hoVaTen} ({user.tenDangNhap})</option>
-                                        ))}
-                                    </select>
+                                    <div className="relative">
+                                        <div className="relative">
+                                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                            <input
+                                                type="text"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
+                                                placeholder="Tìm tên hoặc tên đăng nhập..."
+                                                value={searchTerm}
+                                                onChange={(e) => {
+                                                    setSearchTerm(e.target.value);
+                                                    setIsUserDropdownOpen(true);
+                                                }}
+                                                onFocus={() => setIsUserDropdownOpen(true)}
+                                                required={!selectedUser}
+                                            />
+                                        </div>
+
+                                        {isUserDropdownOpen && (
+                                            <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                                                {users.filter(u =>
+                                                    u.hoVaTen.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                                    u.tenDangNhap.toLowerCase().includes(searchTerm.toLowerCase())
+                                                ).length > 0 ? (
+                                                    users.filter(u =>
+                                                        u.hoVaTen.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                                        u.tenDangNhap.toLowerCase().includes(searchTerm.toLowerCase())
+                                                    ).map(user => (
+                                                        <button
+                                                            key={user._id}
+                                                            type="button"
+                                                            className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 flex flex-col gap-0.5 transition-colors border-b border-slate-50 last:border-0"
+                                                            onClick={() => {
+                                                                setSelectedUser(user._id);
+                                                                setSearchTerm(`${user.hoVaTen} (@${user.tenDangNhap})`);
+                                                                setIsUserDropdownOpen(false);
+                                                            }}
+                                                        >
+                                                            <span className="font-bold text-slate-800">{user.hoVaTen}</span>
+                                                            <span className="text-xs text-slate-400">@{user.tenDangNhap}</span>
+                                                        </button>
+                                                    ))
+                                                ) : (
+                                                    <div className="px-4 py-3 text-sm text-slate-400 italic">Không tìm thấy khách hàng...</div>
+                                                )}
+                                            </div>
+                                        )}
+                                        {/* Hidden required field to ensure form validation */}
+                                        <input type="hidden" value={selectedUser} required />
+                                    </div>
                                 </div>
 
                                 <div>
