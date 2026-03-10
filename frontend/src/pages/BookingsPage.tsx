@@ -3,7 +3,6 @@ import {
     Calendar,
     CheckCircle2,
     XCircle,
-    User,
     Phone,
     Home,
     Loader2,
