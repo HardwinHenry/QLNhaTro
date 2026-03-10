@@ -1,6 +1,8 @@
 ﻿import { Bed, Maximize, User, Trash2, Edit, Package, Layers } from "lucide-react";
 import { useNavigate } from "react-router";
 import { resolveBackendAssetUrl } from "../utils/url";
+import { useState } from "react";
+import ImageViewer from "./ImageViewer";
 
 interface RoomCardProps {
     room: {
@@ -22,19 +24,28 @@ interface RoomCardProps {
 
 
 const loaiPhongLabels: Record<string, string> = {
-    Phong_Don: "Phòng đơn",
-    Phong_Doi: "Phòng đôi",
-    Phong_Ghep: "Phòng ghép",
-    Phong_VIP: "Phòng VIP",
+    Phong_Lon: "Phòng lớn",
+    Phong_Thuong: "Phòng thường",
 };
 
 export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardProps) {
     const navigate = useNavigate();
+    const [viewerOpen, setViewerOpen] = useState(false);
+    const [viewIndex, setViewIndex] = useState(0);
+
+    const openViewer = (e: React.MouseEvent, index: number) => {
+        e.stopPropagation();
+        setViewIndex(index);
+        setViewerOpen(true);
+    };
 
     return (
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
             <div className="relative h-52 sm:h-56 flex gap-1 p-1 bg-slate-50">
-                <div className="flex-1 h-full rounded-l-xl overflow-hidden relative">
+                <div
+                    className="flex-1 h-full rounded-l-xl overflow-hidden relative cursor-pointer"
+                    onClick={(e) => openViewer(e, 0)}
+                >
                     <img
                         src={room.images[0]?.startsWith('/uploads') ? resolveBackendAssetUrl(room.images[0]) : (room.images[0] || "/RoomPlaceholder.jpg")}
                         alt={`${room.name}-1`}
@@ -45,14 +56,20 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
                     </div>
                 </div>
                 <div className="w-1/3 flex flex-col gap-1">
-                    <div className="flex-1 rounded-tr-xl overflow-hidden">
+                    <div
+                        className="flex-1 rounded-tr-xl overflow-hidden cursor-pointer"
+                        onClick={(e) => openViewer(e, 1)}
+                    >
                         <img
                             src={room.images[1] ? (room.images[1].startsWith('/uploads') ? resolveBackendAssetUrl(room.images[1]) : room.images[1]) : "/RoomPlaceholder.jpg"}
                             alt={`${room.name}-2`}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                     </div>
-                    <div className="flex-1 rounded-br-xl overflow-hidden relative">
+                    <div
+                        className="flex-1 rounded-br-xl overflow-hidden relative cursor-pointer"
+                        onClick={(e) => openViewer(e, 2)}
+                    >
                         <img
                             src={room.images[2] ? (room.images[2].startsWith('/uploads') ? resolveBackendAssetUrl(room.images[2]) : room.images[2]) : "/RoomPlaceholder.jpg"}
                             alt={`${room.name}-3`}
@@ -69,10 +86,11 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
 
             {/* Content */}
             <div className="p-4 sm:p-5">
+                {/* ... existing content ... */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3">
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-base sm:text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors">
+                            <h3 className="text-base sm:text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors cursor-pointer" onClick={() => navigate(`/rooms/${room.id}`)}>
                                 {room.name}
                             </h3>
                             {room.loaiPhong && (
@@ -144,6 +162,12 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
                 </button>
             </div>
 
+            <ImageViewer
+                images={room.images.map(img => img.startsWith('/uploads') ? resolveBackendAssetUrl(img) : img)}
+                currentIndex={viewIndex}
+                isOpen={viewerOpen}
+                onClose={() => setViewerOpen(false)}
+            />
         </div>
     );
 }

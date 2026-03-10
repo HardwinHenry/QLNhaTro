@@ -18,6 +18,12 @@ import { bookingService } from "../services/bookingService";
 import { useAuthStore } from "../store/authStore";
 import { toast } from "sonner";
 import { resolveBackendAssetUrl } from "../utils/url";
+import ImageViewer from "../components/ImageViewer";
+
+const loaiPhongLabels: Record<string, string> = {
+    Phong_Lon: "Phòng lớn",
+    Phong_Thuong: "Phòng thường",
+};
 
 export default function RoomDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -31,6 +37,14 @@ export default function RoomDetailPage() {
     const [submitting, setSubmitting] = useState(false);
     const { user } = useAuthStore();
     const [utilityPrices, setUtilityPrices] = useState<GiaDienNuoc | null>(null);
+
+    const [viewerOpen, setViewerOpen] = useState(false);
+    const [viewIndex, setViewIndex] = useState(0);
+
+    const openViewer = (index: number) => {
+        setViewIndex(index);
+        setViewerOpen(true);
+    };
 
     useEffect(() => {
         const fetchRoom = async () => {
@@ -133,13 +147,16 @@ export default function RoomDetailPage() {
                 </button>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
-                    {/* Left: Image Gallery */}
+                    {/* Left: Image Gallery ... */}
                     <div className="space-y-4">
-                        <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg relative">
+                        <div
+                            className="aspect-[4/3] rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg relative cursor-pointer"
+                            onClick={() => openViewer(activeImage)}
+                        >
                             <img
                                 src={images[activeImage]}
                                 alt={room.tenPhong}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                             {room.trangThai !== "Trong" && (
                                 <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
@@ -152,6 +169,7 @@ export default function RoomDetailPage() {
                                 <button
                                     key={idx}
                                     onClick={() => setActiveImage(idx)}
+                                    onDoubleClick={() => openViewer(idx)}
                                     className={`flex-shrink-0 w-20 h-16 sm:w-24 sm:h-20 rounded-xl overflow-hidden border-2 transition-all ${activeImage === idx ? "border-blue-600 shadow-md" : "border-transparent opacity-70 hover:opacity-100"}`}
                                 >
                                     <img src={img} alt={`${room.tenPhong}-${idx}`} className="w-full h-full object-cover" />
@@ -169,7 +187,7 @@ export default function RoomDetailPage() {
                                 </span>
                                 {room.loaiPhong && (
                                     <span className="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-black rounded-full uppercase tracking-wider font-sans">
-                                        {room.loaiPhong}
+                                        {loaiPhongLabels[room.loaiPhong] || room.loaiPhong}
                                     </span>
                                 )}
                             </div>
@@ -337,6 +355,13 @@ export default function RoomDetailPage() {
                     </div>
                 )}
             </div>
+
+            <ImageViewer
+                images={images}
+                currentIndex={viewIndex}
+                isOpen={viewerOpen}
+                onClose={() => setViewerOpen(false)}
+            />
         </div>
     );
 }

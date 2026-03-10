@@ -17,6 +17,7 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
         soDay: "A",
         tang: 1,
         viTri: "",
+        soPhongToiDa: 0,
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -27,6 +28,7 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
                 soDay: editingDayPhong.soDay,
                 tang: editingDayPhong.tang,
                 viTri: editingDayPhong.viTri,
+                soPhongToiDa: editingDayPhong.soPhongToiDa || 0,
             });
             // @ts-ignore
             setImagePreview(editingDayPhong.hinhAnh ? resolveBackendAssetUrl(editingDayPhong.hinhAnh) : null);
@@ -35,6 +37,7 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
                 soDay: "A",
                 tang: 1,
                 viTri: "",
+                soPhongToiDa: 0,
             });
             setImageFile(null);
             setImagePreview(null);
@@ -67,6 +70,7 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
             data.append("soDay", formData.soDay.toString());
             data.append("tang", formData.tang.toString());
             data.append("viTri", formData.viTri);
+            data.append("soPhongToiDa", formData.soPhongToiDa.toString());
             if (imageFile) {
                 data.append("hinhAnh", imageFile);
             }
@@ -127,16 +131,29 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
                         </div>
                     </div>
 
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vị trí / Mô tả</label>
-                        <input
-                            type="text"
-                            required
-                            value={formData.viTri}
-                            onChange={e => setFormData({ ...formData, viTri: e.target.value })}
-                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                            placeholder="Ví dụ: Dãy A - Tầng 1"
-                        />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Số phòng tối đa</label>
+                            <input
+                                type="number"
+                                required
+                                value={formData.soPhongToiDa}
+                                onChange={e => setFormData({ ...formData, soPhongToiDa: Number(e.target.value) })}
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                                placeholder="Ví dụ: 10"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vị trí / Mô tả</label>
+                            <input
+                                type="text"
+                                required
+                                value={formData.viTri}
+                                onChange={e => setFormData({ ...formData, viTri: e.target.value })}
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                                placeholder="Ví dụ: Dãy A - Tầng 1"
+                            />
+                        </div>
                     </div>
 
                     <div className="space-y-2">

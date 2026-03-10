@@ -187,10 +187,8 @@ export default function RoomsPage() {
                                 value={filters.loaiPhong}
                                 onChange={(e) => setFilters({ ...filters, loaiPhong: e.target.value })}
                             >
-                                <option value="">Tất cả loại</option>
-                                <option value="Phong_Don">Phòng đơn</option>
-                                <option value="Phong_Doi">Phòng đôi</option>
-                                <option value="Phong_O_Ghep">Ở ghép</option>
+                                <option value="Phong_Lon">Phòng lớn</option>
+                                <option value="Phong_Thuong">Phòng thường</option>
                             </select>
                         </div>
 

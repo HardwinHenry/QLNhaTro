@@ -47,6 +47,7 @@ export default function AdminDashboardPage() {
 
     // DayPhong Management State
     const [dayPhongs, setDayPhongs] = useState<DayPhong[]>([]);
+    const [allRooms, setAllRooms] = useState<Room[]>([]);
     const [isDayPhongModalOpen, setIsDayPhongModalOpen] = useState(false);
     const [editingDayPhong, setEditingDayPhong] = useState<DayPhong | null>(null);
 
@@ -73,6 +74,7 @@ export default function AdminDashboardPage() {
             ]);
 
             setDayPhongs(dayPhongsData);
+            setAllRooms(rooms);
 
             // Enrich rented rooms with contracts and invoices
             const rented = rooms.filter(r => r.trangThai === "Da_Thue").map(r => {
@@ -353,7 +355,27 @@ export default function AdminDashboardPage() {
                                 </div>
                             </div>
                             <div className="p-6">
-                                <h3 className="font-black text-slate-800 truncate mb-4">{dp.viTri}</h3>
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="font-black text-slate-800 truncate">{dp.viTri}</h3>
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100">
+                                        <DoorOpen size={10} />
+                                        <span className="text-[10px] font-black">
+                                            {allRooms.filter(r => (r.idDayPhong?._id || r.idDayPhong) === dp._id).length}
+                                            {dp.soPhongToiDa > 0 && ` / ${dp.soPhongToiDa}`} phòng
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {dp.soPhongToiDa > 0 && (
+                                    <div className="w-full bg-slate-200 h-1.5 rounded-full mb-4 overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full transition-all duration-1000 ${(allRooms.filter(r => (r.idDayPhong?._id || r.idDayPhong) === dp._id).length / dp.soPhongToiDa) >= 1 ? "bg-rose-500" : "bg-blue-600"
+                                                }`}
+                                            style={{ width: `${Math.min(100, (allRooms.filter(r => (r.idDayPhong?._id || r.idDayPhong) === dp._id).length / dp.soPhongToiDa) * 100)}%` }}
+                                        ></div>
+                                    </div>
+                                )}
+
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => handleEditDayPhong(dp)}
