@@ -183,53 +183,57 @@ export default function BookingsPage() {
                                     </p>
                                 </div>
 
-                                <div className="space-y-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
-                                            <User size={20} />
+                                <div className="space-y-4">
+                                    {/* Customer Highlight Section */}
+                                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-4 group-hover:bg-blue-50/50 group-hover:border-blue-100 transition-all">
+                                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-slate-100 font-black text-lg group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                            {booking.idKhach?.hoVaTen?.charAt(0).toUpperCase() || "?"}
                                         </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Khách hàng</p>
-                                            <p className="font-bold text-slate-800">{booking.idKhach?.hoVaTen || "Khách ẩn danh"}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center">
-                                            <Home size={20} />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Phòng đăng ký</p>
-                                            <p className="font-bold text-slate-800">{booking.idPhong?.tenPhong || "Phòng đã xóa"}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
-                                            <Calendar size={20} />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Ngày hẹn xem</p>
-                                            <p className="font-bold text-slate-800">{new Date(booking.ngayDat).toLocaleDateString("vi-VN")}</p>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-0.5">Khách hàng</p>
+                                            <h4 className="font-black text-slate-800 truncate text-base leading-tight">
+                                                {booking.idKhach?.hoVaTen || "Khách ẩn danh"}
+                                            </h4>
+                                            {booking.idKhach?.sdt ? (
+                                                <div className="flex items-center gap-1.5 mt-1 text-blue-600">
+                                                    <Phone size={12} className="fill-current" />
+                                                    <span className="text-sm font-black">{booking.idKhach.sdt}</span>
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs text-slate-400 font-medium italic mt-1">Chưa cập nhật SĐT</p>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {booking.idKhach?.sdt && (
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
-                                                <Phone size={20} />
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-transparent group-hover:border-slate-100 transition-all">
+                                            <div className="w-8 h-8 bg-white text-slate-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                                <Home size={16} />
                                             </div>
-                                            <div>
-                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Số điện thoại</p>
-                                                <p className="font-bold text-slate-800">{booking.idKhach.sdt}</p>
+                                            <div className="min-w-0">
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">Phòng đăng ký</p>
+                                                <p className="font-extrabold text-slate-800 text-sm truncate">{booking.idPhong?.tenPhong || "Phòng đã xóa"}</p>
                                             </div>
                                         </div>
-                                    )}
+
+                                        <div className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-transparent group-hover:border-slate-100 transition-all">
+                                            <div className="w-8 h-8 bg-white text-purple-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                                <Calendar size={16} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">Ngày hẹn xem</p>
+                                                <p className="font-extrabold text-slate-800 text-sm">{new Date(booking.ngayDat).toLocaleDateString("vi-VN")}</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {booking.ghiChu && (
-                                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic text-sm text-slate-600 font-medium">
-                                        "{booking.ghiChu}"
+                                    <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 italic text-sm text-slate-300 font-medium relative overflow-hidden group/note">
+                                        <div className="absolute top-0 right-0 p-2 opacity-10">
+                                            <Home size={48} />
+                                        </div>
+                                        <span className="relative z-10">"{booking.ghiChu}"</span>
                                     </div>
                                 )}
 

@@ -9,7 +9,7 @@ import { LogIn, User, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 const loginSchema = z.object({
-    tenDangNhap: z.string().min(3, "Tên đăng nhập phải có ít nhất 3 ký tự"),
+    tenDangNhap: z.string().min(3, "Tên đăng nhập hoặc Số điện thoại không hợp lệ"),
     matKhau: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
 });
 
@@ -87,14 +87,14 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Tên đăng nhập
+                                Tên đăng nhập hoặc Số điện thoại
                             </label>
                             <div className="relative">
                                 <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                 <input
                                     {...register("tenDangNhap")}
                                     className="w-full border border-slate-300 rounded bg-white pl-9 pr-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
-                                    placeholder="Nhập tên đăng nhập"
+                                    placeholder="Nhập tên đăng nhập hoặc SĐT"
                                 />
                             </div>
                             {errors.tenDangNhap && (
@@ -130,7 +130,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white font-semibold py-2.5 rounded text-sm transition-colors flex items-center justify-center gap-2 mt-2"
+                            className="w-full bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white font-semibold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 mt-2 shadow-lg shadow-blue-100"
                         >
                             {loading ? (
                                 <Loader2 className="animate-spin" size={16} />

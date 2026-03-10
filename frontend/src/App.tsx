@@ -11,6 +11,7 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import RoomDetailPage from "./pages/RoomDetailPage";
 import UtilitiesPage from "./pages/UtilitiesPage";
 import BookingsPage from "./pages/BookingsPage";
+import CustomersPage from "./pages/CustomersPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
 import "./App.css";
@@ -35,6 +36,7 @@ function App() {
             <Route path="/bookings" element={<BookingsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/customers" element={<CustomersPage />} />
           </Route>
         </Route>
 

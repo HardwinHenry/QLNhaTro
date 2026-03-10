@@ -62,23 +62,25 @@ export default function HomePage() {
             </div>
 
             {/* Boarding House Layout Section */}
-            <div className="space-y-6">
+            <div className="space-y-6 relative">
                 <div className="flex items-center gap-4">
                     <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">Sơ đồ tổng thể</h2>
                     <div className="h-px bg-slate-200 flex-1"></div>
                 </div>
 
-                <div className="bg-white p-3 sm:p-4 rounded-[2rem] sm:rounded-[3rem] border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="bg-slate-50 rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-6 lg:p-10 relative group border border-slate-100">
-                        <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
+                <div className="bg-white p-4 sm:p-6 rounded-[2.5rem] sm:rounded-[3.5rem] border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="bg-slate-50/50 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-8 lg:p-12 relative group border border-slate-100/50">
+                        <div className="relative z-10 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden shadow-2xl border-8 border-white">
                             <img
                                 src={resolveBackendAssetUrl("/SoDo.png")}
                                 alt="Sơ đồ nhà trọ"
-                                className="w-full h-auto object-contain max-h-[600px] group-hover:scale-105 transition-transform duration-1000"
+                                className="w-full h-auto object-contain max-h-[700px] group-hover:scale-105 transition-transform duration-1000"
                             />
                         </div>
-                        <div className="mt-8 text-center relative z-10">
-                            <p className="text-slate-500 font-medium italic">Sử dụng mục <strong>"Xem Phòng"</strong> ở menu bên trái để quản lý và xem chi tiết từng phòng.</p>
+                        <div className="mt-10 text-center relative z-10 px-4">
+                            <p className="text-slate-500 font-bold italic text-sm sm:text-base leading-relaxed">
+                                <span className="text-blue-600 not-italic">💡 Tip:</span> Sử dụng mục <strong className="text-slate-900">"Xem Phòng"</strong> ở menu bên trái để quản lý và xem chi tiết từng phòng.
+                            </p>
                         </div>
                     </div>
                 </div>

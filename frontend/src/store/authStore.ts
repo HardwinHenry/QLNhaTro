@@ -7,6 +7,12 @@ interface User {
     vaiTro: string;
     sdt?: string;
     cccd?: string;
+    phongHienTai?: {
+        _id: string;
+        tenPhong: string;
+        dienTich: number;
+        loaiPhong: string;
+    };
 }
 
 
@@ -15,6 +21,7 @@ interface AuthState {
     accessToken: string | null;
     refreshToken: string | null;
     setAuth: (user: User, accessToken: string, refreshToken: string) => void;
+    updateUser: (user: User) => void;
     setAccessToken: (accessToken: string) => void;
     logout: () => void;
 }
@@ -43,6 +50,10 @@ export const useAuthStore = create<AuthState>((set) => {
             sessionStorage.setItem("accessToken", accessToken);
             sessionStorage.setItem("refreshToken", refreshToken);
             set({ user, accessToken, refreshToken });
+        },
+        updateUser: (user) => {
+            sessionStorage.setItem("user", JSON.stringify(user));
+            set({ user });
         },
         setAccessToken: (accessToken) => {
             sessionStorage.setItem("accessToken", accessToken);

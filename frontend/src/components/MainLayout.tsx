@@ -22,7 +22,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
             />
 
             <div className="flex min-h-screen flex-col lg:pl-64">
-                <header className="bg-white h-16 border-b border-slate-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-10 shadow-sm gap-4">
+                <header className="bg-white h-16 border-b border-slate-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-50 shadow-sm gap-4">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                         <button
                             onClick={() => setIsSidebarOpen(true)}

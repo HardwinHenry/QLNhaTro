@@ -15,9 +15,12 @@ const registerSchema = z.object({
         .regex(/[A-Z]/, "Mật khẩu phải có ít nhất 1 chữ cái in hoa")
         .regex(/[0-9]/, "Mật khẩu phải có ít nhất 1 chữ số")
         .regex(/[^A-Za-z0-9]/, "Mật khẩu phải có ít nhất 1 ký tự đặc biệt"),
+    matKhauXacNhan: z.string().min(1, "Vui lòng xác nhận mật khẩu"),
     sdt: z.string().min(10, "Số điện thoại không hợp lệ"),
     cccd: z.string().min(9, "CCCD không hợp lệ"),
-    vaiTro: z.enum(["Chu_Tro", "Khach"]),
+}).refine((data) => data.matKhau === data.matKhauXacNhan, {
+    message: "Mật khẩu xác nhận không khớp",
+    path: ["matKhauXacNhan"],
 });
 
 
@@ -151,6 +154,24 @@ export default function RegisterPage() {
                             )}
                         </div>
 
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                                Xác nhận mật khẩu
+                            </label>
+                            <div className="relative">
+                                <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    {...register("matKhauXacNhan")}
+                                    className="w-full border border-slate-300 rounded bg-white pl-9 pr-10 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                            {errors.matKhauXacNhan && (
+                                <p className="text-red-500 text-xs mt-1">{errors.matKhauXacNhan.message}</p>
+                            )}
+                        </div>
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -184,22 +205,6 @@ export default function RegisterPage() {
                                     <p className="text-red-500 text-xs mt-1">{errors.cccd.message}</p>
                                 )}
                             </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Bạn là?
-                            </label>
-                            <select
-                                {...register("vaiTro")}
-                                className="w-full border border-slate-300 rounded bg-white px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
-                            >
-                                <option value="Khach">Người đi thuê (Khách)</option>
-                                <option value="Chu_Tro">Chủ nhà trọ</option>
-                            </select>
-                            {errors.vaiTro && (
-                                <p className="text-red-500 text-xs mt-1">{errors.vaiTro.message}</p>
-                            )}
                         </div>
 
                         <button

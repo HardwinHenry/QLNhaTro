@@ -1,5 +1,6 @@
 ﻿import { Link, useLocation } from "react-router";
 import { useAuthStore } from "../store/authStore";
+import { toast } from "sonner";
 import {
     Home,
     DoorOpen,
@@ -12,6 +13,7 @@ import {
     Zap,
     Calendar,
     X,
+    Users as UsersIcon,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -36,6 +38,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
     const adminItems = [
         { icon: Settings, label: "Bảng quản trị", href: "/admin", roles: ["Chu_Tro"] },
+        { icon: UsersIcon, label: "Quản lý khách", href: "/customers", roles: ["Chu_Tro"] },
     ];
 
     return (
@@ -126,6 +129,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     onClick={() => {
                         logout();
                         onClose();
+                        toast.success("Đăng xuất thành công");
                     }}
                     className="w-full flex items-center justify-center gap-2 bg-blue-800/50 hover:bg-red-600/20 hover:text-red-300 py-2 rounded-lg transition-all text-sm font-medium border border-blue-700/50 hover:border-red-500/30"
                 >

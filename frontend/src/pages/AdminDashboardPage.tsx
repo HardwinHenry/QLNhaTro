@@ -208,16 +208,25 @@ export default function AdminDashboardPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
                 {statsCards.map((stat) => (
-                    <div key={stat.label} className="bg-white border border-slate-200 rounded-[2rem] p-5 sm:p-8 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
-                        <div className={`absolute -right-6 -top-6 w-32 h-32 ${stat.bg} opacity-40 rounded-full group-hover:scale-110 transition-transform`}></div>
-                        <div className="flex items-start justify-between mb-8 relative z-10">
-                            <div className={`w-14 h-14 ${stat.bg} rounded-2xl flex items-center justify-center`}>
+                    <div key={stat.label} className="bg-white border border-slate-200 rounded-[2.5rem] p-6 sm:p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group overflow-hidden relative">
+                        <div className={`absolute -right-4 -top-4 w-24 h-24 ${stat.bg} opacity-20 rounded-full group-hover:scale-150 transition-transform duration-700`}></div>
+
+                        <div className="flex flex-col gap-6 relative z-10">
+                            <div className={`w-14 h-14 ${stat.bg} rounded-2xl flex items-center justify-center shadow-sm border border-white`}>
                                 <stat.icon size={28} className={stat.color} />
                             </div>
-                        </div>
-                        <div className="relative z-10">
-                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
-                            <h3 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tighter">{stat.value}</h3>
+
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5">{stat.label}</p>
+                                <div className="flex items-baseline gap-2">
+                                    <h3 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tighter">{stat.value}</h3>
+                                    {stat.trend && (
+                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${stat.trend.startsWith('+') ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'}`}>
+                                            {stat.trend}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 ))}

@@ -21,3 +21,12 @@ export const getAllUsers = async () => {
     const response = await api.get("/auth/users");
     return response.data;
 };
+export const updateMe = async (userData: any) => {
+    const response = await api.put("/auth/me", userData);
+    return response.data;
+};
+
+export const getMe = async () => {
+    const response = await api.get("/auth/me");
+    return response.data;
+};
