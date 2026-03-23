@@ -1,4 +1,4 @@
-﻿import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import { useAuthStore } from "../store/authStore";
 import { toast } from "sonner";
 import {
@@ -38,6 +38,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
     const adminItems = [
         { icon: Settings, label: "Bảng quản trị", href: "/admin", roles: ["Chu_Tro"] },
+        { icon: DoorOpen, label: "Phòng đang thuê", href: "/rented-rooms", roles: ["Chu_Tro"] },
         { icon: UsersIcon, label: "Quản lý khách", href: "/customers", roles: ["Chu_Tro"] },
     ];
 

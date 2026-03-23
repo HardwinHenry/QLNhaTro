@@ -12,6 +12,7 @@ import RoomDetailPage from "./pages/RoomDetailPage";
 import UtilitiesPage from "./pages/UtilitiesPage";
 import BookingsPage from "./pages/BookingsPage";
 import CustomersPage from "./pages/CustomersPage";
+import RentedRoomsPage from "./pages/RentedRoomsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
 import "./App.css";
@@ -29,6 +30,7 @@ function App() {
           <Route element={<MainLayout><Outlet /></MainLayout>}>
             <Route path="/" element={<HomePage />} />
             <Route path="/rooms" element={<RoomsPage />} />
+            <Route path="/rented-rooms" element={<RentedRoomsPage />} />
             <Route path="/rooms/:id" element={<RoomDetailPage />} />
             <Route path="/invoices" element={<InvoicesPage />} />
             <Route path="/contracts" element={<ContractsPage />} />

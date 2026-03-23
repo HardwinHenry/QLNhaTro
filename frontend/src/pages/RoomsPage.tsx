@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Filter, Search, RotateCcw } from "lucide-react";
 import RoomCard from "../components/RoomCard";
 import { roomService } from "../services/roomService";
@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import Swal from "sweetalert2";
 import RoomFormModal from "../components/RoomFormModal";
 import { resolveBackendAssetUrl } from "../utils/url";
+import { vatTuService, type VatTu } from "../services/vatTuService";
+
 
 export default function RoomsPage() {
     const [rooms, setRooms] = useState<Room[]>([]);
@@ -16,6 +18,7 @@ export default function RoomsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRoom, setEditingRoom] = useState<Room | null>(null);
     const [dayPhongs, setDayPhongs] = useState<DayPhong[]>([]);
+    const [availableVatTus, setAvailableVatTus] = useState<VatTu[]>([]);
     const [showFilters, setShowFilters] = useState(false);
     const [filters, setFilters] = useState({
         search: "",
@@ -23,8 +26,10 @@ export default function RoomsPage() {
         idDayPhong: "",
         minPrice: "",
         maxPrice: "",
-        trangThai: ""
+        trangThai: "Trong",
+        vatTu: [] as string[]
     });
+
 
     const { user } = useAuthStore();
     const isAdmin = user?.vaiTro === "Chu_Tro";
@@ -34,15 +39,21 @@ export default function RoomsPage() {
         try {
             // Clean up empty filters
             const activeFilters = Object.fromEntries(
-                Object.entries(filters).filter(([_, v]) => v !== "")
+                Object.entries(filters).filter(([_, v]) => {
+                    if (Array.isArray(v)) return v.length > 0;
+                    return v !== "";
+                })
             );
 
-            const [data, dayPhongsData] = await Promise.all([
+            const [data, dayPhongsData, vatTusData] = await Promise.all([
                 roomService.getAllPhongs(activeFilters),
-                dayPhongService.getAllDayPhongs()
+                dayPhongService.getAllDayPhongs(),
+                vatTuService.getAllVatTus()
             ]);
             setRooms(data);
             setDayPhongs(dayPhongsData);
+            setAvailableVatTus(vatTusData);
+
         } catch (error) {
             console.error("Lỗi khi tải danh sách phòng:", error);
             toast.error("Không thể tải danh sách phòng");
@@ -122,7 +133,8 @@ export default function RoomsPage() {
             capacity: room.sucChua,
             loaiPhong: room.loaiPhong,
             dayPhong: room.idDayPhong ? `Dãy ${room.idDayPhong.soDay}` : undefined,
-            vatTu: room.vatTu
+            vatTu: room.vatTu,
+            khachThue: room.khachThue
         };
     };
 
@@ -187,6 +199,7 @@ export default function RoomsPage() {
                                 value={filters.loaiPhong}
                                 onChange={(e) => setFilters({ ...filters, loaiPhong: e.target.value })}
                             >
+                                <option value="">Tất cả loại</option>
                                 <option value="Phong_Lon">Phòng lớn</option>
                                 <option value="Phong_Thuong">Phòng thường</option>
                             </select>
@@ -207,29 +220,12 @@ export default function RoomsPage() {
                             </select>
                         </div>
 
-                        {/* Trạng thái */}
-                        <div className="space-y-3">
-                            <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Trạng thái</label>
-                            <div className="flex p-1.5 bg-slate-50 border border-slate-200 rounded-2xl gap-2">
-                                <button
-                                    onClick={() => setFilters({ ...filters, trangThai: "" })}
-                                    className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${filters.trangThai === "" ? "bg-white text-blue-600 shadow-md" : "text-slate-400 hover:text-slate-600 hover:bg-white/50"}`}
-                                >
-                                    TẤT CẢ
-                                </button>
-                                <button
-                                    onClick={() => setFilters({ ...filters, trangThai: "Trong" })}
-                                    className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${filters.trangThai === "Trong" ? "bg-white text-green-600 shadow-md" : "text-slate-400 hover:text-slate-600 hover:bg-white/50"}`}
-                                >
-                                    CÒN TRỐNG
-                                </button>
-                            </div>
-                        </div>
+
 
                         {/* Reset */}
                         <div className="flex items-end">
                             <button
-                                onClick={() => setFilters({ search: "", loaiPhong: "", idDayPhong: "", minPrice: "", maxPrice: "", trangThai: "" })}
+                                onClick={() => setFilters({ search: "", loaiPhong: "", idDayPhong: "", minPrice: "", maxPrice: "", trangThai: "", vatTu: [] })}
                                 className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-black text-sm hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 active:scale-95"
                             >
                                 <RotateCcw size={18} />
@@ -237,6 +233,36 @@ export default function RoomsPage() {
                             </button>
                         </div>
                     </div>
+
+                    {/* Tiện nghi / Vật tư */}
+                    {availableVatTus.length > 0 && (
+                        <div className="pt-6 border-t border-slate-100 space-y-4">
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Tiện nghi / Vật tư</label>
+                            <div className="flex flex-wrap gap-2 sm:gap-3">
+                                {availableVatTus.map((vt) => {
+                                    const isSelected = filters.vatTu.includes(vt._id);
+                                    return (
+                                        <button
+                                            key={vt._id}
+                                            onClick={() => {
+                                                const newVatTu = isSelected
+                                                    ? filters.vatTu.filter(id => id !== vt._id)
+                                                    : [...filters.vatTu, vt._id];
+                                                setFilters({ ...filters, vatTu: newVatTu });
+                                            }}
+                                            className={`px-4 py-2 sm:px-6 sm:py-2.5 rounded-full text-sm font-bold transition-all border-2 active:scale-95 ${isSelected
+                                                ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200"
+                                                : "bg-white border-slate-100 text-slate-500 hover:border-blue-200 hover:text-blue-600"
+                                                }`}
+                                        >
+                                            {vt.tenVatTu}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
 
                     {/* Price Range */}
                     <div className="pt-6 border-t border-slate-100">
@@ -277,15 +303,62 @@ export default function RoomsPage() {
                         <p className="text-slate-500 font-black text-lg animate-pulse tracking-tight">Đang tải phòng phù hợp...</p>
                     </div>
                 ) : rooms.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-                        {rooms.map((room, index) => (
-                            <RoomCard
-                                key={room._id}
-                                room={getDisplayRoom(room, index)}
-                                isAdmin={isAdmin}
-                                onEdit={handleEditRoom}
-                                onDelete={handleDeleteRoom}
-                            />
+                    <div className="space-y-12">
+                        {Object.entries(
+                            rooms.reduce((acc: any, room) => {
+                                const tang = room.idDayPhong?.tang ?? "Khác";
+                                const day = room.idDayPhong?.soDay ?? "Khác";
+                                if (!acc[day]) acc[day] = {};
+                                if (!acc[day][tang]) acc[day][tang] = [];
+                                acc[day][tang].push(room);
+                                return acc;
+                            }, {})
+                        ).sort(([dayA], [dayB]) => {
+                            if (dayA === "Khác") return 1;
+                            if (dayB === "Khác") return -1;
+                            return dayA.localeCompare(dayB);
+                        }).map(([day, tangs]: [string, any]) => (
+                            <div key={day} className="space-y-6">
+                                <div className="flex items-center gap-4">
+                                    <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+                                        {day === "Khác" ? "Khu vực khác" : `Dãy ${day}`}
+                                    </h2>
+                                    <div className="h-0.5 flex-1 bg-gradient-to-r from-slate-200 to-transparent rounded-full"></div>
+                                </div>
+                                
+                                <div className="space-y-10 pl-0 sm:pl-4 border-l-0 sm:border-l-[3px] border-slate-100">
+                                    {Object.entries(tangs).sort(([tangA], [tangB]) => {
+                                        if (tangA === "Khác") return 1;
+                                        if (tangB === "Khác") return -1;
+                                        return Number(tangA) - Number(tangB);
+                                    }).map(([tang, tangRooms]: [string, any]) => (
+                                        <div key={tang} className="space-y-5">
+                                            <div className="flex items-center">
+                                                <h3 className="text-lg font-bold text-blue-600 bg-blue-50/80 py-2 px-5 rounded-xl inline-flex items-center gap-3 border border-blue-100/50 shadow-sm">
+                                                    {tang === "Khác" ? "Tầng khác" : `Tầng ${tang}`}
+                                                    <span className="text-xs font-black bg-white text-slate-600 px-2.5 py-1 rounded-lg shadow-sm border border-slate-100">
+                                                        {tangRooms.length} phòng
+                                                    </span>
+                                                </h3>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
+                                                {tangRooms.map((room: Room) => {
+                                                    const originalIndex = rooms.findIndex((r) => r._id === room._id);
+                                                    return (
+                                                        <RoomCard
+                                                            key={room._id}
+                                                            room={getDisplayRoom(room, originalIndex)}
+                                                            isAdmin={isAdmin}
+                                                            onEdit={handleEditRoom}
+                                                            onDelete={handleDeleteRoom}
+                                                        />
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         ))}
                     </div>
                 ) : (

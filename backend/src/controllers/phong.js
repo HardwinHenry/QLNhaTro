@@ -1,9 +1,10 @@
 import Phong from "../models/Phong.js";
 import VatTu from "../models/VatTu.js";
+import HopDong from "../models/HopDong.js";
 
 export const getAllPhongs = async (req, res) => {
     try {
-        const { minPrice, maxPrice, trangThai, loaiPhong, idDayPhong, search, sort } = req.query;
+        const { minPrice, maxPrice, trangThai, loaiPhong, idDayPhong, vatTu, search, sort } = req.query;
         let query = {};
 
         // Improved multi-word and amenity search
@@ -59,6 +60,15 @@ export const getAllPhongs = async (req, res) => {
             query.idDayPhong = idDayPhong;
         }
 
+        // Filtering by VatTu (Supplies)
+        if (vatTu) {
+            // Handle case where vatTu might be a string (single ID) or an array
+            const vatTuArray = Array.isArray(vatTu) ? vatTu : (typeof vatTu === 'string' ? vatTu.split(',') : []);
+            if (vatTuArray.length > 0) {
+                query.vatTu = { $all: vatTuArray };
+            }
+        }
+
         let sortOption = {};
         if (sort === "price_asc") {
             sortOption.giaPhong = 1;
@@ -71,7 +81,23 @@ export const getAllPhongs = async (req, res) => {
             .populate("idDayPhong")
             .populate("vatTu");
 
-        res.json(phongs);
+        // Bổ sung thông tin khách thuê nếu phòng đã được thuê
+        const phongsWithTenants = await Promise.all(phongs.map(async (p) => {
+            const pObj = p.toObject();
+            if (p.trangThai === "Da_Thue") {
+                const activeContract = await HopDong.findOne({
+                    idPhong: p._id,
+                    trangThai: "Con_Hieu_Luc"
+                }).populate("idKhach", "tenDangNhap email sdt hoTen");
+                
+                if (activeContract && activeContract.idKhach) {
+                    pObj.khachThue = activeContract.idKhach;
+                }
+            }
+            return pObj;
+        }));
+
+        res.json(phongsWithTenants);
 
     } catch (error) {
         res.status(500).json({ message: error.message });

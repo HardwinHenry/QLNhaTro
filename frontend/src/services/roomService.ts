@@ -13,6 +13,7 @@ export interface Room {
     trangThai: "Trong" | "Da_Thue";
     hinhAnh: string | string[];
     vatTu?: any[]; // Populated Objects or IDs
+    khachThue?: any; // Populated Object (User schema)
 }
 
 

@@ -9,7 +9,7 @@ const phongSchema = new mongoose.Schema({
   sucChua: { type: Number, required: true },
   loaiPhong: {
     type: String,
-    enum: ["Phong_Don", "Phong_Doi", "Phong_Ghep", "Phong_VIP"],
+    enum: ["Phong_Don", "Phong_Doi", "Phong_Ghep", "Phong_VIP", "Phong_Lon", "Phong_Thuong"],
     required: true
   },
   trangThai: {

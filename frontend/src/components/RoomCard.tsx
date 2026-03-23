@@ -1,4 +1,4 @@
-﻿import { Maximize, User, Trash2, Edit, Package, Layers } from "lucide-react";
+import { Maximize, User, Trash2, Edit, Package, Layers } from "lucide-react";
 import { useNavigate } from "react-router";
 import { resolveBackendAssetUrl } from "../utils/url";
 import { useState } from "react";
@@ -16,6 +16,10 @@ interface RoomCardProps {
         loaiPhong?: string;
         dayPhong?: string;
         vatTu?: { tenVatTu: string }[];
+        khachThue?: {
+            hoTen?: string;
+            tenDangNhap?: string;
+        };
     };
     isAdmin?: boolean;
     onEdit?: (id: string) => void;
@@ -99,6 +103,14 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
                                 </span>
                             )}
                         </div>
+                        {room.khachThue && (
+                            <div className="flex items-center gap-1.5 mb-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-100 w-fit">
+                                <User size={12} className="shrink-0" />
+                                <span className="text-[11px] font-black uppercase tracking-wider">
+                                    Khách: {room.khachThue.hoTen || room.khachThue.tenDangNhap}
+                                </span>
+                            </div>
+                        )}
                         <p className="text-xl sm:text-2xl font-black text-blue-600">
                             {room.price.toLocaleString("vi-VN")}
                             <span className="text-xs font-medium text-slate-400 ml-1 italic">đ/tháng</span>
@@ -151,12 +163,20 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
                     </div>
                 </div>
 
-                <button
-                    onClick={() => navigate(`/rooms/${room.id}`)}
-                    className="w-full mt-5 bg-slate-900 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-200 transition-all duration-300"
-                >
-                    Xem chi tiết
-                </button>
+                <div className="flex gap-3 mt-5">
+                    <button
+                        onClick={() => navigate(`/?roomId=${room.id}`)}
+                        className="flex-1 bg-white border-2 border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-sm hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 flex justify-center items-center gap-2"
+                    >
+                        Xem sơ đồ
+                    </button>
+                    <button
+                        onClick={() => navigate(`/rooms/${room.id}`)}
+                        className="flex-[1.5] bg-slate-900 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-200 transition-all duration-300"
+                    >
+                        Xem chi tiết
+                    </button>
+                </div>
             </div>
 
             <ImageViewer

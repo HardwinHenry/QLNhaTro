@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FileText, Search, Loader2, Calendar, ShieldCheck, AlertCircle, Plus, X, Edit3, Trash2, StopCircle, RefreshCw, LayoutTemplate, Users, Package, Info, Zap, Droplets } from "lucide-react";
 import { contractService, type Contract } from "../services/contractService";
 import { roomService, type Room } from "../services/roomService";

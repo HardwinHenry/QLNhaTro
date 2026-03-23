@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Loader2, Upload } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -170,7 +170,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                 <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 overflow-y-auto space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mã phòng</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mã phòng <span className="text-red-500 ml-0.5">*</span></label>
                             <input
                                 {...register("idPhong")}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -179,7 +179,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                             {errors.idPhong && <p className="text-[10px] text-red-500 font-bold">{errors.idPhong.message}</p>}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tên phòng</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tên phòng <span className="text-red-500 ml-0.5">*</span></label>
                             <input
                                 {...register("tenPhong")}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -191,7 +191,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Dãy phòng</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Dãy phòng <span className="text-red-500 ml-0.5">*</span></label>
                             <select
                                 {...register("idDayPhong")}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
@@ -204,9 +204,10 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                             {errors.idDayPhong && <p className="text-[10px] text-red-500 font-bold">{errors.idDayPhong.message}</p>}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Giá thuê (VNĐ)</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Giá thuê (VNĐ) <span className="text-red-500 ml-0.5">*</span></label>
                             <input
                                 type="number"
+                                step={500}
                                 {...register("giaPhong", { valueAsNumber: true })}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold text-blue-600"
                             />
@@ -215,7 +216,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Diện tích (m²)</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Diện tích (m²) <span className="text-red-500 ml-0.5">*</span></label>
                             <input
                                 type="number"
                                 {...register("dienTich", { valueAsNumber: true })}
@@ -223,7 +224,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sức chứa</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sức chứa <span className="text-red-500 ml-0.5">*</span></label>
                             <input
                                 type="number"
                                 {...register("sucChua", { valueAsNumber: true })}
@@ -234,7 +235,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Loại phòng</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Loại phòng <span className="text-red-500 ml-0.5">*</span></label>
                             <select
                                 {...register("loaiPhong")}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
