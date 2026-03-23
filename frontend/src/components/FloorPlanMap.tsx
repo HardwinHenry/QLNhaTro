@@ -26,7 +26,7 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
     const navigate = useNavigate();
     const containerRef = useRef<HTMLDivElement>(null);
     const [tooltip, setTooltip] = useState<{ room: Room; x: number; y: number } | null>(null);
-    
+
     // Group rooms: Tang -> Day -> rooms
     const groupedByFloor: Record<string, Record<string, Room[]>> = {};
 
@@ -71,7 +71,7 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
     }, [highlightRoomId, rooms]);
 
     const availableDays = activeFloor ? Object.keys(groupedByFloor[activeFloor] || {}).sort() : [];
-    
+
     // Set default day when floor changes
     useEffect(() => {
         if (availableDays.length > 0 && (!activeDay || !availableDays.includes(activeDay))) {
@@ -129,7 +129,7 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
                 {/* Visual Map (3/4 width on desktop) */}
                 <div className="flex-[3] bg-white rounded-[3rem] border border-slate-200 shadow-2xl shadow-slate-100 p-4 sm:p-8 flex items-center justify-center relative overflow-hidden group">
                     <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px] opacity-40"></div>
-                    
+
                     {currentSectionRooms.length > 0 ? (
                         <div className="w-full h-full flex items-center justify-center animate-in fade-in zoom-in-95 duration-500">
                             {(() => {
@@ -140,23 +140,85 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
 
                                 const blueprintW = maxCols * ROOM_W + (maxCols + 1) * WALL;
                                 const blueprintH = ROOM_H * 2 + CORRIDOR_H + WALL * 4;
-                                const svgW = blueprintW + PAD * 2;
-                                const svgH = blueprintH + PAD * 2 + 20;
+                                const westRoadW = 60;
+                                const westRoadGap = 40;
+
+                                const svgW = blueprintW + PAD * 2 + westRoadW + westRoadGap;
+                                const svgH = blueprintH + PAD * 2 + 60;
 
                                 const topRooms = currentSectionRooms.slice(0, topCount);
                                 const bottomRooms = currentSectionRooms.slice(topCount);
-                                const ox = PAD;
+                                const ox = PAD + westRoadW + westRoadGap;
                                 const oy = PAD;
 
                                 return (
                                     <svg
                                         viewBox={`0 0 ${svgW} ${svgH}`}
                                         className="w-full h-full drop-shadow-2xl"
-                                        style={{ maxHeight: "550px", transform: "perspective(1000px) rotateX(2deg)" }}
+                                        style={{ maxHeight: "650px", transform: "perspective(1000px) rotateX(2deg)" }}
                                         xmlns="http://www.w3.org/2000/svg"
                                     >
                                         {/* Ground Shadow */}
                                         <rect x={ox + 10} y={oy + 10} width={blueprintW} height={blueprintH} fill="#0000000a" rx="4" />
+
+                                        {/* WEST ROAD (North -> South) */}
+                                        <g>
+                                            <rect
+                                                x={PAD} y={0}
+                                                width={westRoadW} height={svgH - 20}
+                                                fill="#f1f5f9"
+                                            />
+                                            {/* Street markings (vertical) */}
+                                            <line
+                                                x1={PAD + westRoadW / 2} y1={0}
+                                                x2={PAD + westRoadW / 2} y2={svgH - 20}
+                                                stroke="#e2e8f0" strokeWidth="2" strokeDasharray="15 15"
+                                            />
+                                            {/* North Label */}
+                                            <text
+                                                x={PAD + westRoadW / 2} y={15}
+                                                textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="900" letterSpacing="2"
+                                            >
+                                                BẮC (NORTH)
+                                            </text>
+                                            <path d={`M ${PAD + westRoadW / 2} 25 L ${PAD + westRoadW / 2} 35 M ${PAD + westRoadW / 2 - 5} 30 L ${PAD + westRoadW / 2} 25 L ${PAD + westRoadW / 2 + 5} 30`} fill="none" stroke="#94a3b8" strokeWidth="1.5" />
+
+                                            {/* South Label */}
+                                            <text
+                                                x={PAD + westRoadW / 2} y={svgH - 25}
+                                                textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="900" letterSpacing="2"
+                                            >
+                                                NAM (SOUTH)
+                                            </text>
+
+                                            {/* West Street Label (Vertical) */}
+                                            <text
+                                                x={PAD + 20} y={(svgH - 20) / 2}
+                                                textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="900" letterSpacing="4"
+                                                transform={`rotate(-90, ${PAD + 20}, ${(svgH - 20) / 2})`}
+                                            >
+                                                ĐƯỜNG TÂY (WEST STREET)
+                                            </text>
+                                        </g>
+
+
+
+                                        {/* Main Entrance / Gate (West Side, opposite road, aligned with corridor) */}
+                                        <g>
+                                            <path
+                                                d={`M ${ox} ${oy + ROOM_H + WALL / 2 + 5} L ${ox} ${oy + ROOM_H + WALL / 2 + CORRIDOR_H + WALL / 2 - 5}`}
+                                                stroke="#1e293b" strokeWidth="8" strokeLinecap="round"
+                                            />
+                                            <text
+                                                x={ox - 15} y={oy + ROOM_H + WALL / 2 + CORRIDOR_H / 2 + WALL / 4}
+                                                textAnchor="middle" fill="#1e293b" fontSize="9" fontWeight="900" letterSpacing="2"
+                                                transform={`rotate(-90, ${ox - 15}, ${oy + ROOM_H + WALL / 2 + CORRIDOR_H / 2 + WALL / 4})`}
+                                            >
+                                                CỔNG CHÍNH
+                                            </text>
+
+                                        </g>
+
 
                                         {/* Outer walls */}
                                         <rect
@@ -169,7 +231,7 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
 
                                         {/* Corridor */}
                                         <rect
-                                            x={ox + WALL/2} y={oy + ROOM_H + WALL/2}
+                                            x={ox + WALL / 2} y={oy + ROOM_H + WALL / 2}
                                             width={blueprintW - WALL} height={CORRIDOR_H + WALL}
                                             fill="#f8fafc"
                                             stroke="#cbd5e1"
@@ -213,7 +275,7 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
                                                         strokeWidth={isHighlighted ? 4 : 1.5}
                                                         className="transition-colors"
                                                     />
-                                                    
+
                                                     {/* Door Arc */}
                                                     <path
                                                         d={`M ${rx + ROOM_W / 2 - DOOR_W / 2} ${ry + ROOM_H} A ${DOOR_W / 2} ${DOOR_W / 2} 0 0 0 ${rx + ROOM_W / 2 + DOOR_W / 2} ${ry + ROOM_H}`}
@@ -234,9 +296,9 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
                                                     >
                                                         {room.tenPhong.replace(/\D/g, '') || (i + 1)}
                                                     </text>
-                                                    
+
                                                     {isHighlighted && (
-                                                        <rect x={rx-2} y={ry-2} width={ROOM_W+4} height={ROOM_H+4} fill="none" stroke="#3b82f6" strokeWidth="2" opacity="0.3">
+                                                        <rect x={rx - 2} y={ry - 2} width={ROOM_W + 4} height={ROOM_H + 4} fill="none" stroke="#3b82f6" strokeWidth="2" opacity="0.3">
                                                             <animate attributeName="stroke-width" values="2;6;2" dur="2s" repeatCount="indefinite" />
                                                         </rect>
                                                     )}
@@ -268,7 +330,7 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
                                                         stroke={isHighlighted ? "#3b82f6" : "#475569"}
                                                         strokeWidth={isHighlighted ? 4 : 1.5}
                                                     />
-                                                    
+
                                                     {/* Door Arc */}
                                                     <path
                                                         d={`M ${rx + ROOM_W / 2 - DOOR_W / 2} ${ry} A ${DOOR_W / 2} ${DOOR_W / 2} 0 0 1 ${rx + ROOM_W / 2 + DOOR_W / 2} ${ry}`}
@@ -326,7 +388,7 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
                                 {currentSectionRooms.length} Phòng
                             </span>
                         </div>
-                        
+
                         <div className="space-y-3 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
                             {currentSectionRooms.length > 0 ? (
                                 currentSectionRooms.map((room, idx) => (
@@ -334,8 +396,8 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
                                         key={room._id}
                                         onClick={() => navigate(`/rooms/${room._id}`)}
                                         className={`group flex items-center justify-between p-4 rounded-3xl transition-all cursor-pointer border-2
-                                            ${highlightRoomId === room._id 
-                                                ? "bg-blue-600 border-blue-500 shadow-lg shadow-blue-500/20" 
+                                            ${highlightRoomId === room._id
+                                                ? "bg-blue-600 border-blue-500 shadow-lg shadow-blue-500/20"
                                                 : "bg-slate-800/50 border-slate-700/50 hover:border-blue-500/50 hover:bg-slate-800"}`}
                                     >
                                         <div className="flex items-center gap-4">
@@ -365,11 +427,11 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-slate-800/50 p-4 rounded-2xl">
                                     <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Diện tích TB</p>
-                                    <p className="text-lg font-black">{currentSectionRooms.length > 0 ? (currentSectionRooms.reduce((a,b)=>a+b.dienTich, 0) / currentSectionRooms.length).toFixed(1) : 0}m²</p>
+                                    <p className="text-lg font-black">{currentSectionRooms.length > 0 ? (currentSectionRooms.reduce((a, b) => a + b.dienTich, 0) / currentSectionRooms.length).toFixed(1) : 0}m²</p>
                                 </div>
                                 <div className="bg-slate-800/50 p-4 rounded-2xl">
                                     <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Giá TB</p>
-                                    <p className="text-sm font-black text-blue-400">{currentSectionRooms.length > 0 ? (currentSectionRooms.reduce((a,b)=>a+b.giaPhong, 0) / currentSectionRooms.length / 1000).toFixed(0) : 0}k/m²</p>
+                                    <p className="text-sm font-black text-blue-400">{currentSectionRooms.length > 0 ? (currentSectionRooms.reduce((a, b) => a + b.giaPhong, 0) / currentSectionRooms.length / 1000).toFixed(0) : 0}k/m²</p>
                                 </div>
                             </div>
                         </div>
