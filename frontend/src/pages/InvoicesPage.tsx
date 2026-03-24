@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { Receipt, Search, Loader2, CheckCircle2, Clock, Plus, X, Send, Calculator, Trash2, Edit2 } from "lucide-react";
+import { Receipt, Search, Loader2, CheckCircle2, Clock, Plus, X, Send, Calculator, Trash2, Edit2, QrCode } from "lucide-react";
 import { invoiceService, type Invoice } from "../services/invoiceService";
 import { contractService, type Contract } from "../services/contractService";
 import { utilityService } from "../services/utilityService";
@@ -711,6 +711,34 @@ export default function InvoicesPage() {
                                     </table>
                                 </div>
                             </div>
+
+                            {/* MÃ QR THANH TOÁN SEPAY */}
+                            {currentInvoice.trangThai === "Chua_Thanh_Toan" && (
+                                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 sm:p-8 rounded-[2rem] border border-blue-100 flex flex-col md:flex-row items-center gap-6 sm:gap-8 shadow-inner relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-4 opacity-10 blur-[2px]">
+                                        <QrCode size={120} />
+                                    </div>
+                                    <div className="bg-white p-3 rounded-3xl shadow-md border border-white/50 relative z-10">
+                                        {/* TODO: Thay YOUR_ACCOUNT_NUMBER và YOUR_BANK_NAME bằng thông tin thực tế của bạn (Vd: MB, VCB) */}
+                                        <img
+                                            src={`https://qr.sepay.vn/img?bank=MB&acc=075767521&amount=${currentInvoice.tongTien}&des=${currentInvoice._id}`}
+                                            alt="QR Code Thanh Toán"
+                                            className="w-40 h-40 sm:w-48 sm:h-48 object-contain rounded-xl"
+                                        />
+                                    </div>
+                                    <div className="space-y-4 text-center md:text-left relative z-10 flex-1">
+                                        <div>
+                                            <h4 className="text-xl sm:text-2xl font-black text-blue-900 tracking-tight">Thanh toán chuyển khoản</h4>
+                                            <p className="text-sm text-blue-600/80 font-medium mt-1">Sử dụng ứng dụng Ngân hàng hoặc MoMo quét mã QR. Hệ thống tự động xác nhận sau 1-3 phút.</p>
+                                        </div>
+
+                                        <div className="bg-white/80 backdrop-blur-sm px-6 py-4 rounded-2xl border border-blue-100 shadow-sm inline-flex flex-col items-center md:items-start space-y-1">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nội dung chuyển khoản (bắt buộc)</span>
+                                            <code className="text-lg font-black text-indigo-600 select-all">{currentInvoice._id}</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Footer / Actions */}

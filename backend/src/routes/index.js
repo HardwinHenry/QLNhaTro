@@ -10,6 +10,7 @@ import { getLatestGia, updateGia } from "../controllers/giadiennuoc.js";
 import { createYeuCau, getAllYeuCaus, confirmYeuCau, cancelYeuCau, updateYeuCau, deleteYeuCau } from "../controllers/datphong.js";
 import { auth } from "../middlewares/auth.js";
 import { upload } from "../middlewares/upload.js";
+import { receiveWebhook } from "../controllers/sepay.js";
 
 
 const router = express.Router();
@@ -87,5 +88,7 @@ router.put("/datphong/:id/cancel", auth(), cancelYeuCau);
 
 router.post("/thanhtoan", auth(["Khach"]), (req, res) => res.json({ message: "Thanh Toan route" }));
 
+// SePay Webhook - Nhận thông báo tự động từ SePay (Không dùng middleware auth vì SePay gọi trực tiếp)
+router.post("/sepay/webhook", receiveWebhook);
 
 export default router;
