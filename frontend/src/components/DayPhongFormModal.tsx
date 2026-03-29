@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { X, Loader2, Upload, Trash2 } from "lucide-react";
 import { dayPhongService, type DayPhong } from "../services/dayPhongService";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
         tang: 1,
         viTri: "",
         soPhongToiDa: 0,
+        dienTich: 0,
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -29,6 +30,7 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
                 tang: editingDayPhong.tang,
                 viTri: editingDayPhong.viTri,
                 soPhongToiDa: editingDayPhong.soPhongToiDa || 0,
+                dienTich: editingDayPhong.dienTich || 0,
             });
             // @ts-ignore
             setImagePreview(editingDayPhong.hinhAnh ? resolveBackendAssetUrl(editingDayPhong.hinhAnh) : null);
@@ -38,6 +40,7 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
                 tang: 1,
                 viTri: "",
                 soPhongToiDa: 0,
+                dienTich: 0,
             });
             setImageFile(null);
             setImagePreview(null);
@@ -71,6 +74,7 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
             data.append("tang", formData.tang.toString());
             data.append("viTri", formData.viTri);
             data.append("soPhongToiDa", formData.soPhongToiDa.toString());
+            data.append("dienTich", formData.dienTich.toString());
             if (imageFile) {
                 data.append("hinhAnh", imageFile);
             }
@@ -144,16 +148,27 @@ export default function DayPhongFormModal({ isOpen, onClose, onSuccess, editingD
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vị trí / Mô tả</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Diện tích mặc định (m²)</label>
                             <input
-                                type="text"
+                                type="number"
                                 required
-                                value={formData.viTri}
-                                onChange={e => setFormData({ ...formData, viTri: e.target.value })}
+                                value={formData.dienTich}
+                                onChange={e => setFormData({ ...formData, dienTich: Number(e.target.value) })}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                                placeholder="Ví dụ: Dãy A - Tầng 1"
+                                placeholder="Ví dụ: 20"
                             />
                         </div>
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vị trí / Mô tả</label>
+                        <input
+                            type="text"
+                            required
+                            value={formData.viTri}
+                            onChange={e => setFormData({ ...formData, viTri: e.target.value })}
+                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                            placeholder="Ví dụ: Dãy A - Tầng 1"
+                        />
                     </div>
 
                     <div className="space-y-2">

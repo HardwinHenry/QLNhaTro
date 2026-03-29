@@ -15,7 +15,6 @@ const roomSchema = z.object({
     idDayPhong: z.string().min(1, "Dãy phòng là bắt buộc"),
     giaPhong: z.number().min(0, "Giá phòng phải >= 0"),
     dienTich: z.number().min(0, "Diện tích phải >= 0"),
-    sucChua: z.number().min(1, "Sức chứa phải ít nhất 1 người"),
     loaiPhong: z.string().optional(),
     moTa: z.string().optional(),
     trangThai: z.enum(["Trong", "Da_Thue"]),
@@ -36,6 +35,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
     const [dayPhongs, setDayPhongs] = useState<DayPhong[]>([]);
     const [vatTus, setVatTus] = useState<VatTu[]>([]);
     const [loading, setLoading] = useState(false);
+    const [selectedFloor, setSelectedFloor] = useState<string>("");
 
 
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -78,7 +78,6 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                 idDayPhong: editingRoom.idDayPhong?._id || editingRoom.idDayPhong,
                 giaPhong: editingRoom.giaPhong,
                 dienTich: editingRoom.dienTich,
-                sucChua: editingRoom.sucChua,
                 loaiPhong: editingRoom.loaiPhong,
                 moTa: editingRoom.moTa,
                 trangThai: editingRoom.trangThai,
@@ -94,7 +93,6 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                 idDayPhong: "",
                 giaPhong: 0,
                 dienTich: 0,
-                sucChua: 1,
                 loaiPhong: "",
                 moTa: "",
                 trangThai: "Trong",
@@ -105,6 +103,36 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
             setImageFile(null);
         }
     }, [editingRoom, reset, isOpen]);
+
+    // Update selected floor when editing room
+    useEffect(() => {
+        if (editingRoom && dayPhongs.length > 0) {
+            const currentDayPhong = dayPhongs.find(dp => dp._id === (editingRoom.idDayPhong?._id || editingRoom.idDayPhong));
+            if (currentDayPhong) {
+                setSelectedFloor(currentDayPhong.tang.toString());
+            }
+        }
+    }, [editingRoom, dayPhongs]);
+
+    const watchedIdDayPhong = watch("idDayPhong");
+
+    // Auto-populate dienTich when idDayPhong changes
+    useEffect(() => {
+        if (watchedIdDayPhong && dayPhongs.length > 0) {
+            const selectedDay = dayPhongs.find(dp => dp._id === watchedIdDayPhong);
+            if (selectedDay) {
+                // Only auto-fill if the current dienTich is 0 (new room) OR if we're not in initial edit load
+                // Actually, more intuitive: if it matches the PREVIOUS selectedDay's dienTich, or if it's 0.
+                // For simplicity, let's just auto-fill if it's a NEW room (no editingRoom)
+                if (!editingRoom && selectedDay.dienTich > 0) {
+                    setValue("dienTich", selectedDay.dienTich);
+                }
+            }
+        }
+    }, [watchedIdDayPhong, dayPhongs, editingRoom, setValue]);
+
+    const uniqueFloors = Array.from(new Set(dayPhongs.map(dp => dp.tang.toString()))).sort((a, b) => Number(a) - Number(b));
+    const filteredDayPhongs = dayPhongs.filter(dp => dp.tang.toString() === selectedFloor);
 
     const onSubmit = async (values: RoomFormValues) => {
         setLoading(true);
@@ -191,26 +219,34 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tầng <span className="text-red-500 ml-0.5">*</span></label>
+                            <select
+                                value={selectedFloor}
+                                onChange={(e) => {
+                                    setSelectedFloor(e.target.value);
+                                    setValue("idDayPhong", ""); // Reset row selection when floor changes
+                                }}
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                            >
+                                <option value="">Chọn tầng</option>
+                                {uniqueFloors.map(floor => (
+                                    <option key={floor} value={floor}>Tầng {floor === "0" ? "Trệt" : floor}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="space-y-1">
                             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Dãy phòng <span className="text-red-500 ml-0.5">*</span></label>
                             <select
                                 {...register("idDayPhong")}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                                disabled={!selectedFloor}
                             >
                                 <option value="">Chọn dãy phòng</option>
-                                {dayPhongs.map(day => (
+                                {filteredDayPhongs.map(day => (
                                     <option key={day._id} value={day._id}>Dãy {day.soDay} - {day.viTri}</option>
                                 ))}
                             </select>
                             {errors.idDayPhong && <p className="text-[10px] text-red-500 font-bold">{errors.idDayPhong.message}</p>}
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Giá thuê (VNĐ) <span className="text-red-500 ml-0.5">*</span></label>
-                            <input
-                                type="number"
-                                step={500}
-                                {...register("giaPhong", { valueAsNumber: true })}
-                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold text-blue-600"
-                            />
                         </div>
                     </div>
 
@@ -220,14 +256,6 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                             <input
                                 type="number"
                                 {...register("dienTich", { valueAsNumber: true })}
-                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sức chứa <span className="text-red-500 ml-0.5">*</span></label>
-                            <input
-                                type="number"
-                                {...register("sucChua", { valueAsNumber: true })}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                             />
                         </div>
@@ -241,8 +269,8 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
                             >
                                 <option value="">Chọn loại phòng</option>
-                                <option value="Phong_Lon">Phòng lớn</option>
-                                <option value="Phong_Thuong">Phòng thường</option>
+                                <option value="Co_Gac">Có gác</option>
+                                <option value="Khong_Gac">Không có gác</option>
                             </select>
                         </div>
                         <div className="space-y-1">

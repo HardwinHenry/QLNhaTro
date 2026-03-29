@@ -780,10 +780,6 @@ export default function ContractsPage() {
                                             <span className="font-black text-slate-800 group-hover:text-blue-600 transition-colors">{currentContract.idPhong?.dienTich} m²</span>
                                         </div>
                                         <div className="flex justify-between items-center group">
-                                            <span className="text-slate-500 text-sm font-medium">Sức chứa tối đa:</span>
-                                            <span className="font-black text-slate-800 group-hover:text-blue-600 transition-colors">{currentContract.idPhong?.sucChua} người</span>
-                                        </div>
-                                        <div className="flex justify-between items-center group">
                                             <span className="text-slate-500 text-sm font-medium">Loại phòng:</span>
                                             <span className="font-black text-slate-800 group-hover:text-blue-600 transition-colors">{currentContract.idPhong?.loaiPhong?.replace("_", " ") || "Phòng thường"}</span>
                                         </div>

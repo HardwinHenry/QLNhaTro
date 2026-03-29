@@ -12,9 +12,9 @@ interface RoomCardProps {
         status: "available" | "occupied";
         images: string[];
         area: number;
-        capacity: number;
         loaiPhong?: string;
         dayPhong?: string;
+        tang?: string | number;
         vatTu?: { tenVatTu: string }[];
         khachThue?: {
             hoTen?: string;
@@ -28,8 +28,8 @@ interface RoomCardProps {
 
 
 const loaiPhongLabels: Record<string, string> = {
-    Phong_Lon: "Phòng lớn",
-    Phong_Thuong: "Phòng thường",
+    Co_Gac: "Có gác",
+    Khong_Gac: "Không gác",
 };
 
 export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardProps) {
@@ -141,7 +141,7 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
                     {room.dayPhong && (
                         <div className="flex items-center gap-2 text-xs text-slate-500">
                             <Layers size={14} className="text-slate-400" />
-                            <span>Dãy: <span className="font-bold text-slate-700">{room.dayPhong}</span></span>
+                            <span>Vị trí: <span className="font-bold text-slate-700">{room.tang !== undefined ? `Tầng ${room.tang === 0 ? "trệt" : room.tang} - ` : ""}{room.dayPhong}</span></span>
                         </div>
                     )}
                     {room.vatTu && room.vatTu.length > 0 && (
@@ -152,15 +152,9 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
                     )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 border-t border-slate-100 pt-4">
-                    <div className="flex items-center gap-2 text-slate-500">
-                        <Maximize size={16} className="text-slate-400" />
-                        <span className="text-sm font-medium">{room.area}m²</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-500">
-                        <User size={16} className="text-slate-400" />
-                        <span className="text-sm font-medium">Tới {room.capacity} người</span>
-                    </div>
+                <div className="flex items-center gap-2 text-slate-500 border-t border-slate-100 pt-4">
+                    <Maximize size={16} className="text-slate-400" />
+                    <span className="text-sm font-medium">{room.area}m²</span>
                 </div>
 
                 <div className="flex gap-3 mt-5">

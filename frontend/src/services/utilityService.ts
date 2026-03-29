@@ -35,6 +35,10 @@ export const utilityService = {
         const response = await api.get<GiaDienNuoc>("/giadiennuoc/latest");
         return response.data;
     },
+    getAllGias: async () => {
+        const response = await api.get<GiaDienNuoc[]>("/giadiennuoc/history");
+        return response.data;
+    },
     updateGia: async (data: GiaDienNuoc) => {
         const response = await api.post<GiaDienNuoc>("/giadiennuoc", data);
         return response.data;

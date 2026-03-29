@@ -5,7 +5,8 @@ const dayPhongSchema = new mongoose.Schema({
     tang: { type: Number, required: true, default: 1 },
     viTri: { type: String, required: true },
     hinhAnh: { type: String },
-    soPhongToiDa: { type: Number, default: 0 }
+    soPhongToiDa: { type: Number, default: 0 },
+    dienTich: { type: Number, default: 0 }
 }, { timestamps: true });
 
 export default mongoose.model("DayPhong", dayPhongSchema);

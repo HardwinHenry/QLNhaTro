@@ -7,7 +7,6 @@ export interface Room {
     tenPhong: string;
     giaPhong: number;
     dienTich: number;
-    sucChua: number;
     moTa?: string;
     loaiPhong?: string;
     trangThai: "Trong" | "Da_Thue";

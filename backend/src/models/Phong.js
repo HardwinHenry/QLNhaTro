@@ -6,10 +6,9 @@ const phongSchema = new mongoose.Schema({
   idDayPhong: { type: mongoose.Schema.Types.ObjectId, ref: "DayPhong", required: true },
   giaPhong: { type: Number, required: true },
   dienTich: { type: Number, required: true },
-  sucChua: { type: Number, required: true },
   loaiPhong: {
     type: String,
-    enum: ["Phong_Don", "Phong_Doi", "Phong_Ghep", "Phong_VIP", "Phong_Lon", "Phong_Thuong"],
+    enum: ["Co_Gac", "Khong_Gac"],
     required: true
   },
   trangThai: {

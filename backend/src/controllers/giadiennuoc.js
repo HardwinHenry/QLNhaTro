@@ -18,3 +18,12 @@ export const updateGia = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
+export const getAllGias = async (req, res) => {
+    try {
+        const history = await GiaDienVaNuoc.find().sort({ ngayApDung: -1 });
+        res.json(history);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Zap, Droplets, Save, History, Plus, Loader2, Calculator } from "lucide-react";
 import { utilityService, type ChiSoDienNuoc, type GiaDienNuoc } from "../services/utilityService";
 import { roomService, type Room } from "../services/roomService";
@@ -12,6 +12,7 @@ export default function UtilitiesPage() {
     const [latestGia, setLatestGia] = useState<GiaDienNuoc | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<"record" | "history" | "config">(isAdmin ? "record" : "history");
+    const [giaHistory, setGiaHistory] = useState<GiaDienNuoc[]>([]);
 
     // Form states
     const [selectedRoom, setSelectedRoom] = useState("");
@@ -28,13 +29,15 @@ export default function UtilitiesPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [roomsData, chiSosData, giaData] = await Promise.all([
+                const [roomsData, chiSosData, giaData, giaHistoryData] = await Promise.all([
                     roomService.getAllPhongs(),
                     utilityService.getAllChiSos(),
-                    utilityService.getLatestGia()
+                    utilityService.getLatestGia(),
+                    utilityService.getAllGias()
                 ]);
                 setRooms(roomsData);
                 setChiSos(chiSosData);
+                setGiaHistory(giaHistoryData);
                 if (giaData) {
                     setLatestGia(giaData);
                     setGiaDien(giaData.giaDien);
@@ -71,6 +74,14 @@ export default function UtilitiesPage() {
 
     const handleSaveChiSo = async () => {
         if (!selectedRoom) return alert("Vui lòng chọn phòng");
+
+        if (dienMoi < dienCu) {
+            return alert("Chỉ số điện mới không được nhỏ hơn chỉ số cũ");
+        }
+        if (nuocMoi < nuocCu) {
+            return alert("Chỉ số nước mới không được nhỏ hơn chỉ số cũ");
+        }
+
         try {
             await utilityService.createChiSo({
                 idPhong: selectedRoom,
@@ -98,8 +109,12 @@ export default function UtilitiesPage() {
                 giaNuoc
             });
             alert("Cập nhật giá thành công");
-            const giaData = await utilityService.getLatestGia();
+            const [giaData, giaHistoryData] = await Promise.all([
+                utilityService.getLatestGia(),
+                utilityService.getAllGias()
+            ]);
             setLatestGia(giaData);
+            setGiaHistory(giaHistoryData);
             setActiveTab("record");
         } catch (error) {
             alert("Lỗi khi cập nhật giá");
@@ -370,6 +385,52 @@ export default function UtilitiesPage() {
                             <Save size={18} />
                             Cập nhật đơn giá mới
                         </button>
+                    </div>
+
+                    <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden mt-8">
+                        <div className="p-8 border-b border-slate-100 bg-slate-50/50">
+                            <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                                <History size={20} className="text-blue-600" />
+                                Lịch sử thay đổi đơn giá
+                            </h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full min-w-[600px] text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50/30">
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-slate-400">Ngày áp dụng</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-slate-400">Giá điện (vnđ)</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-slate-400">Giá nước (vnđ)</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right text-slate-400">Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 font-medium">
+                                    {giaHistory.map((item, index) => (
+                                        <tr key={item._id} className="hover:bg-slate-50/50 transition-colors">
+                                            <td className="px-8 py-5">
+                                                <p className="text-sm font-bold text-slate-700">{new Date(item.ngayApDung).toLocaleDateString("vi-VN")}</p>
+                                                <p className="text-[10px] text-slate-400">{new Date(item.ngayApDung).toLocaleTimeString("vi-VN")}</p>
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <span className="text-amber-600 font-black text-sm">{item.giaDien.toLocaleString("vi-VN")}đ</span>
+                                                <span className="text-[10px] text-slate-400 ml-1 italic">/kWh</span>
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <span className="text-blue-600 font-black text-sm">{item.giaNuoc.toLocaleString("vi-VN")}đ</span>
+                                                <span className="text-[10px] text-slate-400 ml-1 italic">/m³</span>
+                                            </td>
+                                            <td className="px-8 py-5 text-right">
+                                                {index === 0 ? (
+                                                    <span className="inline-flex items-center px-4 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-black rounded-full border border-emerald-200">ĐANG ÁP DỤNG</span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-4 py-1 bg-slate-100 text-slate-400 text-[10px] font-black rounded-full border border-slate-200">HẾT HẠN</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}

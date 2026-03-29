@@ -469,7 +469,7 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
                             </span>
                         </div>
                         <p className="text-[11px] text-slate-400 font-medium">
-                            {tooltip.room.giaPhong.toLocaleString("vi-VN")}đ/tháng · {tooltip.room.dienTich}m² · {tooltip.room.sucChua} người
+                            {tooltip.room.giaPhong.toLocaleString("vi-VN")}đ/tháng · {tooltip.room.dienTich}m²
                         </p>
                     </div>
                     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full w-0 h-0 border-l-[8px] border-r-[8px] border-t-[8px] border-l-transparent border-r-transparent border-t-slate-900/95"></div>

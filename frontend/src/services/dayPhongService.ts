@@ -7,6 +7,7 @@ export interface DayPhong {
     viTri: string;
     hinhAnh?: string;
     soPhongToiDa: number;
+    dienTich: number;
     createdAt: string;
 }
 

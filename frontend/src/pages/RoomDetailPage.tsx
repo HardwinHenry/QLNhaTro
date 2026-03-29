@@ -1,9 +1,8 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
     ChevronLeft,
     Maximize,
-    User,
     Layers,
     Package,
     Info,
@@ -21,8 +20,8 @@ import { resolveBackendAssetUrl } from "../utils/url";
 import ImageViewer from "../components/ImageViewer";
 
 const loaiPhongLabels: Record<string, string> = {
-    Phong_Lon: "Phòng lớn",
-    Phong_Thuong: "Phòng thường",
+    Co_Gac: "Có gác",
+    Khong_Gac: "Không gác",
 };
 
 export default function RoomDetailPage() {
@@ -200,8 +199,8 @@ export default function RoomDetailPage() {
                             </p>
                         </div>
 
-                        {/* Features Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Features & Service Costs Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center gap-4 hover:shadow-md transition-shadow">
                                 <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
                                     <Maximize size={20} />
@@ -211,19 +210,7 @@ export default function RoomDetailPage() {
                                     <p className="text-lg font-bold text-slate-800">{room.dienTich}m²</p>
                                 </div>
                             </div>
-                            <div className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center gap-4 hover:shadow-md transition-shadow">
-                                <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-                                    <User size={20} />
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Sức chứa</p>
-                                    <p className="text-lg font-bold text-slate-800">{room.sucChua} người</p>
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* Service Costs */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center gap-4 hover:shadow-md transition-shadow group">
                                 <div className="p-3 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-100 transition-colors">
                                     <Zap size={20} />
@@ -236,6 +223,7 @@ export default function RoomDetailPage() {
                                     </p>
                                 </div>
                             </div>
+
                             <div className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center gap-4 hover:shadow-md transition-shadow group">
                                 <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-100 transition-colors">
                                     <Droplets size={20} />
@@ -257,7 +245,7 @@ export default function RoomDetailPage() {
                                     <Layers size={20} className="text-slate-400" />
                                     <div>
                                         <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Vị trí</p>
-                                        <p className="font-bold text-slate-700">Dãy {room.idDayPhong.soDay} - {room.idDayPhong.tenDay}</p>
+                                        <p className="font-bold text-slate-700">Tầng {room.idDayPhong.tang === 0 ? "Trệt" : room.idDayPhong.tang} - Dãy {room.idDayPhong.soDay}</p>
                                     </div>
                                 </div>
                             )}

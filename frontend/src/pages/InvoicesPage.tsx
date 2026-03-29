@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from "react";
-import { Receipt, Search, Loader2, CheckCircle2, Clock, Plus, X, Send, Calculator, Trash2, Edit2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Receipt, Search, Loader2, CheckCircle2, Clock, Plus, X, Calculator, Trash2, Edit2, CreditCard } from "lucide-react";
 import { invoiceService, type Invoice } from "../services/invoiceService";
 import { contractService, type Contract } from "../services/contractService";
 import { utilityService } from "../services/utilityService";
@@ -30,7 +30,6 @@ export default function InvoicesPage() {
     const [giaNuoc, setGiaNuoc] = useState(0);
     const [tienDien, setTienDien] = useState(0);
     const [tienNuoc, setTienNuoc] = useState(0);
-    const [tienDichVu, setTienDichVu] = useState(0);
     const [tongTien, setTongTien] = useState(0);
 
     const fetchInvoices = async () => {
@@ -109,12 +108,66 @@ export default function InvoicesPage() {
         setTienDien(calculatedTienDien);
         setTienNuoc(calculatedTienNuoc);
 
-        const total = tienPhong + calculatedTienDien + calculatedTienNuoc + (Number(tienDichVu) || 0);
+        const total = tienPhong + calculatedTienDien + calculatedTienNuoc;
         setTongTien(total);
-    }, [chiSoDien, chiSoDienCu, chiSoNuoc, chiSoNuocCu, giaDien, giaNuoc, tienPhong, tienDichVu]);
+    }, [chiSoDien, chiSoDienCu, chiSoNuoc, chiSoNuocCu, giaDien, giaNuoc, tienPhong]);
 
     const handleCreateInvoice = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validation: No past months
+        const today = new Date();
+        const firstDayOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const inputDate = new Date(ngayThangNam);
+        const firstDayOfInputMonth = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
+
+        if (firstDayOfInputMonth < firstDayOfThisMonth) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Ngày không hợp lệ',
+                text: 'Không thể tạo hóa đơn cho các tháng trước tháng hiện tại.',
+                confirmButtonColor: '#2563eb'
+            });
+            return;
+        }
+
+        // Validation: Must be within contract term
+        const contract = contracts.find(c => c._id === selectedContract);
+        if (contract) {
+            const startDate = new Date(contract.ngayBatDau);
+            const endDate = contract.ngayKetThuc ? new Date(contract.ngayKetThuc) : null;
+
+            if (inputDate < startDate || (endDate && inputDate > endDate)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Ngày không hợp lệ',
+                    text: `Ngày lập phải nằm trong thời hạn hợp đồng (${new Date(startDate).toLocaleDateString("vi-VN")}${endDate ? ` - ${new Date(endDate).toLocaleDateString("vi-VN")}` : ""})`,
+                    confirmButtonColor: '#2563eb'
+                });
+                return;
+            }
+        }
+
+        // Validation: Indices
+        if (chiSoDien < chiSoDienCu) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Chỉ số không hợp lệ',
+                text: 'Chỉ số điện mới không được nhỏ hơn chỉ số cũ.',
+                confirmButtonColor: '#2563eb'
+            });
+            return;
+        }
+        if (chiSoNuoc < chiSoNuocCu) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Chỉ số không hợp lệ',
+                text: 'Chỉ số nước mới không được nhỏ hơn chỉ số cũ.',
+                confirmButtonColor: '#2563eb'
+            });
+            return;
+        }
+
         try {
             await invoiceService.createHoaDon({
                 idHopDong: selectedContract,
@@ -128,8 +181,8 @@ export default function InvoicesPage() {
                 chiSoNuocMoi: chiSoNuoc,
                 giaNuoc,
                 tienNuoc,
-                tienDichVu,
-                tongTien: tongTien || (tienPhong + tienDien + tienNuoc + tienDichVu),
+                tienDichVu: 0,
+                tongTien: tongTien || (tienPhong + tienDien + tienNuoc),
                 trangThai: "Chua_Thanh_Toan"
             });
             Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Tạo hóa đơn thành công', confirmButtonColor: '#2563eb' });
@@ -140,14 +193,6 @@ export default function InvoicesPage() {
         }
     };
 
-    const handleRequestPayment = async (id: string) => {
-        try {
-            const res = await invoiceService.requestPayment(id);
-            Swal.fire({ icon: 'info', title: 'Thông báo', text: res.message, confirmButtonColor: '#2563eb' });
-        } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi gửi yêu cầu', confirmButtonColor: '#2563eb' });
-        }
-    };
 
     const handleDeleteInvoice = async (id: string) => {
         const result = await Swal.fire({
@@ -188,7 +233,6 @@ export default function InvoicesPage() {
         setGiaNuoc(invoice.giaNuoc);
         setTienDien(invoice.tienDien);
         setTienNuoc(invoice.tienNuoc);
-        setTienDichVu(invoice.tienDichVu);
         setTongTien(invoice.tongTien);
         setIsEditModalOpen(true);
     };
@@ -202,7 +246,7 @@ export default function InvoicesPage() {
                 ngayThangNam,
                 chiSoDienMoi: chiSoDien,
                 chiSoNuocMoi: chiSoNuoc,
-                tienDichVu,
+                tienDichVu: 0,
                 tongTien
             });
             Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Cập nhật hóa đơn thành công', confirmButtonColor: '#2563eb' });
@@ -211,6 +255,60 @@ export default function InvoicesPage() {
         } catch (error) {
             Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi cập nhật hóa đơn', confirmButtonColor: '#2563eb' });
         }
+    };
+
+
+
+    const handlePayment = (invoice: Invoice) => {
+        const bankName = "MBBank"; // Thay đổi theo thực tế
+        const accountNumber = "123456789"; // Thay đổi theo thực tế
+        const accountHolder = "TRẦN TRƯỞNG ĐĂNG KHOA"; // Thay đổi theo thực tế
+        const amount = invoice.tongTien;
+        const description = `THANH TOAN HOA DON ${invoice._id.slice(-6).toUpperCase()}`;
+
+        const sepayUrl = `https://qr.sepay.vn/img?acc=${accountNumber}&bank=${bankName}&amount=${amount}&descr=${description}&template=compact`;
+
+        Swal.fire({
+            title: '<h2 class="text-xl font-black">Thanh toán qua SePay</h2>',
+            html: `
+                <div class="space-y-4 p-2 text-left bg-slate-50 rounded-2xl border border-slate-100 mt-4">
+                    <div class="flex flex-col items-center">
+                        <img src="${sepayUrl}" alt="QR Thanh toán" class="w-64 h-64 rounded-xl shadow-lg border-4 border-white mb-4" />
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center">Quét mã QR để thanh toán qua ngân hàng</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mt-4 border-t border-slate-200 pt-4">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ngân hàng</p>
+                            <p class="font-bold text-slate-700">${bankName}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Số tài khoản</p>
+                            <p class="font-bold text-slate-700">${accountNumber}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Chủ tài khoản</p>
+                            <p class="font-bold text-slate-700">${accountHolder}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Số tiền</p>
+                            <p class="font-black text-blue-600">${amount.toLocaleString("vi-VN")}đ</p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nội dung chuyển khoản</p>
+                            <p class="font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 inline-block w-full">${description}</p>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 font-medium italic mt-4">* Hệ thống SePay sẽ tự động ghi nhận thanh toán sau 1-3 phút khi nhận được tiền.</p>
+                </div>
+            `,
+            showCloseButton: true,
+            showConfirmButton: false,
+            focusConfirm: false,
+            width: '450px',
+            customClass: {
+                container: 'sepay-modal'
+            }
+        });
     };
 
     const getStatusStyle = (status: string) => {
@@ -322,17 +420,17 @@ export default function InvoicesPage() {
                                                 >
                                                     Chi tiết
                                                 </button>
+                                                {invoice.trangThai === "Chua_Thanh_Toan" && (
+                                                    <button
+                                                        onClick={() => handlePayment(invoice)}
+                                                        className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1 rounded-xl text-xs font-black hover:bg-black transition-all shadow-md shadow-blue-100"
+                                                    >
+                                                        <CreditCard size={12} />
+                                                        Thanh toán
+                                                    </button>
+                                                )}
                                                 {isAdmin && (
                                                     <div className="flex items-center gap-1">
-                                                        {invoice.trangThai === "Chua_Thanh_Toan" && (
-                                                            <button
-                                                                onClick={() => handleRequestPayment(invoice._id)}
-                                                                className="flex items-center gap-1 bg-amber-50 text-amber-600 px-2.5 py-1 rounded-lg text-xs font-black hover:bg-amber-100 transition-all border border-amber-200"
-                                                                title="Gửi yêu cầu thanh toán"
-                                                            >
-                                                                <Send size={12} />
-                                                            </button>
-                                                        )}
                                                         <button
                                                             onClick={() => handleOpenEdit(invoice)}
                                                             className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
@@ -409,6 +507,7 @@ export default function InvoicesPage() {
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
                                         value={ngayThangNam}
                                         onChange={(e) => setNgayThangNam(e.target.value)}
+                                        min={new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10)}
                                         required
                                     />
                                 </div>
@@ -442,16 +541,6 @@ export default function InvoicesPage() {
                                         value={chiSoNuoc}
                                         onChange={(e) => setChiSoNuoc(Number(e.target.value))}
                                         required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Phụ phí / Dịch vụ</label>
-                                    <input
-                                        type="number"
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
-                                        value={tienDichVu}
-                                        onChange={(e) => setTienDichVu(Number(e.target.value))}
                                     />
                                 </div>
 
@@ -544,16 +633,6 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Phụ phí / Dịch vụ</label>
-                                    <input
-                                        type="number"
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
-                                        value={tienDichVu}
-                                        onChange={(e) => setTienDichVu(Number(e.target.value))}
-                                    />
-                                </div>
-
-                                <div>
                                     <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tổng tiền</label>
                                     <input
                                         type="number"
@@ -575,7 +654,7 @@ export default function InvoicesPage() {
             {/* Details Invoice Modal */}
             {isDetailsModalOpen && currentInvoice && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-300 text-slate-800">
-                    <div className="bg-white rounded-[2rem] sm:rounded-[3rem] w-full max-w-2xl shadow-2xl overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-300 flex flex-col max-h-[95vh]">
+                    <div className="bg-white rounded-[2rem] sm:rounded-[3rem] w-full max-w-3xl shadow-2xl overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-300 flex flex-col max-h-[95vh]">
                         {/* Header */}
                         <div className="p-4 sm:p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 sticky top-0 z-10">
                             <div className="flex items-center gap-4">
@@ -642,7 +721,7 @@ export default function InvoicesPage() {
                                     Bảng kê chi tiết
                                 </h3>
                                 <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-sm">
-                                    <table className="w-full min-w-[720px] text-left">
+                                    <table className="w-full min-w-[600px] text-left">
                                         <thead className="bg-slate-50 border-b border-slate-100">
                                             <tr>
                                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Mục chi phí</th>
@@ -690,20 +769,11 @@ export default function InvoicesPage() {
                                                 </td>
                                                 <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice.tienNuoc?.toLocaleString("vi-VN") || 0}đ</td>
                                             </tr>
-                                            {/* Other Services */}
-                                            <tr className="bg-slate-50/50">
-                                                <td className="px-6 py-5">
-                                                    <p className="font-bold text-slate-700">Dịch vụ khác</p>
-                                                    <p className="text-[10px] text-slate-400">Rác, vệ sinh, internet...</p>
-                                                </td>
-                                                <td className="px-6 py-5 text-right font-medium text-slate-500">-</td>
-                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice.tienDichVu?.toLocaleString("vi-VN")}đ</td>
-                                            </tr>
                                         </tbody>
                                         <tfoot>
                                             <tr className="bg-blue-600 text-white">
                                                 <td className="px-6 py-6 font-black text-lg uppercase tracking-widest">Tổng cộng</td>
-                                                <td colSpan={2} className="px-6 py-6 text-right font-black text-3xl">
+                                                <td colSpan={2} className="px-6 py-6 text-right font-black text-2xl sm:text-3xl">
                                                     {currentInvoice.tongTien.toLocaleString("vi-VN")}<span className="text-sm ml-1 opacity-70 italic font-medium">vnđ</span>
                                                 </td>
                                             </tr>
@@ -721,6 +791,14 @@ export default function InvoicesPage() {
                             >
                                 Đóng hóa đơn
                             </button>
+                            {currentInvoice.trangThai === "Chua_Thanh_Toan" && (
+                                <button
+                                    onClick={() => handlePayment(currentInvoice)}
+                                    className="px-10 bg-blue-600 text-white font-black py-4 rounded-3xl shadow-xl shadow-blue-200 transition-all active:scale-95 flex items-center gap-2 hover:bg-black"
+                                >
+                                    <CreditCard size={18} /> Thanh toán ngay
+                                </button>
+                            )}
                             <button className="px-10 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-600 hover:text-blue-600 font-bold py-4 rounded-3xl transition-all shadow-sm active:scale-95 flex items-center gap-2">
                                 <Receipt size={18} /> In hóa đơn
                             </button>
