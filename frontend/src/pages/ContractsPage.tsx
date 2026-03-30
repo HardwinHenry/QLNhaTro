@@ -279,11 +279,11 @@ export default function ContractsPage() {
                                     </div>
                                     <div className="flex items-center gap-2 text-slate-600">
                                         <ShieldCheck size={16} className="text-emerald-500" />
-                                        <span>Tiền cọc: <span className="font-bold text-slate-800">{contract.tienCoc.toLocaleString("vi-VN")}đ</span></span>
+                                        <span>Tiền cọc: <span className="font-bold text-slate-800">{(contract.tienCoc ?? 0).toLocaleString("vi-VN")}đ</span></span>
                                     </div>
                                     <div className="flex items-center gap-2 text-slate-600">
                                         <AlertCircle size={16} className="text-amber-500" />
-                                        <span>Giá thuê: <span className="font-bold text-blue-600">{contract.giaThue.toLocaleString("vi-VN")}đ/tháng</span></span>
+                                        <span>Giá thuê: <span className="font-bold text-blue-600">{(contract.giaThue ?? 0).toLocaleString("vi-VN")}đ/tháng</span></span>
                                     </div>
                                 </div>
                             </div>
@@ -720,11 +720,11 @@ export default function ContractsPage() {
                                         <div className="space-y-6">
                                             <div>
                                                 <p className="text-white/50 text-xs font-bold uppercase mb-1">Giá thuê hàng tháng</p>
-                                                <p className="text-3xl font-black text-blue-400">{currentContract.giaThue.toLocaleString("vi-VN")}<span className="text-xs ml-1 opacity-60">đ/tháng</span></p>
+                                                <p className="text-3xl font-black text-blue-400">{(currentContract.giaThue ?? 0).toLocaleString("vi-VN")}<span className="text-xs ml-1 opacity-60">đ/tháng</span></p>
                                             </div>
                                             <div>
                                                 <p className="text-white/50 text-xs font-bold uppercase mb-1">Tiền đặt cọc</p>
-                                                <p className="text-2xl font-black text-emerald-400">{currentContract.tienCoc.toLocaleString("vi-VN")}<span className="text-xs ml-1 opacity-60">đ</span></p>
+                                                <p className="text-2xl font-black text-emerald-400">{(currentContract.tienCoc ?? 0).toLocaleString("vi-VN")}<span className="text-xs ml-1 opacity-60">đ</span></p>
                                             </div>
                                             <div className="pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div>

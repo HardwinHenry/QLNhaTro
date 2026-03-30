@@ -215,7 +215,7 @@ export default function RoomsPage() {
                             >
                                 <option value="">Tất cả dãy</option>
                                 {dayPhongs.map(day => (
-                                    <option key={day._id} value={day._id}>Dãy {day.soDay} - {day.viTri}</option>
+                                    <option key={day._id} value={day._id}>Dãy {day.soDay}</option>
                                 ))}
                             </select>
                         </div>

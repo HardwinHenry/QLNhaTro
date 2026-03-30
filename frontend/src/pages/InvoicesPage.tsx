@@ -259,55 +259,14 @@ export default function InvoicesPage() {
 
 
 
-    const handlePayment = (invoice: Invoice) => {
-        const bankName = "MBBank"; // Thay đổi theo thực tế
-        const accountNumber = "123456789"; // Thay đổi theo thực tế
-        const accountHolder = "TRẦN TRƯỞNG ĐĂNG KHOA"; // Thay đổi theo thực tế
-        const amount = invoice.tongTien;
-        const description = `THANH TOAN HOA DON ${invoice._id.slice(-6).toUpperCase()}`;
 
-        const sepayUrl = `https://qr.sepay.vn/img?acc=${accountNumber}&bank=${bankName}&amount=${amount}&descr=${description}&template=compact`;
 
+    const handlePayment = (_invoice: Invoice) => {
         Swal.fire({
-            title: '<h2 class="text-xl font-black">Thanh toán qua SePay</h2>',
-            html: `
-                <div class="space-y-4 p-2 text-left bg-slate-50 rounded-2xl border border-slate-100 mt-4">
-                    <div class="flex flex-col items-center">
-                        <img src="${sepayUrl}" alt="QR Thanh toán" class="w-64 h-64 rounded-xl shadow-lg border-4 border-white mb-4" />
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center">Quét mã QR để thanh toán qua ngân hàng</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 mt-4 border-t border-slate-200 pt-4">
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ngân hàng</p>
-                            <p class="font-bold text-slate-700">${bankName}</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Số tài khoản</p>
-                            <p class="font-bold text-slate-700">${accountNumber}</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Chủ tài khoản</p>
-                            <p class="font-bold text-slate-700">${accountHolder}</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Số tiền</p>
-                            <p class="font-black text-blue-600">${amount.toLocaleString("vi-VN")}đ</p>
-                        </div>
-                        <div class="col-span-2">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nội dung chuyển khoản</p>
-                            <p class="font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 inline-block w-full">${description}</p>
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-slate-400 font-medium italic mt-4">* Hệ thống SePay sẽ tự động ghi nhận thanh toán sau 1-3 phút khi nhận được tiền.</p>
-                </div>
-            `,
-            showCloseButton: true,
-            showConfirmButton: false,
-            focusConfirm: false,
-            width: '450px',
-            customClass: {
-                container: 'sepay-modal'
-            }
+            icon: 'info',
+            title: 'Thanh toán',
+            text: 'Tính năng thanh toán trực tuyến đang được bảo trì. Vui lòng liên hệ chủ trọ để thanh toán trực tiếp.',
+            confirmButtonColor: '#2563eb'
         });
     };
 
@@ -401,7 +360,7 @@ export default function InvoicesPage() {
                                         </td>
 
                                         <td className="px-6 py-4">
-                                            <p className="text-sm font-black text-blue-600">{invoice.tongTien.toLocaleString("vi-VN")}đ</p>
+                                            <p className="text-sm font-black text-blue-600">{(invoice.tongTien ?? 0).toLocaleString("vi-VN")}đ</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border ${getStatusStyle(invoice.trangThai)}`}>
@@ -420,7 +379,7 @@ export default function InvoicesPage() {
                                                 >
                                                     Chi tiết
                                                 </button>
-                                                {invoice.trangThai === "Chua_Thanh_Toan" && (
+                                                {(!isAdmin && invoice.trangThai === "Chua_Thanh_Toan") && (
                                                     <button
                                                         onClick={() => handlePayment(invoice)}
                                                         className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1 rounded-xl text-xs font-black hover:bg-black transition-all shadow-md shadow-blue-100"
@@ -737,7 +696,7 @@ export default function InvoicesPage() {
                                                     <p className="text-[10px] text-slate-400">Giá cố định hàng tháng</p>
                                                 </td>
                                                 <td className="px-6 py-5 text-right font-medium text-slate-500">1 tháng</td>
-                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice.tienPhong?.toLocaleString("vi-VN")}đ</td>
+                                                <td className="px-6 py-5 text-right font-black text-slate-800">{(currentInvoice.tienPhong ?? 0).toLocaleString("vi-VN")}đ</td>
                                             </tr>
                                             {/* Electricity */}
                                             <tr>
@@ -774,7 +733,7 @@ export default function InvoicesPage() {
                                             <tr className="bg-blue-600 text-white">
                                                 <td className="px-6 py-6 font-black text-lg uppercase tracking-widest">Tổng cộng</td>
                                                 <td colSpan={2} className="px-6 py-6 text-right font-black text-2xl sm:text-3xl">
-                                                    {currentInvoice.tongTien.toLocaleString("vi-VN")}<span className="text-sm ml-1 opacity-70 italic font-medium">vnđ</span>
+                                                    {(currentInvoice.tongTien ?? 0).toLocaleString("vi-VN")}<span className="text-sm ml-1 opacity-70 italic font-medium">vnđ</span>
                                                 </td>
                                             </tr>
                                         </tfoot>
@@ -791,7 +750,7 @@ export default function InvoicesPage() {
                             >
                                 Đóng hóa đơn
                             </button>
-                            {currentInvoice.trangThai === "Chua_Thanh_Toan" && (
+                            {(!isAdmin && currentInvoice.trangThai === "Chua_Thanh_Toan") && (
                                 <button
                                     onClick={() => handlePayment(currentInvoice)}
                                     className="px-10 bg-blue-600 text-white font-black py-4 rounded-3xl shadow-xl shadow-blue-200 transition-all active:scale-95 flex items-center gap-2 hover:bg-black"

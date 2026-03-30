@@ -35,7 +35,7 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
     const [dayPhongs, setDayPhongs] = useState<DayPhong[]>([]);
     const [vatTus, setVatTus] = useState<VatTu[]>([]);
     const [loading, setLoading] = useState(false);
-    const [selectedFloor, setSelectedFloor] = useState<string>("");
+    const [selectedRow, setSelectedRow] = useState<string>("");
 
 
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -104,12 +104,12 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
         }
     }, [editingRoom, reset, isOpen]);
 
-    // Update selected floor when editing room
+    // Update selected row when editing room
     useEffect(() => {
         if (editingRoom && dayPhongs.length > 0) {
             const currentDayPhong = dayPhongs.find(dp => dp._id === (editingRoom.idDayPhong?._id || editingRoom.idDayPhong));
             if (currentDayPhong) {
-                setSelectedFloor(currentDayPhong.tang.toString());
+                setSelectedRow(currentDayPhong.soDay);
             }
         }
     }, [editingRoom, dayPhongs]);
@@ -131,8 +131,8 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
         }
     }, [watchedIdDayPhong, dayPhongs, editingRoom, setValue]);
 
-    const uniqueFloors = Array.from(new Set(dayPhongs.map(dp => dp.tang.toString()))).sort((a, b) => Number(a) - Number(b));
-    const filteredDayPhongs = dayPhongs.filter(dp => dp.tang.toString() === selectedFloor);
+    const uniqueRows = Array.from(new Set(dayPhongs.map(dp => dp.soDay))).sort();
+    const filteredDayPhongsByRow = dayPhongs.filter(dp => dp.soDay === selectedRow);
 
     const onSubmit = async (values: RoomFormValues) => {
         setLoading(true);
@@ -219,31 +219,31 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tầng <span className="text-red-500 ml-0.5">*</span></label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Dãy phòng <span className="text-red-500 ml-0.5">*</span></label>
                             <select
-                                value={selectedFloor}
+                                value={selectedRow}
                                 onChange={(e) => {
-                                    setSelectedFloor(e.target.value);
-                                    setValue("idDayPhong", ""); // Reset row selection when floor changes
+                                    setSelectedRow(e.target.value);
+                                    setValue("idDayPhong", ""); // Reset specific floor selection when row changes
                                 }}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
                             >
-                                <option value="">Chọn tầng</option>
-                                {uniqueFloors.map(floor => (
-                                    <option key={floor} value={floor}>Tầng {floor === "0" ? "Trệt" : floor}</option>
+                                <option value="">Chọn dãy phòng</option>
+                                {uniqueRows.map(row => (
+                                    <option key={row} value={row}>Dãy {row}</option>
                                 ))}
                             </select>
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Dãy phòng <span className="text-red-500 ml-0.5">*</span></label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tầng <span className="text-red-500 ml-0.5">*</span></label>
                             <select
                                 {...register("idDayPhong")}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
-                                disabled={!selectedFloor}
+                                disabled={!selectedRow}
                             >
-                                <option value="">Chọn dãy phòng</option>
-                                {filteredDayPhongs.map(day => (
-                                    <option key={day._id} value={day._id}>Dãy {day.soDay} - {day.viTri}</option>
+                                <option value="">Chọn tầng</option>
+                                {filteredDayPhongsByRow.map(day => (
+                                    <option key={day._id} value={day._id}>Tầng {day.tang === 0 ? "Trệt" : day.tang}</option>
                                 ))}
                             </select>
                             {errors.idDayPhong && <p className="text-[10px] text-red-500 font-bold">{errors.idDayPhong.message}</p>}
@@ -257,6 +257,14 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                                 type="number"
                                 {...register("dienTich", { valueAsNumber: true })}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Giá phòng (VNĐ) <span className="text-red-500 ml-0.5">*</span></label>
+                            <input
+                                type="number"
+                                {...register("giaPhong", { valueAsNumber: true })}
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold text-blue-600"
                             />
                         </div>
                     </div>
