@@ -50,3 +50,12 @@ export const createChiSo = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
+export const deleteAllChiSos = async (req, res) => {
+    try {
+        const result = await ChiSoDienVaNuoc.deleteMany({});
+        res.json({ message: `Đã xóa thành công ${result.deletedCount} lịch sử điện nước.` });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

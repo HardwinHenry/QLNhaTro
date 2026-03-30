@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Zap, Droplets, Save, History, Plus, Loader2, Calculator } from "lucide-react";
+import { Zap, Droplets, Save, History, Plus, Loader2, Calculator, LayoutTemplate } from "lucide-react";
 import { utilityService, type ChiSoDienNuoc, type GiaDienNuoc } from "../services/utilityService";
 import { roomService, type Room } from "../services/roomService";
 import { useAuthStore } from "../store/authStore";
@@ -16,7 +16,9 @@ export default function UtilitiesPage() {
 
     // Form states
     const [selectedRoom, setSelectedRoom] = useState("");
-    const [thang, setThang] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+    const [roomSearchTerm, setRoomSearchTerm] = useState("");
+    const [isRoomDropdownOpen, setIsRoomDropdownOpen] = useState(false);
+    const [thang, setThang] = useState(new Date().toISOString().slice(0, 10)); // YYYY-MM-DD
     const [dienCu, setDienCu] = useState(0);
     const [dienMoi, setDienMoi] = useState(0);
     const [nuocCu, setNuocCu] = useState(0);
@@ -67,6 +69,9 @@ export default function UtilitiesPage() {
                 setDienMoi(0);
                 setNuocMoi(0);
             }
+            // Clear search when a room is explicitly unselected by deleting
+            if(!idPhong) setRoomSearchTerm("");
+
         } catch (error) {
             console.error("Lỗi khi tải chỉ số cũ:", error);
         }
@@ -182,22 +187,59 @@ export default function UtilitiesPage() {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chọn phòng</label>
-                                <select
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    value={selectedRoom}
-                                    onChange={(e) => handleRoomChange(e.target.value)}
-                                >
-                                    <option value="">-- Chọn phòng --</option>
-                                    {rooms.map(room => (
-                                        <option key={room._id} value={room._id}>{room.tenPhong}</option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <div className="relative">
+                                        <LayoutTemplate className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                        <input
+                                            type="text"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                            placeholder="Nhập số phòng..."
+                                            value={roomSearchTerm}
+                                            onChange={(e) => {
+                                                setRoomSearchTerm(e.target.value);
+                                                setIsRoomDropdownOpen(true);
+                                                if (!e.target.value) setSelectedRoom("");
+                                            }}
+                                            onFocus={() => setIsRoomDropdownOpen(true)}
+                                            required={!selectedRoom}
+                                        />
+                                    </div>
+
+                                    {isRoomDropdownOpen && (
+                                        <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                                            {rooms.filter(r =>
+                                                r.trangThai === "Da_Thue" && r.tenPhong.toLowerCase().includes(roomSearchTerm.toLowerCase())
+                                            ).length > 0 ? (
+                                                rooms.filter(r =>
+                                                    r.trangThai === "Da_Thue" && r.tenPhong.toLowerCase().includes(roomSearchTerm.toLowerCase())
+                                                ).map(room => (
+                                                    <button
+                                                        key={room._id}
+                                                        type="button"
+                                                        className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 flex flex-col gap-0.5 transition-colors border-b border-slate-50 last:border-0"
+                                                        onClick={() => {
+                                                            handleRoomChange(room._id);
+                                                            setRoomSearchTerm(room.tenPhong);
+                                                            setIsRoomDropdownOpen(false);
+                                                        }}
+                                                    >
+                                                        <span className="font-bold text-slate-800">{room.tenPhong}</span>
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-4 py-3 text-sm text-slate-400 italic">Không tìm thấy phòng...</div>
+                                            )}
+                                        </div>
+                                    )}
+                                    {/* Hidden required field to ensure form validation */}
+                                    <input type="hidden" value={selectedRoom} required />
+                                </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tháng / Năm</label>
+                                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Ngày / Tháng / Năm</label>
                                 <input
-                                    type="month"
+                                    type="date"
                                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                     value={thang}
                                     onChange={(e) => setThang(e.target.value)}
@@ -324,7 +366,7 @@ export default function UtilitiesPage() {
                             <thead>
                                 <tr className="bg-slate-50/50">
                                     <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Phòng</th>
-                                    <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Tháng</th>
+                                    <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Kỳ (Ngày/Tháng/Năm)</th>
                                     <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-blue-600">Điện (Số mới)</th>
                                     <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-emerald-600">Nước (Số mới)</th>
                                     <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Ngày ghi</th>
@@ -334,7 +376,7 @@ export default function UtilitiesPage() {
                                 {chiSos.map((item) => (
                                     <tr key={item._id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-8 py-4 font-black text-slate-800">{item.idPhong?.tenPhong || "N/A"}</td>
-                                        <td className="px-8 py-4 text-slate-600">{item.thang}</td>
+                                        <td className="px-8 py-4 text-slate-600 font-bold">{item.thang.includes("-") && item.thang.split("-").length === 3 ? new Date(item.thang).toLocaleDateString("vi-VN") : item.thang}</td>
                                         <td className="px-8 py-4 text-blue-600 font-bold">{item.chiSoDienMoi} kWh</td>
                                         <td className="px-8 py-4 text-emerald-600 font-bold">{item.chiSoNuocMoi} m³</td>
                                         <td className="px-8 py-4 text-slate-400 text-sm">{item.createdAt ? new Date(item.createdAt).toLocaleDateString("vi-VN") : "N/A"}</td>

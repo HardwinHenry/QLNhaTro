@@ -21,7 +21,9 @@ export default function ContractsPage() {
     const [selectedRoom, setSelectedRoom] = useState("");
     const [selectedUser, setSelectedUser] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [roomSearchTerm, setRoomSearchTerm] = useState("");
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+    const [isRoomDropdownOpen, setIsRoomDropdownOpen] = useState(false);
     const [ngayBatDau, setNgayBatDau] = useState(new Date().toISOString().slice(0, 10));
     const [ngayKetThuc, setNgayKetThuc] = useState("");
     const [giaThue, setGiaThue] = useState(0);
@@ -236,6 +238,7 @@ export default function ContractsPage() {
                                 setSelectedRoom("");
                                 setSelectedUser("");
                                 setSearchTerm("");
+                                setRoomSearchTerm("");
                                 setIsCreateModalOpen(true);
                             }}
                             className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-black hover:bg-black transition-all shadow-lg"
@@ -382,17 +385,54 @@ export default function ContractsPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chọn phòng trống</label>
-                                    <select
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
-                                        value={selectedRoom}
-                                        onChange={(e) => handleRoomChange(e.target.value)}
-                                        required
-                                    >
-                                        <option value="">-- Chọn phòng --</option>
-                                        {rooms.map(room => (
-                                            <option key={room._id} value={room._id}>{room.tenPhong}</option>
-                                        ))}
-                                    </select>
+                                    <div className="relative">
+                                        <div className="relative">
+                                            <LayoutTemplate className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                            <input
+                                                type="text"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
+                                                placeholder="Nhập số phòng..."
+                                                value={roomSearchTerm}
+                                                onChange={(e) => {
+                                                    setRoomSearchTerm(e.target.value);
+                                                    setIsRoomDropdownOpen(true);
+                                                    if (!e.target.value) setSelectedRoom("");
+                                                }}
+                                                onFocus={() => setIsRoomDropdownOpen(true)}
+                                                required={!selectedRoom}
+                                            />
+                                        </div>
+
+                                        {isRoomDropdownOpen && (
+                                            <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                                                {rooms.filter(r =>
+                                                    r.tenPhong.toLowerCase().includes(roomSearchTerm.toLowerCase())
+                                                ).length > 0 ? (
+                                                    rooms.filter(r =>
+                                                        r.tenPhong.toLowerCase().includes(roomSearchTerm.toLowerCase())
+                                                    ).map(room => (
+                                                        <button
+                                                            key={room._id}
+                                                            type="button"
+                                                            className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 flex flex-col gap-0.5 transition-colors border-b border-slate-50 last:border-0"
+                                                            onClick={() => {
+                                                                handleRoomChange(room._id);
+                                                                setRoomSearchTerm(room.tenPhong);
+                                                                setIsRoomDropdownOpen(false);
+                                                            }}
+                                                        >
+                                                            <span className="font-bold text-slate-800">{room.tenPhong}</span>
+                                                            <span className="text-xs text-slate-400">{room.giaPhong.toLocaleString()}đ - {room.dienTich}m²</span>
+                                                        </button>
+                                                    ))
+                                                ) : (
+                                                    <div className="px-4 py-3 text-sm text-slate-400 italic">Không tìm thấy phòng trống...</div>
+                                                )}
+                                            </div>
+                                        )}
+                                        {/* Hidden required field to ensure form validation */}
+                                        <input type="hidden" value={selectedRoom} required />
+                                    </div>
                                 </div>
 
                                 <div>
@@ -863,9 +903,6 @@ export default function ContractsPage() {
                                 className="flex-1 bg-slate-900 hover:bg-black text-white font-black py-4 rounded-3xl shadow-xl transition-all active:scale-95"
                             >
                                 Đóng chi tiết
-                            </button>
-                            <button className="px-10 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-600 hover:text-blue-600 font-bold py-4 rounded-3xl transition-all shadow-sm active:scale-95 flex items-center gap-2">
-                                <FileText size={18} /> Xuất PDF
                             </button>
                         </div>
                     </div>

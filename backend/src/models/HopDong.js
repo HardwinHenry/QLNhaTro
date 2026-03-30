@@ -6,6 +6,7 @@ const hopDongSchema = new mongoose.Schema({
   ngayBatDau: { type: Date, required: true },
   ngayKetThuc: { type: Date, required: true },
   tienCoc: { type: Number, required: true },
+  giaThue: { type: Number, required: true },
   giaDien: { type: Number },
   giaNuoc: { type: Number },
   trangThai: {

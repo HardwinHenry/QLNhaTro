@@ -5,13 +5,12 @@ import { getAllHopDongs, createHopDong, updateHopDong, deleteHopDong, extendHopD
 import { getAllHoaDons, createHoaDon, updateHoaDon, deleteHoaDon, requestPayment } from "../controllers/hoadon.js";
 import { getAllDayPhongs, createDayPhong, updateDayPhong, deleteDayPhong } from "../controllers/dayphong.js";
 import { getAllVatTus, createVatTu, updateVatTu, deleteVatTu } from "../controllers/vattu.js";
-import { getAllChiSos, getLatestChiSoByPhong, createChiSo } from "../controllers/chisodiennuoc.js";
+import { getAllChiSos, getLatestChiSoByPhong, createChiSo, deleteAllChiSos } from "../controllers/chisodiennuoc.js";
 import { getLatestGia, updateGia, getAllGias } from "../controllers/giadiennuoc.js";
 import { createYeuCau, getAllYeuCaus, confirmYeuCau, cancelYeuCau, updateYeuCau, deleteYeuCau } from "../controllers/datphong.js";
 import { auth } from "../middlewares/auth.js";
 import { upload } from "../middlewares/upload.js";
-
-
+import { getLatestCauHinh, updateCauHinh } from "../controllers/cauhinh.js";
 const router = express.Router();
 
 // Auth routes
@@ -73,6 +72,7 @@ router.delete("/vattu/:id", auth(["Chu_Tro"]), deleteVatTu);
 router.get("/chisodiennuoc", auth(["Chu_Tro", "Khach"]), getAllChiSos);
 router.get("/chisodiennuoc/latest/:idPhong", auth(["Chu_Tro", "Khach"]), getLatestChiSoByPhong);
 router.post("/chisodiennuoc", auth(["Chu_Tro"]), createChiSo);
+router.delete("/chisodiennuoc/delete-all", auth(["Chu_Tro"]), deleteAllChiSos);
 
 router.get("/giadiennuoc/latest", auth(), getLatestGia);
 router.get("/giadiennuoc/history", auth(), getAllGias);
@@ -85,6 +85,10 @@ router.put("/datphong/:id/confirm", auth(["Chu_Tro"]), confirmYeuCau);
 router.put("/datphong/:id", auth(["Chu_Tro"]), updateYeuCau);
 router.delete("/datphong/:id", auth(["Chu_Tro"]), deleteYeuCau);
 router.put("/datphong/:id/cancel", auth(), cancelYeuCau);
+
+// CauHinh routes
+router.get("/cauhinh/latest", auth(), getLatestCauHinh);
+router.put("/cauhinh", auth(["Chu_Tro"]), updateCauHinh);
 
 router.post("/thanhtoan", auth(["Khach"]), (req, res) => res.json({ message: "Thanh Toan route" }));
 

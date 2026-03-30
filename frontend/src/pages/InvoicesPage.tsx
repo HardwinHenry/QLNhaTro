@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Receipt, Search, Loader2, CheckCircle2, Clock, Plus, X, Calculator, Trash2, Edit2, CreditCard } from "lucide-react";
+import { Receipt, Search, Loader2, CheckCircle2, Clock, Plus, X, Calculator, Trash2, Edit2, CreditCard, LayoutTemplate, Settings } from "lucide-react";
 import { invoiceService, type Invoice } from "../services/invoiceService";
 import { contractService, type Contract } from "../services/contractService";
-import { utilityService } from "../services/utilityService";
+import { cauHinhService, type CauHinh } from "../services/cauHinhService";
 import { useAuthStore } from "../store/authStore";
 import Swal from "sweetalert2";
+import { utilityService } from "../services/utilityService";
 
 export default function InvoicesPage() {
     const { user } = useAuthStore();
@@ -17,9 +18,18 @@ export default function InvoicesPage() {
     const [currentInvoice, setCurrentInvoice] = useState<Invoice | null>(null);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
+    // Setup Settings State
+    const [cauHinh, setCauHinh] = useState<CauHinh | null>(null);
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [cfgNganHang, setCfgNganHang] = useState("");
+    const [cfgSoTaiKhoan, setCfgSoTaiKhoan] = useState("");
+    const [cfgChuTaiKhoan, setCfgChuTaiKhoan] = useState("");
+
     // Form state
     const [contracts, setContracts] = useState<Contract[]>([]);
     const [selectedContract, setSelectedContract] = useState("");
+    const [contractSearchTerm, setContractSearchTerm] = useState("");
+    const [isContractDropdownOpen, setIsContractDropdownOpen] = useState(false);
     const [ngayThangNam, setNgayThangNam] = useState(new Date().toISOString().slice(0, 10));
     const [chiSoDien, setChiSoDien] = useState(0);
     const [chiSoNuoc, setChiSoNuoc] = useState(0);
@@ -49,7 +59,19 @@ export default function InvoicesPage() {
             const data = await contractService.getAllHopDongs();
             setContracts(data);
         };
+        const fetchCauHinh = async () => {
+            try {
+                const data = await cauHinhService.getLatestCauHinh();
+                if (data) {
+                    setCauHinh(data);
+                    setCfgNganHang(data.nganHang);
+                    setCfgSoTaiKhoan(data.soTaiKhoan);
+                    setCfgChuTaiKhoan(data.chuTaiKhoan);
+                }
+            } catch (err) { }
+        };
         fetchContracts();
+        fetchCauHinh();
     }, []);
 
     const handleContractChange = async (idHopDong: string) => {
@@ -261,13 +283,51 @@ export default function InvoicesPage() {
 
 
 
-    const handlePayment = (_invoice: Invoice) => {
+    const handlePayment = (invoice: Invoice) => {
+        const amount = invoice.tongTien || 0;
+        const description = `Thanh toan tien phong ${invoice.idHopDong?.idPhong?.tenPhong}`;
+        const accountName = cauHinh?.chuTaiKhoan || "TRAN TRUONG DANG KHOA";
+        const bankCode = cauHinh?.nganHang || "MB";
+        const accountNo = cauHinh?.soTaiKhoan || "0987706342";
+
+        const qrUrl = `https://img.vietqr.io/image/${bankCode}-${accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(accountName)}`;
+
         Swal.fire({
-            icon: 'info',
-            title: 'Thanh toán',
-            text: 'Tính năng thanh toán trực tuyến đang được bảo trì. Vui lòng liên hệ chủ trọ để thanh toán trực tiếp.',
-            confirmButtonColor: '#2563eb'
+            title: 'Thanh toán trực tuyến',
+            html: `
+                <div class="flex flex-col items-center space-y-4">
+                    <p class="text-sm text-slate-500">Mở ứng dụng ngân hàng và quét mã QR bên dưới để thanh toán.</p>
+                    <div class="p-4 bg-white border-2 border-slate-100 rounded-3xl shadow-lg inline-block">
+                        <img src="${qrUrl}" alt="VietQR" class="w-64 h-auto rounded-xl block mx-auto" />
+                    </div>
+                    <div class="text-left w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-4 space-y-2">
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Ngân hàng:</span> <span class="text-sm font-black text-slate-800">MBBank</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Chủ tài khoản:</span> <span class="text-sm font-black text-slate-800">${accountName}</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Số tài khoản:</span> <span class="text-sm font-black text-slate-800">${accountNo}</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Số tiền:</span> <span class="text-sm font-black text-blue-600">${amount.toLocaleString('vi-VN')}đ</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Nội dung:</span> <span class="text-xs font-black text-slate-800 truncate ml-4" title="${description}">${description}</span></div>
+                    </div>
+                    <p class="text-xs text-red-500 font-bold text-center mt-2">Lưu ý: Bạn cần quét theo đúng số tiền và nội dung chuyển khoản tự động.</p>
+                </div>
+            `,
+            showCloseButton: true,
+            showConfirmButton: false,
+            width: '28rem',
+            customClass: {
+                popup: 'rounded-[2.5rem] p-4 sm:p-6'
+            }
         });
+    };
+
+    const handleMarkAsPaid = async (id: string) => {
+        try {
+            await invoiceService.updateHoaDon(id, { trangThai: "Da_Thanh_Toan" });
+            Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Đã xác nhận thu tiền thành công', confirmButtonColor: '#2563eb' });
+            fetchInvoices();
+            setIsDetailsModalOpen(false);
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi cập nhật hóa đơn', confirmButtonColor: '#2563eb' });
+        }
     };
 
     const getStatusStyle = (status: string) => {
@@ -283,6 +343,22 @@ export default function InvoicesPage() {
 
     const getStatusLabel = (status: string) => {
         return status === "Da_Thanh_Toan" ? "Đã thanh toán" : "Chưa thanh toán";
+    };
+
+    const handleSaveSettings = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const data = await cauHinhService.updateCauHinh({
+                nganHang: cfgNganHang,
+                soTaiKhoan: cfgSoTaiKhoan,
+                chuTaiKhoan: cfgChuTaiKhoan
+            });
+            setCauHinh(data);
+            Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Lưu cấu hình thanh toán thành công', confirmButtonColor: '#2563eb' });
+            setIsSettingsModalOpen(false);
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi lưu cấu hình', confirmButtonColor: '#2563eb' });
+        }
     };
 
     if (loading) {
@@ -302,6 +378,15 @@ export default function InvoicesPage() {
                     <p className="text-slate-500 mt-1 font-medium italic">Quản lý các khoản thanh toán của bạn</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    {isAdmin && (
+                        <button
+                            onClick={() => setIsSettingsModalOpen(true)}
+                            className="flex items-center gap-2 bg-white text-slate-700 border border-slate-200 px-6 py-2.5 rounded-xl text-sm font-black hover:bg-slate-50 transition-all shadow-sm"
+                        >
+                            <Settings size={18} />
+                            Thiết lập Thanh toán
+                        </button>
+                    )}
                     {isAdmin && (
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
@@ -444,19 +529,53 @@ export default function InvoicesPage() {
 
                         <form onSubmit={handleCreateInvoice} className="p-4 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="sm:col-span-2">
+                                <div className="sm:col-span-2 relative">
                                     <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Hợp đồng / Phòng</label>
-                                    <select
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
-                                        value={selectedContract}
-                                        onChange={(e) => handleContractChange(e.target.value)}
-                                        required
-                                    >
-                                        <option value="">-- Chọn hợp đồng --</option>
-                                        {contracts.map(c => (
-                                            <option key={c._id} value={c._id}>{c.idPhong?.tenPhong} - {c.idKhach?.hoVaTen}</option>
-                                        ))}
-                                    </select>
+                                    <div className="relative">
+                                        <LayoutTemplate className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                        <input
+                                            type="text"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
+                                            placeholder="Nhập số phòng hoặc tên khách..."
+                                            value={contractSearchTerm}
+                                            onChange={(e) => {
+                                                setContractSearchTerm(e.target.value);
+                                                setIsContractDropdownOpen(true);
+                                                if (!e.target.value) setSelectedContract("");
+                                            }}
+                                            onFocus={() => setIsContractDropdownOpen(true)}
+                                            required={!selectedContract}
+                                        />
+                                    </div>
+
+                                    {isContractDropdownOpen && (
+                                        <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                                            {contracts.filter(c =>
+                                                (c.idPhong?.tenPhong + " " + c.idKhach?.hoVaTen).toLowerCase().includes(contractSearchTerm.toLowerCase())
+                                            ).length > 0 ? (
+                                                contracts.filter(c =>
+                                                    (c.idPhong?.tenPhong + " " + c.idKhach?.hoVaTen).toLowerCase().includes(contractSearchTerm.toLowerCase())
+                                                ).map(c => (
+                                                    <button
+                                                        key={c._id}
+                                                        type="button"
+                                                        className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 flex flex-col gap-0.5 transition-colors border-b border-slate-50 last:border-0"
+                                                        onClick={() => {
+                                                            handleContractChange(c._id);
+                                                            setContractSearchTerm(`${c.idPhong?.tenPhong} - ${c.idKhach?.hoVaTen}`);
+                                                            setIsContractDropdownOpen(false);
+                                                        }}
+                                                    >
+                                                        <span className="font-bold text-slate-800">{c.idPhong?.tenPhong}</span>
+                                                        <span className="text-xs text-slate-500">{c.idKhach?.hoVaTen}</span>
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-4 py-3 text-sm text-slate-400 italic">Không tìm thấy hợp đồng...</div>
+                                            )}
+                                        </div>
+                                    )}
+                                    <input type="hidden" value={selectedContract} required />
                                 </div>
 
                                 <div>
@@ -758,10 +877,73 @@ export default function InvoicesPage() {
                                     <CreditCard size={18} /> Thanh toán ngay
                                 </button>
                             )}
+                            {(isAdmin && currentInvoice.trangThai === "Chua_Thanh_Toan") && (
+                                <button
+                                    onClick={() => handleMarkAsPaid(currentInvoice._id)}
+                                    className="px-10 bg-emerald-600 text-white font-black py-4 rounded-3xl shadow-xl shadow-emerald-200 transition-all active:scale-95 flex items-center gap-2 hover:bg-emerald-700 whitespace-nowrap"
+                                >
+                                    <CheckCircle2 size={18} /> Xác nhận đã thu tiền
+                                </button>
+                            )}
                             <button className="px-10 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-600 hover:text-blue-600 font-bold py-4 rounded-3xl transition-all shadow-sm active:scale-95 flex items-center gap-2">
                                 <Receipt size={18} /> In hóa đơn
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Settings Modal */}
+            {isSettingsModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-300 flex flex-col">
+                        <div className="p-4 sm:p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <h2 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-3">
+                                <Settings size={24} className="text-slate-600" />
+                                Thiết lập Thanh toán
+                            </h2>
+                            <button onClick={() => setIsSettingsModalOpen(false)} className="p-2 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200">
+                                <X size={20} className="text-slate-400" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleSaveSettings} className="p-4 sm:p-8 space-y-6">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tên mã ngân hàng (Viết tắt)</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
+                                        placeholder="Ví dụ: MB, VCB, TCB..."
+                                        value={cfgNganHang}
+                                        onChange={(e) => setCfgNganHang(e.target.value)}
+                                        required
+                                    />
+                                    <p className="text-[10px] text-slate-400 font-medium mt-1">Viết mã viết tắt như MB, VCB, ICB, ACB, VPB, VPB, TCB, VPB.</p>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Số tài khoản</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
+                                        value={cfgSoTaiKhoan}
+                                        onChange={(e) => setCfgSoTaiKhoan(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tên chủ tài khoản (Không dấu)</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all uppercase"
+                                        value={cfgChuTaiKhoan}
+                                        onChange={(e) => setCfgChuTaiKhoan(e.target.value.toUpperCase())}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-3xl shadow-2xl transition-all shadow-blue-100 flex items-center justify-center gap-2">
+                                Lưu thiết lập
+                            </button>
+                        </form>
                     </div>
                 </div>
             )}
