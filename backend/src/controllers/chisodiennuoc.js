@@ -27,6 +27,33 @@ export const getLatestChiSoByPhong = async (req, res) => {
     }
 };
 
+export const getChiSoLookupByPhong = async (req, res) => {
+    try {
+        const { idPhong } = req.params;
+        const { thang } = req.query; // YYYY-MM format
+        
+        if (!thang) {
+            return res.status(400).json({ message: "Thiếu thông tin tháng." });
+        }
+
+        // 1. Tìm bản ghi khớp tháng yêu cầu
+        let record = await ChiSoDienVaNuoc.findOne({ idPhong, thang });
+        if (record) {
+            return res.json(record);
+        }
+
+        // 2. Nếu không có, tìm bản ghi cuối cùng trước tháng này
+        let latestBefore = await ChiSoDienVaNuoc.findOne({ 
+            idPhong, 
+            thang: { $lt: thang } 
+        }).sort({ thang: -1 });
+        
+        res.json(latestBefore);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 export const createChiSo = async (req, res) => {
     try {
         const { idPhong, thang, chiSoDienCu, chiSoDienMoi, chiSoNuocCu, chiSoNuocMoi } = req.body;
@@ -55,6 +82,15 @@ export const deleteAllChiSos = async (req, res) => {
     try {
         const result = await ChiSoDienVaNuoc.deleteMany({});
         res.json({ message: `Đã xóa thành công ${result.deletedCount} lịch sử điện nước.` });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+export const deleteChiSo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await ChiSoDienVaNuoc.findByIdAndDelete(id);
+        res.json({ message: "Xóa chỉ số thành công" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

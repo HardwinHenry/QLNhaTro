@@ -2,12 +2,13 @@ import express from "express";
 import { login, register, getMe, refreshAccessToken, getAllUsers, updateMe } from "../controllers/auth.js";
 import { getAllPhongs, getPhongById, createPhong, updatePhong, deletePhong } from "../controllers/phong.js";
 import { getAllHopDongs, createHopDong, updateHopDong, deleteHopDong, extendHopDong } from "../controllers/hopdong.js";
-import { getAllHoaDons, createHoaDon, updateHoaDon, deleteHoaDon, requestPayment } from "../controllers/hoadon.js";
+import { getAllHoaDons, createHoaDon, updateHoaDon, deleteHoaDon, confirmPayment, requestPayment } from "../controllers/hoadon.js";
 import { getAllDayPhongs, createDayPhong, updateDayPhong, deleteDayPhong } from "../controllers/dayphong.js";
 import { getAllVatTus, createVatTu, updateVatTu, deleteVatTu } from "../controllers/vattu.js";
-import { getAllChiSos, getLatestChiSoByPhong, createChiSo, deleteAllChiSos } from "../controllers/chisodiennuoc.js";
+import { getAllChiSos, getLatestChiSoByPhong, getChiSoLookupByPhong, createChiSo, deleteAllChiSos, deleteChiSo } from "../controllers/chisodiennuoc.js";
 import { getLatestGia, updateGia, getAllGias } from "../controllers/giadiennuoc.js";
 import { createYeuCau, getAllYeuCaus, confirmYeuCau, cancelYeuCau, updateYeuCau, deleteYeuCau } from "../controllers/datphong.js";
+import { createSlot, getAllSlots, deleteSlot } from "../controllers/lichxemphong.js";
 import { auth } from "../middlewares/auth.js";
 import { upload } from "../middlewares/upload.js";
 import { getLatestCauHinh, updateCauHinh } from "../controllers/cauhinh.js";
@@ -55,6 +56,7 @@ router.post("/hoadon", auth(["Chu_Tro"]), createHoaDon);
 router.put("/hoadon/:id", auth(["Chu_Tro"]), updateHoaDon);
 router.delete("/hoadon/:id", auth(["Chu_Tro"]), deleteHoaDon);
 router.post("/hoadon/:id/request-payment", auth(["Chu_Tro"]), requestPayment);
+router.put("/hoadon/:id/confirm-payment", auth(["Chu_Tro"]), confirmPayment);
 
 // DayPhong routes
 router.get("/dayphong", auth(), getAllDayPhongs);
@@ -71,8 +73,10 @@ router.delete("/vattu/:id", auth(["Chu_Tro"]), deleteVatTu);
 // Utility routes
 router.get("/chisodiennuoc", auth(["Chu_Tro", "Khach"]), getAllChiSos);
 router.get("/chisodiennuoc/latest/:idPhong", auth(["Chu_Tro", "Khach"]), getLatestChiSoByPhong);
+router.get("/chisodiennuoc/lookup/:idPhong", auth(["Chu_Tro", "Khach"]), getChiSoLookupByPhong);
 router.post("/chisodiennuoc", auth(["Chu_Tro"]), createChiSo);
 router.delete("/chisodiennuoc/delete-all", auth(["Chu_Tro"]), deleteAllChiSos);
+router.delete("/chisodiennuoc/:id", auth(["Chu_Tro"]), deleteChiSo);
 
 router.get("/giadiennuoc/latest", auth(), getLatestGia);
 router.get("/giadiennuoc/history", auth(), getAllGias);
@@ -85,6 +89,11 @@ router.put("/datphong/:id/confirm", auth(["Chu_Tro"]), confirmYeuCau);
 router.put("/datphong/:id", auth(["Chu_Tro"]), updateYeuCau);
 router.delete("/datphong/:id", auth(["Chu_Tro"]), deleteYeuCau);
 router.put("/datphong/:id/cancel", auth(), cancelYeuCau);
+
+// LichXemPhong routes
+router.get("/lich-xem-phong", auth(), getAllSlots);
+router.post("/lich-xem-phong", auth(["Chu_Tro"]), createSlot);
+router.delete("/lich-xem-phong/:id", auth(["Chu_Tro"]), deleteSlot);
 
 // CauHinh routes
 router.get("/cauhinh/latest", auth(), getLatestCauHinh);

@@ -9,12 +9,16 @@ import {
     Shield,
     Loader2,
     Zap,
-    Droplets
+    Droplets,
+    Clock,
+    CalendarDays
 } from "lucide-react";
 import { roomService, type Room } from "../services/roomService";
 import { utilityService, type GiaDienNuoc } from "../services/utilityService";
 import { bookingService } from "../services/bookingService";
+import { slotService, type BookingSlot } from "../services/slotService";
 import { useAuthStore } from "../store/authStore";
+import { formatVi } from "../utils/dateFormatter";
 import { toast } from "sonner";
 import { resolveBackendAssetUrl } from "../utils/url";
 import ImageViewer from "../components/ImageViewer";
@@ -31,7 +35,8 @@ export default function RoomDetailPage() {
     const [loading, setLoading] = useState(true);
     const [activeImage, setActiveImage] = useState(0);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-    const [bookingDate, setBookingDate] = useState("");
+    const [slots, setSlots] = useState<BookingSlot[]>([]);
+    const [selectedSlotId, setSelectedSlotId] = useState<string>("");
     const [bookingNote, setBookingNote] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const { user } = useAuthStore();
@@ -71,6 +76,17 @@ export default function RoomDetailPage() {
             }
         };
         fetchPrices();
+
+        const fetchSlots = async () => {
+            try {
+                const data = await slotService.getAllSlots();
+                // Filter only 'Trong' slots and future ones (backend does this but safety first)
+                setSlots(data);
+            } catch (error) {
+                console.error("Lỗi tải khung giờ:", error);
+            }
+        };
+        fetchSlots();
     }, [id, navigate]);
 
     if (loading) {
@@ -107,17 +123,24 @@ export default function RoomDetailPage() {
     const handleBookingSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return toast.error("Vui lòng đăng nhập để đặt lịch");
-        if (!bookingDate) return toast.error("Vui lòng chọn ngày hẹn");
+        if (!selectedSlotId) return toast.error("Vui lòng chọn khung giờ hẹn");
+
+        const selectedSlot = slots.find(s => s._id === selectedSlotId);
+        if (!selectedSlot) return toast.error("Khung giờ không hợp lệ");
 
         setSubmitting(true);
         try {
             await bookingService.createBooking({
                 idPhong: id!,
-                ngayDat: bookingDate,
+                idSlot: selectedSlotId,
+                ngayDat: selectedSlot.thoiGian,
                 ghiChu: bookingNote
             });
             toast.success("Gửi yêu cầu đặt lịch thành công");
             setIsBookingModalOpen(false);
+            // Refresh slots
+            const data = await slotService.getAllSlots();
+            setSlots(data);
         } catch (error: any) {
             console.error("Lỗi đặt lịch:", error);
             const data = error.response?.data;
@@ -299,44 +322,74 @@ export default function RoomDetailPage() {
                 {/* Booking Modal */}
                 {isBookingModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-                        <div className="bg-white w-full max-w-md rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
-                            <div className="bg-blue-600 p-5 sm:p-8 text-white relative">
+                        <div className="bg-white w-full max-w-lg rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+                            <div className="bg-blue-600 p-5 sm:p-8 text-white relative shrink-0">
                                 <button
                                     onClick={() => setIsBookingModalOpen(false)}
                                     className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 hover:bg-white/20 rounded-full transition-colors"
                                 >
                                     <ChevronLeft size={24} className="rotate-90" />
                                 </button>
-                                <h2 className="text-2xl sm:text-3xl font-black tracking-tight mb-2">Đặt lịch hẹn</h2>
-                                <p className="text-blue-100 font-medium italic">Chọn thời gian bạn mong muốn xem phòng</p>
+                                <h2 className="text-2xl sm:text-3xl font-black tracking-tight mb-2 uppercase">Chọn lịch hẹn rảnh</h2>
+                                <p className="text-blue-100 font-medium italic">Vui lòng chọn một trong các khung giờ chủ trọ đã cấu hình</p>
                             </div>
-                            <form onSubmit={handleBookingSubmit} className="p-5 sm:p-8 space-y-5 sm:space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Ngày mong muốn</label>
-                                    <input
-                                        type="date"
-                                        required
-                                        className="w-full px-4 sm:px-5 py-3.5 sm:py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
-                                        value={bookingDate}
-                                        onChange={(e) => setBookingDate(e.target.value)}
-                                        min={new Date().toISOString().split('T')[0]}
-                                    />
+                            
+                            <form onSubmit={handleBookingSubmit} className="p-5 sm:p-8 space-y-6 overflow-y-auto flex-1 scrollbar-hide">
+                                <div className="space-y-4">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                        <CalendarDays size={14} className="text-blue-500" />
+                                        Khung giờ khả dụng
+                                    </label>
+                                    
+                                    {slots.length > 0 ? (
+                                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                            {slots.map((slot) => (
+                                                <button
+                                                    key={slot._id}
+                                                    type="button"
+                                                    onClick={() => setSelectedSlotId(slot._id)}
+                                                    className={`p-4 rounded-2xl border-2 text-left transition-all relative group ${selectedSlotId === slot._id ? "border-blue-600 bg-blue-50 shadow-md ring-1 ring-blue-600/20" : "border-slate-100 bg-slate-50 hover:border-slate-200 hover:bg-white"}`}
+                                                >
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className={`text-[10px] font-black uppercase tracking-tighter ${selectedSlotId === slot._id ? "text-blue-600" : "text-slate-400"}`}>
+                                                            {formatVi(slot.thoiGian, { weekday: 'short', day: '2-digit', month: '2-digit' })}
+                                                        </span>
+                                                        <span className={`text-lg font-black ${selectedSlotId === slot._id ? "text-blue-700" : "text-slate-700"}`}>
+                                                            {formatVi(slot.thoiGian, { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    </div>
+                                                    {selectedSlotId === slot._id && (
+                                                        <div className="absolute top-2 right-2 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-200">
+                                                            <div className="w-2 h-2 bg-white rounded-full" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="py-12 text-center bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                                            <Clock size={32} className="mx-auto text-slate-300 mb-2" />
+                                            <p className="text-slate-400 font-bold italic text-sm">Hiện chưa có khung giờ rảnh nào khả dụng</p>
+                                        </div>
+                                    )}
                                 </div>
+
                                 <div className="space-y-2">
-                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Ghi chú thêm</label>
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Ghi chú cho chủ trọ</label>
                                     <textarea
-                                        className="w-full px-4 sm:px-5 py-3.5 sm:py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-medium focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all min-h-[100px]"
-                                        placeholder="Tôi muốn xem phòng vào buổi sáng..."
+                                        className="w-full px-4 sm:px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-medium focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all min-h-[100px] resize-none"
+                                        placeholder="Để lại ghi chú nếu bạn có yêu cầu đặc biệt..."
                                         value={bookingNote}
                                         onChange={(e) => setBookingNote(e.target.value)}
                                     />
                                 </div>
+
                                 <button
                                     type="submit"
-                                    disabled={submitting}
-                                    className="w-full bg-blue-600 text-white py-3.5 sm:py-4 rounded-2xl font-black text-base sm:text-lg hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all disabled:opacity-50 disabled:scale-100 active:scale-95 flex items-center justify-center gap-3"
+                                    disabled={submitting || !selectedSlotId}
+                                    className="w-full bg-blue-600 text-white py-4 sm:py-5 rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all disabled:opacity-50 disabled:grayscale disabled:scale-100 active:scale-95 flex items-center justify-center gap-3"
                                 >
-                                    {submitting ? <Loader2 className="animate-spin" /> : "Gửi yêu cầu ngay"}
+                                    {submitting ? <Loader2 className="animate-spin" /> : "XÁC NHẬN ĐẶT LỊCH NGAY"}
                                 </button>
                             </form>
                         </div>

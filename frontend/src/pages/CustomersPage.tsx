@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Users, Search, Loader2, Phone, IdCard, ArrowRight, UserCheck, ShieldAlert } from "lucide-react";
 import { getAllUsers } from "../services/authService";
+import { formatVi } from "../utils/dateFormatter";
 import { toast } from "sonner";
 
 interface Customer {
@@ -140,7 +141,7 @@ export default function CustomersPage() {
                                 <div className="mt-8 pt-6 border-t border-slate-50 flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-slate-400">
                                         <UserCheck size={14} className="text-emerald-500" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Tham gia: {new Date(customer.createdAt).toLocaleDateString("vi-VN")}</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Tham gia: {formatVi(customer.createdAt)}</span>
                                     </div>
                                     <button className="text-blue-600 p-2 hover:bg-blue-50 rounded-xl transition-all">
                                         <ArrowRight size={18} />

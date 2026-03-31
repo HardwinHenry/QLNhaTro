@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Calendar,
     CheckCircle2,
@@ -8,42 +8,85 @@ import {
     Loader2,
     Trash2,
     Edit2,
-    Search
+    Search,
+    Plus,
+    Clock,
+    CalendarDays
 } from "lucide-react";
 import { bookingService, type BookingRequest } from "../services/bookingService";
+import { slotService, type BookingSlot } from "../services/slotService";
 import { toast } from "sonner";
 import { useAuthStore } from "../store/authStore";
+import { formatVi } from "../utils/dateFormatter";
 import Swal from "sweetalert2";
 
 export default function BookingsPage() {
     const [bookings, setBookings] = useState<BookingRequest[]>([]);
+    const [slots, setSlots] = useState<BookingSlot[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [editingBooking, setEditingBooking] = useState<BookingRequest | null>(null);
+    const [activeTab, setActiveTab] = useState<"requests" | "slots">("requests");
+    const [newSlotTime, setNewSlotTime] = useState("");
+    const [newSlotNote, setNewSlotNote] = useState("");
     const { user } = useAuthStore();
     const isAdmin = user?.vaiTro === "Chu_Tro";
 
-    const fetchBookings = async () => {
+    const fetchData = async () => {
         setLoading(true);
         try {
-            const data = await bookingService.getAllBookings();
-            setBookings(data);
+            const bookingData = await bookingService.getAllBookings();
+            setBookings(bookingData);
+
+            if (isAdmin) {
+                const slotData = await slotService.getAllSlots();
+                setSlots(slotData);
+            }
         } catch (error) {
-            toast.error("Không thể tải danh sách yêu cầu");
+            toast.error("Không thể tải dữ liệu");
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchBookings();
-    }, []);
+        fetchData();
+    }, [isAdmin]);
+
+    const handleCreateSlot = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newSlotTime) return toast.error("Vui lòng chọn thời gian");
+        
+        try {
+            await slotService.createSlot({
+                thoiGian: newSlotTime,
+                ghiChu: newSlotNote
+            });
+            toast.success("Thêm khung giờ thành công");
+            setNewSlotTime("");
+            setNewSlotNote("");
+            const slotData = await slotService.getAllSlots();
+            setSlots(slotData);
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Lỗi khi thêm khung giờ");
+        }
+    };
+
+    const handleDeleteSlot = async (id: string) => {
+        try {
+            await slotService.deleteSlot(id);
+            toast.success("Đã xóa khung giờ");
+            setSlots(prev => prev.filter(s => s._id !== id));
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Lỗi khi xóa");
+        }
+    };
 
     const handleConfirm = async (id: string) => {
         try {
             await bookingService.confirmBooking(id);
             toast.success("Đã xác nhận lịch hẹn");
-            fetchBookings();
+            fetchData();
         } catch (error) {
             toast.error("Lỗi khi xác nhận");
         }
@@ -53,7 +96,7 @@ export default function BookingsPage() {
         try {
             await bookingService.cancelBooking(id);
             toast.success("Đã hủy lịch hẹn");
-            fetchBookings();
+            fetchData();
         } catch (error) {
             toast.error("Lỗi khi hủy");
         }
@@ -75,7 +118,7 @@ export default function BookingsPage() {
             try {
                 await bookingService.deleteBooking(id);
                 toast.success("Đã xóa lịch hẹn");
-                fetchBookings();
+                fetchData();
             } catch (error) {
                 toast.error("Lỗi khi xóa");
             }
@@ -93,7 +136,7 @@ export default function BookingsPage() {
             });
             toast.success("Cập nhật thành công");
             setEditingBooking(null);
-            fetchBookings();
+            fetchData();
         } catch (error) {
             toast.error("Lỗi khi cập nhật");
         }
@@ -124,18 +167,38 @@ export default function BookingsPage() {
 
     return (
         <div className="space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-3xl font-black text-slate-800 tracking-tight">
                         {isAdmin ? "Lịch xem phòng" : "Lịch hẹn của tôi"}
                     </h1>
                     <p className="text-slate-500 mt-1 font-medium italic">
                         {isAdmin
-                            ? "Quản lý các yêu cầu hẹn xem phòng từ khách hàng"
+                            ? "Quản lý các yêu cầu hẹn xem phòng và cấu hình lịch rảnh"
                             : "Theo dõi các yêu cầu hẹn xem phòng bạn đã gửi"}
                     </p>
                 </div>
+
                 {isAdmin && (
+                    <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                        <button
+                            onClick={() => setActiveTab("requests")}
+                            className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${activeTab === "requests" ? "bg-white text-blue-600 shadow-md ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700"}`}
+                        >
+                            <Calendar size={18} />
+                            Yêu cầu xem phòng
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("slots")}
+                            className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${activeTab === "slots" ? "bg-white text-blue-600 shadow-md ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700"}`}
+                        >
+                            <Clock size={18} />
+                            Quản lý lịch rảnh
+                        </button>
+                    </div>
+                )}
+
+                {isAdmin && activeTab === "requests" && (
                     <div className="relative w-full md:w-auto">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
@@ -154,172 +217,260 @@ export default function BookingsPage() {
                     <Loader2 size={40} className="text-blue-600 animate-spin mb-4" />
                     <p className="text-slate-500 font-medium font-sans italic">Đang tải dữ liệu...</p>
                 </div>
-            ) : filteredBookings.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredBookings.map((booking) => (
-                        <div key={booking._id} className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all group relative">
-                            {(isAdmin || (!isAdmin && booking.trangThai === "Cho_Xac_Nhan")) && (
-                                <div className="absolute top-4 right-4 flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                                    <button
-                                        onClick={() => setEditingBooking({ ...booking })}
-                                        className="p-2 bg-white/80 backdrop-blur shadow-sm border border-slate-100 rounded-full text-blue-600 hover:bg-blue-600 hover:text-white transition-all"
-                                        title="Chỉnh sửa"
-                                    >
-                                        <Edit2 size={16} />
-                                    </button>
-                                    {!isAdmin ? (
+            ) : activeTab === "requests" ? (
+                filteredBookings.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredBookings.map((booking) => (
+                            <div key={booking._id} className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all group relative">
+                                {(isAdmin || (!isAdmin && booking.trangThai === "Cho_Xac_Nhan")) && (
+                                    <div className="absolute top-4 right-4 flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                         <button
-                                            onClick={() => handleCancel(booking._id)}
-                                            className="p-2 bg-white/80 backdrop-blur shadow-sm border border-slate-100 rounded-full text-red-600 hover:bg-red-600 hover:text-white transition-all"
-                                            title="Hủy lịch hẹn"
+                                            onClick={() => setEditingBooking({ ...booking })}
+                                            className="p-2 bg-white/80 backdrop-blur shadow-sm border border-slate-100 rounded-full text-blue-600 hover:bg-blue-600 hover:text-white transition-all"
+                                            title="Chỉnh sửa"
                                         >
-                                            <XCircle size={16} />
+                                            <Edit2 size={16} />
                                         </button>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleDelete(booking._id)}
-                                            className="p-2 bg-white/80 backdrop-blur shadow-sm border border-slate-100 rounded-full text-red-600 hover:bg-red-600 hover:text-white transition-all"
-                                            title="Xóa"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                            <div className="p-5 sm:p-6 space-y-4">
-                                <div className="flex justify-between items-start">
-                                    <div className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider ${getStatusStyle(booking.trangThai)}`}>
-                                        {getStatusLabel(booking.trangThai)}
+                                        {!isAdmin ? (
+                                            <button
+                                                onClick={() => handleCancel(booking._id)}
+                                                className="p-2 bg-white/80 backdrop-blur shadow-sm border border-slate-100 rounded-full text-red-600 hover:bg-red-600 hover:text-white transition-all"
+                                                title="Hủy lịch hẹn"
+                                            >
+                                                <XCircle size={16} />
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleDelete(booking._id)}
+                                                className="p-2 bg-white/80 backdrop-blur shadow-sm border border-slate-100 rounded-full text-red-600 hover:bg-red-600 hover:text-white transition-all"
+                                                title="Xóa"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
                                     </div>
-                                    <p className="text-xs font-bold text-slate-400 mr-12">
-                                        {new Date(booking.createdAt).toLocaleDateString("vi-VN")}
-                                    </p>
-                                </div>
+                                )}
+                                <div className="p-5 sm:p-6 space-y-4">
+                                    <div className="flex justify-between items-start">
+                                        <div className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider ${getStatusStyle(booking.trangThai)}`}>
+                                            {getStatusLabel(booking.trangThai)}
+                                        </div>
+                                        <p className="text-xs font-bold text-slate-400 mr-12">
+                                            {formatVi(booking.createdAt)}
+                                        </p>
+                                    </div>
 
-                                <div className="space-y-4">
-                                    {/* Customer Highlight Section (Only for Admin) */}
-                                    {isAdmin ? (
-                                        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-4 group-hover:bg-blue-50/50 group-hover:border-blue-100 transition-all">
-                                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-slate-100 font-black text-lg group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                                {booking.idKhach?.hoVaTen?.charAt(0).toUpperCase() || "?"}
+                                    <div className="space-y-4">
+                                        {/* Customer Highlight Section (Only for Admin) */}
+                                        {isAdmin ? (
+                                            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-4 group-hover:bg-blue-50/50 group-hover:border-blue-100 transition-all">
+                                                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-slate-100 font-black text-lg group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                                    {booking.idKhach?.hoVaTen?.charAt(0).toUpperCase() || "?"}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-0.5">Khách hàng</p>
+                                                    <h4 className="font-black text-slate-800 truncate text-base leading-tight">
+                                                        {booking.idKhach?.hoVaTen || "Khách ẩn danh"}
+                                                    </h4>
+                                                    {booking.idKhach?.sdt ? (
+                                                        <div className="flex items-center gap-1.5 mt-1 text-blue-600">
+                                                            <Phone size={12} className="fill-current" />
+                                                            <span className="text-sm font-black">{booking.idKhach.sdt}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-xs text-slate-400 font-medium italic mt-1">Chưa cập nhật SĐT</p>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-0.5">Khách hàng</p>
-                                                <h4 className="font-black text-slate-800 truncate text-base leading-tight">
-                                                    {booking.idKhach?.hoVaTen || "Khách ẩn danh"}
-                                                </h4>
-                                                {booking.idKhach?.sdt ? (
-                                                    <div className="flex items-center gap-1.5 mt-1 text-blue-600">
-                                                        <Phone size={12} className="fill-current" />
-                                                        <span className="text-sm font-black">{booking.idKhach.sdt}</span>
+                                        ) : (
+                                            <div className="bg-blue-600 border border-blue-500 rounded-2xl p-4 flex items-center gap-4 shadow-lg shadow-blue-100">
+                                                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-sm font-black text-lg">
+                                                    <Home size={24} />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[10px] font-black text-blue-100 uppercase tracking-[0.1em] mb-0.5">Phòng bạn quan tâm</p>
+                                                    <h4 className="font-black text-white truncate text-lg leading-tight">
+                                                        {booking.idPhong?.tenPhong || "Phòng đã xóa"}
+                                                    </h4>
+                                                    <p className="text-xs text-blue-100 font-bold mt-1">
+                                                        {booking.idPhong?.giaPhong?.toLocaleString("vi-VN")}đ/tháng
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {!isAdmin ? (
+                                            <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                                <div className="w-10 h-10 bg-white text-purple-600 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                                    <Calendar size={20} />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-tight mb-0.5">Thời gian hẹn</p>
+                                                    <p className="font-black text-slate-800 text-base">{formatVi(booking.ngayDat, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-transparent group-hover:border-slate-100 transition-all">
+                                                    <div className="w-8 h-8 bg-white text-slate-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                                        <Home size={16} />
                                                     </div>
-                                                ) : (
-                                                    <p className="text-xs text-slate-400 font-medium italic mt-1">Chưa cập nhật SĐT</p>
-                                                )}
+                                                    <div className="min-w-0">
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">Phòng đăng ký</p>
+                                                        <p className="font-extrabold text-slate-800 text-sm truncate">{booking.idPhong?.tenPhong || "Phòng đã xóa"}</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-transparent group-hover:border-slate-100 transition-all">
+                                                    <div className="w-8 h-8 bg-white text-purple-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
+                                                        <Calendar size={16} />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">Ngày hẹn xem</p>
+                                                        <p className="font-extrabold text-slate-800 text-sm">{formatVi(booking.ngayDat, { hour: '2-digit', minute: '2-digit' })}</p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ) : (
-                                        <div className="bg-blue-600 border border-blue-500 rounded-2xl p-4 flex items-center gap-4 shadow-lg shadow-blue-100">
-                                            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-sm font-black text-lg">
-                                                <Home size={24} />
+                                        )}
+                                    </div>
+
+                                    {booking.ghiChu && (
+                                        <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 italic text-sm text-slate-300 font-medium relative overflow-hidden group/note">
+                                            <div className="absolute top-0 right-0 p-2 opacity-10">
+                                                <Home size={48} />
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-[10px] font-black text-blue-100 uppercase tracking-[0.1em] mb-0.5">Phòng bạn quan tâm</p>
-                                                <h4 className="font-black text-white truncate text-lg leading-tight">
-                                                    {booking.idPhong?.tenPhong || "Phòng đã xóa"}
-                                                </h4>
-                                                <p className="text-xs text-blue-100 font-bold mt-1">
-                                                    {booking.idPhong?.giaPhong?.toLocaleString("vi-VN")}đ/tháng
-                                                </p>
-                                            </div>
+                                            <span className="relative z-10">"{booking.ghiChu}"</span>
                                         </div>
                                     )}
 
-                                    {!isAdmin ? (
-                                        <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                            <div className="w-10 h-10 bg-white text-purple-600 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                                <Calendar size={20} />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-tight mb-0.5">Thời gian hẹn</p>
-                                                <p className="font-black text-slate-800 text-base">{new Date(booking.ngayDat).toLocaleDateString("vi-VN", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-transparent group-hover:border-slate-100 transition-all">
-                                                <div className="w-8 h-8 bg-white text-slate-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                                    <Home size={16} />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">Phòng đăng ký</p>
-                                                    <p className="font-extrabold text-slate-800 text-sm truncate">{booking.idPhong?.tenPhong || "Phòng đã xóa"}</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-transparent group-hover:border-slate-100 transition-all">
-                                                <div className="w-8 h-8 bg-white text-purple-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
-                                                    <Calendar size={16} />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">Ngày hẹn xem</p>
-                                                    <p className="font-extrabold text-slate-800 text-sm">{new Date(booking.ngayDat).toLocaleDateString("vi-VN")}</p>
-                                                </div>
-                                            </div>
+                                    {isAdmin && booking.trangThai === "Cho_Xac_Nhan" && (
+                                        <div className="flex gap-2 pt-2">
+                                            <button
+                                                onClick={() => handleConfirm(booking._id)}
+                                                className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-200"
+                                            >
+                                                <CheckCircle2 size={16} /> Xác nhận
+                                            </button>
+                                            <button
+                                                onClick={() => handleCancel(booking._id)}
+                                                className="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold text-sm hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <XCircle size={16} /> Từ chối
+                                            </button>
                                         </div>
                                     )}
                                 </div>
-
-                                {booking.ghiChu && (
-                                    <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 italic text-sm text-slate-300 font-medium relative overflow-hidden group/note">
-                                        <div className="absolute top-0 right-0 p-2 opacity-10">
-                                            <Home size={48} />
-                                        </div>
-                                        <span className="relative z-10">"{booking.ghiChu}"</span>
-                                    </div>
-                                )}
-
-                                {isAdmin && booking.trangThai === "Cho_Xac_Nhan" && (
-                                    <div className="flex gap-2 pt-2">
-                                        <button
-                                            onClick={() => handleConfirm(booking._id)}
-                                            className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-200"
-                                        >
-                                            <CheckCircle2 size={16} /> Xác nhận
-                                        </button>
-                                        <button
-                                            onClick={() => handleCancel(booking._id)}
-                                            className="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold text-sm hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <XCircle size={16} /> Từ chối
-                                        </button>
-                                    </div>
-                                )}
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="py-20 text-center bg-white border-2 border-dashed border-slate-200 rounded-[3rem] shadow-sm max-w-2xl mx-auto">
+                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+                            <Calendar size={40} />
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-800 mb-2">
+                            {isAdmin ? "Không có yêu cầu nào" : "Bạn chưa có lịch hẹn nào"}
+                        </h3>
+                        <p className="text-slate-400 font-medium max-w-xs mx-auto mb-8 italic">
+                            {isAdmin
+                                ? "Hiện tại chưa có khách hàng nào đặt lịch xem phòng."
+                                : "Hãy chọn một căn phòng ưng ý và đặt lịch hẹn xem trực tiếp nhé!"}
+                        </p>
+                        {!isAdmin && (
+                            <button
+                                onClick={() => window.location.href = "/rooms"}
+                                className="bg-blue-600 text-white px-8 py-3.5 rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all active:scale-95"
+                            >
+                                Tìm phòng ngay
+                            </button>
+                        )}
+                    </div>
+                )
+            ) : (
+                <div className="space-y-6">
+                    <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+                                <Plus size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black text-slate-800 tracking-tight">Thêm khung giờ rảnh</h3>
+                                <p className="text-sm text-slate-400 font-medium italic">Tạo khung giờ để khách hàng lựa chọn khi đặt lịch</p>
                             </div>
                         </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="py-20 text-center bg-white border-2 border-dashed border-slate-200 rounded-[3rem] shadow-sm max-w-2xl mx-auto">
-                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
-                        <Calendar size={40} />
+                        <form onSubmit={handleCreateSlot} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Thời gian (Ngày & Giờ)</label>
+                                <input
+                                    type="datetime-local"
+                                    required
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+                                    value={newSlotTime}
+                                    onChange={(e) => setNewSlotTime(e.target.value)}
+                                    min={new Date().toISOString().slice(0, 16)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ghi chú (Tùy chọn)</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ví dụ: Chỉ tiếp khách buổi sáng..."
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+                                    value={newSlotNote}
+                                    onChange={(e) => setNewSlotNote(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex items-end">
+                                <button
+                                    type="submit"
+                                    className="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 active:scale-95"
+                                >
+                                    <Plus size={20} />
+                                    Tạo khung giờ
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <h3 className="text-2xl font-black text-slate-800 mb-2">
-                        {isAdmin ? "Không có yêu cầu nào" : "Bạn chưa có lịch hẹn nào"}
-                    </h3>
-                    <p className="text-slate-400 font-medium max-w-xs mx-auto mb-8 italic">
-                        {isAdmin
-                            ? "Hiện tại chưa có khách hàng nào đặt lịch xem phòng."
-                            : "Hãy chọn một căn phòng ưng ý và đặt lịch hẹn xem trực tiếp nhé!"}
-                    </p>
-                    {!isAdmin && (
-                        <button
-                            onClick={() => window.location.href = "/rooms"}
-                            className="bg-blue-600 text-white px-8 py-3.5 rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all active:scale-95"
-                        >
-                            Tìm phòng ngay
-                        </button>
-                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {slots.length > 0 ? (
+                            slots.map((slot) => (
+                                <div key={slot._id} className="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm relative group overflow-hidden">
+                                     <div className={`absolute top-0 right-0 px-4 py-1 rounded-bl-2xl text-[9px] font-black uppercase tracking-widest ${slot.trangThai === "Trong" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
+                                        {slot.trangThai === "Trong" ? "Trống" : "Đã đặt"}
+                                    </div>
+                                    <div className="space-y-3">
+                                        <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center">
+                                            <CalendarDays size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Thời gian</p>
+                                            <p className="font-black text-slate-800 leading-tight">
+                                                {formatVi(slot.thoiGian, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                            </p>
+                                            <p className="text-xl font-black text-blue-600 mt-1">
+                                                {formatVi(slot.thoiGian, { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                        </div>
+                                        {slot.trangThai === "Trong" && (
+                                            <button
+                                                onClick={() => handleDeleteSlot(slot._id)}
+                                                className="absolute bottom-4 right-4 p-2 text-slate-300 hover:text-red-500 transition-colors"
+                                                title="Xóa khung giờ"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="col-span-full py-12 text-center bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
+                                <Clock size={40} className="mx-auto text-slate-300 mb-3" />
+                                <p className="text-slate-400 font-bold italic">Bạn chưa tạo khung giờ rảnh nào</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
@@ -335,10 +486,10 @@ export default function BookingsPage() {
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Ngày hẹn xem</label>
                                 <input
-                                    type="date"
+                                    type="datetime-local"
                                     required
                                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium text-slate-800"
-                                    value={editingBooking.ngayDat.split("T")[0]}
+                                    value={editingBooking.ngayDat.slice(0, 16)}
                                     onChange={(e) => setEditingBooking({ ...editingBooking, ngayDat: e.target.value })}
                                 />
                             </div>

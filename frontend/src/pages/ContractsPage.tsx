@@ -6,6 +6,7 @@ import { utilityService } from "../services/utilityService";
 import { getAllUsers } from "../services/authService";
 import { useAuthStore } from "../store/authStore";
 import { resolveBackendAssetUrl } from "../utils/url";
+import { formatVi } from "../utils/dateFormatter";
 import Swal from "sweetalert2";
 
 export default function ContractsPage() {
@@ -278,7 +279,7 @@ export default function ContractsPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-medium">
                                     <div className="flex items-center gap-2 text-slate-600">
                                         <Calendar size={16} className="text-blue-500" />
-                                        <span>{new Date(contract.ngayBatDau).toLocaleDateString("vi-VN")} - {contract.ngayKetThuc ? new Date(contract.ngayKetThuc).toLocaleDateString("vi-VN") : "Khách thuê linh hoạt"}</span>
+                                        <span>{formatVi(contract.ngayBatDau)} - {contract.ngayKetThuc ? formatVi(contract.ngayKetThuc) : "Khách thuê linh hoạt"}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-slate-600">
                                         <ShieldCheck size={16} className="text-emerald-500" />
@@ -794,11 +795,11 @@ export default function ContractsPage() {
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-slate-500 text-xs font-bold">Bắt đầu:</span>
-                                                <span className="text-sm font-black text-slate-800">{new Date(currentContract.ngayBatDau).toLocaleDateString("vi-VN")}</span>
+                                                <span className="text-sm font-black text-slate-800">{formatVi(currentContract.ngayBatDau)}</span>
                                             </div>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-slate-500 text-xs font-bold">Kết thúc:</span>
-                                                <span className="text-sm font-black text-slate-800">{currentContract.ngayKetThuc ? new Date(currentContract.ngayKetThuc).toLocaleDateString("vi-VN") : "Linh hoạt"}</span>
+                                                <span className="text-sm font-black text-slate-800">{currentContract.ngayKetThuc ? formatVi(currentContract.ngayKetThuc) : "Linh hoạt"}</span>
                                             </div>
                                         </div>
                                     </div>

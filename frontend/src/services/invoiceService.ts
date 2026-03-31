@@ -48,5 +48,9 @@ export const invoiceService = {
     requestPayment: async (id: string) => {
         const response = await api.post<{ message: string; success: boolean }>(`/hoadon/${id}/request-payment`);
         return response.data;
+    },
+    confirmPayment: async (id: string) => {
+        const response = await api.put<{ message: string; hoaDon: Invoice }>(`/hoadon/${id}/confirm-payment`);
+        return response.data;
     }
 };

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const yeuCauDatPhongSchema = new mongoose.Schema({
     idKhach: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     idPhong: { type: mongoose.Schema.Types.ObjectId, ref: "Phong", required: true },
+    idSlot: { type: mongoose.Schema.Types.ObjectId, ref: "LichXemPhong" },
     ngayDat: { type: Date, required: true },
     trangThai: {
         type: String,

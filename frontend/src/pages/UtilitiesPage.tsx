@@ -3,6 +3,7 @@ import { Zap, Droplets, Save, History, Plus, Loader2, Calculator, LayoutTemplate
 import { utilityService, type ChiSoDienNuoc, type GiaDienNuoc } from "../services/utilityService";
 import { roomService, type Room } from "../services/roomService";
 import { useAuthStore } from "../store/authStore";
+import { formatVi } from "../utils/dateFormatter";
 
 export default function UtilitiesPage() {
     const { user } = useAuthStore();
@@ -343,7 +344,7 @@ export default function UtilitiesPage() {
                                 <div className="p-6 bg-blue-600/10 rounded-3xl border border-blue-500/20">
                                     <p className="text-sm font-medium text-blue-300 italic flex items-center gap-2">
                                         <Save size={14} />
-                                        Áp dụng từ: {latestGia ? new Date(latestGia.ngayApDung).toLocaleDateString("vi-VN") : "N/A"}
+                                        Áp dụng từ: {latestGia ? formatVi(latestGia.ngayApDung) : "N/A"}
                                     </p>
                                 </div>
                             </div>
@@ -376,10 +377,10 @@ export default function UtilitiesPage() {
                                 {chiSos.map((item) => (
                                     <tr key={item._id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-8 py-4 font-black text-slate-800">{item.idPhong?.tenPhong || "N/A"}</td>
-                                        <td className="px-8 py-4 text-slate-600 font-bold">{item.thang.includes("-") && item.thang.split("-").length === 3 ? new Date(item.thang).toLocaleDateString("vi-VN") : item.thang}</td>
+                                        <td className="px-8 py-4 text-slate-600 font-bold">{item.thang.includes("-") && item.thang.split("-").length === 3 ? formatVi(item.thang) : item.thang}</td>
                                         <td className="px-8 py-4 text-blue-600 font-bold">{item.chiSoDienMoi} kWh</td>
                                         <td className="px-8 py-4 text-emerald-600 font-bold">{item.chiSoNuocMoi} m³</td>
-                                        <td className="px-8 py-4 text-slate-400 text-sm">{item.createdAt ? new Date(item.createdAt).toLocaleDateString("vi-VN") : "N/A"}</td>
+                                        <td className="px-8 py-4 text-slate-400 text-sm">{item.createdAt ? formatVi(item.createdAt) : "N/A"}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -450,8 +451,8 @@ export default function UtilitiesPage() {
                                     {giaHistory.map((item, index) => (
                                         <tr key={item._id} className="hover:bg-slate-50/50 transition-colors">
                                             <td className="px-8 py-5">
-                                                <p className="text-sm font-bold text-slate-700">{new Date(item.ngayApDung).toLocaleDateString("vi-VN")}</p>
-                                                <p className="text-[10px] text-slate-400">{new Date(item.ngayApDung).toLocaleTimeString("vi-VN")}</p>
+                                                <p className="text-sm font-bold text-slate-700">{formatVi(item.ngayApDung)}</p>
+                                                <p className="text-[10px] text-slate-400">{formatVi(item.ngayApDung, { hour: '2-digit', minute: '2-digit' })}</p>
                                             </td>
                                             <td className="px-8 py-5">
                                                 <span className="text-amber-600 font-black text-sm">{item.giaDien.toLocaleString("vi-VN")}đ</span>

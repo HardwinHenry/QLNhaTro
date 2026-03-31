@@ -42,5 +42,13 @@ export const utilityService = {
     updateGia: async (data: GiaDienNuoc) => {
         const response = await api.post<GiaDienNuoc>("/giadiennuoc", data);
         return response.data;
+    },
+    deleteChiSo: async (id: string) => {
+        const response = await api.delete(`/chisodiennuoc/${id}`);
+        return response.data;
+    },
+    getChiSoLookup: async (idPhong: string, thang: string) => {
+        const response = await api.get<ChiSoDienNuoc>(`/chisodiennuoc/lookup/${idPhong}?thang=${thang}`);
+        return response.data;
     }
 };

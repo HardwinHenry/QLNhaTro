@@ -4,6 +4,8 @@ import HopDong from "../models/HopDong.js";
 import User from "../models/User.js";
 import Phong from "../models/Phong.js";
 import DayPhong from "../models/DayPhong.js";
+import GiaDienVaNuoc from "../models/GiaDienVaNuoc.js";
+import ChiSoDienVaNuoc from "../models/ChiSoDienVaNuoc.js";
 
 export const getAllHoaDons = async (req, res) => {
     try {
@@ -18,7 +20,7 @@ export const getAllHoaDons = async (req, res) => {
             path: "idHopDong",
             populate: [
                 { path: "idKhach" },
-                { 
+                {
                     path: "idPhong",
                     populate: { path: "idDayPhong" }
                 }
@@ -30,6 +32,30 @@ export const getAllHoaDons = async (req, res) => {
     }
 };
 
+// Helper function to sync utility readings history
+async function syncChiSoFromHoaDon(hoaDon) {
+    try {
+        const hopDong = await HopDong.findById(hoaDon.idHopDong);
+        if (!hopDong) return;
+
+        const idPhong = hopDong.idPhong;
+        const inputDate = new Date(hoaDon.ngayThangNam);
+        const thang = `${inputDate.getFullYear()}-${String(inputDate.getMonth() + 1).padStart(2, '0')}`;
+
+        await ChiSoDienVaNuoc.findOneAndUpdate(
+            { idPhong, thang },
+            {
+                chiSoDienCu: hoaDon.chiSoDienCu,
+                chiSoDienMoi: hoaDon.chiSoDienMoi,
+                chiSoNuocCu: hoaDon.chiSoNuocCu,
+                chiSoNuocMoi: hoaDon.chiSoNuocMoi
+            },
+            { upsert: true, new: true }
+        );
+    } catch (error) {
+        console.error("Lỗi khi đồng bộ chỉ số điện nước từ hóa đơn:", error);
+    }
+}
 
 export const createHoaDon = async (req, res) => {
     try {
@@ -49,6 +75,16 @@ export const createHoaDon = async (req, res) => {
             return res.status(400).json({ message: "Đã có hóa đơn cho hợp đồng này trong tháng đã chọn." });
         }
 
+        // Validation: Sequential check (No backfilling)
+        const laterInvoice = await HoaDon.findOne({
+            idHopDong,
+            ngayThangNam: { $gt: endOfMonth }
+        });
+
+        if (laterInvoice) {
+            return res.status(400).json({ message: "Không thể tạo hóa đơn cho tháng cũ khi đã có hóa đơn mới hơn cho hợp đồng này." });
+        }
+
         // Validation: No past months
         const today = new Date();
         const firstDayOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -61,17 +97,58 @@ export const createHoaDon = async (req, res) => {
 
         // Validation: Must be within contract term
         const hopDong = await HopDong.findById(idHopDong);
-        if (hopDong) {
-            const startDate = new Date(hopDong.ngayBatDau);
-            const endDate = hopDong.ngayKetThuc ? new Date(hopDong.ngayKetThuc) : null;
+        if (!hopDong) {
+            return res.status(404).json({ message: "Không tìm thấy hợp đồng" });
+        }
+        
+        const startDate = new Date(hopDong.ngayBatDau);
+        const endDate = hopDong.ngayKetThuc ? new Date(hopDong.ngayKetThuc) : null;
 
-            if (inputDate < startDate || (endDate && inputDate > endDate)) {
-                return res.status(400).json({ message: `Ngày lập phải nằm trong thời hạn hợp đồng (${new Date(startDate).toLocaleDateString("vi-VN")}${endDate ? ` - ${new Date(endDate).toLocaleDateString("vi-VN")}` : ""})` });
+        if (inputDate < startDate || (endDate && inputDate > endDate)) {
+            return res.status(400).json({ message: `Ngày lập phải nằm trong thời hạn hợp đồng (${new Date(startDate).toLocaleDateString("vi-VN")}${endDate ? ` - ${new Date(endDate).toLocaleDateString("vi-VN")}` : ""})` });
+        }
+
+        // Logic tính toán tập trung
+        let { 
+            tienPhong, 
+            chiSoDienCu, chiSoDienMoi, giaDien, 
+            chiSoNuocCu, chiSoNuocMoi, giaNuoc,
+            tienDichVu = 0 
+        } = req.body;
+
+        // Tự động lấy đơn giá mới nhất nếu thiếu
+        if (!giaDien || !giaNuoc) {
+            const latestGia = await GiaDienVaNuoc.findOne().sort({ ngayApDung: -1 });
+            if (latestGia) {
+                if (!giaDien) giaDien = latestGia.giaDien;
+                if (!giaNuoc) giaNuoc = latestGia.giaNuoc;
             }
         }
 
-        const newHoaDon = new HoaDon(req.body);
+        // Tự động lấy tiền phòng từ hợp đồng nếu thiếu
+        if (!tienPhong) {
+            tienPhong = hopDong.giaThue;
+        }
+
+        const tienDien = (chiSoDienMoi - chiSoDienCu) * giaDien;
+        const tienNuoc = (chiSoNuocMoi - chiSoNuocCu) * giaNuoc;
+        const tongTien = (tienPhong || 0) + (tienDien || 0) + (tienNuoc || 0) + (tienDichVu || 0);
+
+        const newHoaDon = new HoaDon({
+            ...req.body,
+            tienPhong,
+            giaDien,
+            tienDien,
+            giaNuoc,
+            tienNuoc,
+            tienDichVu,
+            tongTien
+        });
         await newHoaDon.save();
+        
+        // Tự động đồng bộ sang lịch sử điện nước
+        await syncChiSoFromHoaDon(newHoaDon);
+        
         res.status(201).json(newHoaDon);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -92,7 +169,47 @@ export const updateHoaDon = async (req, res) => {
             }
         }
 
-        const updatedHoaDon = await HoaDon.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const h = await HoaDon.findById(req.params.id).populate("idHopDong");
+        if (!h) {
+            return res.status(404).json({ message: "Không tìm thấy hóa đơn" });
+        }
+
+        let {
+            tienPhong,
+            chiSoDienCu, chiSoDienMoi, giaDien,
+            chiSoNuocCu, chiSoNuocMoi, giaNuoc,
+            tienDichVu,
+            tongTien
+        } = req.body;
+
+        // Recalculate based on current or updated values
+        const finalTienPhong = tienPhong !== undefined ? tienPhong : h.tienPhong;
+        const finalDienCu = chiSoDienCu !== undefined ? chiSoDienCu : h.chiSoDienCu;
+        const finalDienMoi = chiSoDienMoi !== undefined ? chiSoDienMoi : h.chiSoDienMoi;
+        const finalGiaDien = giaDien !== undefined ? giaDien : h.giaDien;
+        const finalNuocCu = chiSoNuocCu !== undefined ? chiSoNuocCu : h.chiSoNuocCu;
+        const finalNuocMoi = chiSoNuocMoi !== undefined ? chiSoNuocMoi : h.chiSoNuocMoi;
+        const finalGiaNuoc = giaNuoc !== undefined ? giaNuoc : h.giaNuoc;
+        const finalTienDichVu = tienDichVu !== undefined ? tienDichVu : h.tienDichVu;
+
+        const tienDien = (finalDienMoi - finalDienCu) * finalGiaDien;
+        const tienNuoc = (finalNuocMoi - finalNuocCu) * finalGiaNuoc;
+        const calculatedTotal = (finalTienPhong || 0) + (tienDien || 0) + (tienNuoc || 0) + (finalTienDichVu || 0);
+
+        const updateData = {
+            ...req.body,
+            tienDien,
+            tienNuoc,
+            tongTien: tongTien || calculatedTotal
+        };
+
+        const updatedHoaDon = await HoaDon.findByIdAndUpdate(req.params.id, updateData, { new: true });
+        
+        // Tự động đồng bộ sang lịch sử điện nước
+        if (updatedHoaDon) {
+            await syncChiSoFromHoaDon(updatedHoaDon);
+        }
+        
         res.json(updatedHoaDon);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -103,6 +220,25 @@ export const deleteHoaDon = async (req, res) => {
     try {
         await HoaDon.findByIdAndDelete(req.params.id);
         res.json({ message: "Xóa hóa đơn thành công" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const confirmPayment = async (req, res) => {
+    try {
+        const hoaDon = await HoaDon.findById(req.params.id);
+        if (!hoaDon) {
+            return res.status(404).json({ message: "Không tìm thấy hóa đơn" });
+        }
+
+        hoaDon.trangThai = "Da_Thanh_Toan";
+        await hoaDon.save();
+
+        res.json({
+            message: "Xác nhận thanh toán thành công",
+            hoaDon
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -12,6 +12,7 @@ export interface BookingRequest {
         tenPhong: string;
         giaPhong: number;
     };
+    idSlot?: string | any;
     ngayDat: string;
     trangThai: "Cho_Xac_Nhan" | "Da_Xac_Nhan" | "Da_Huy";
     ghiChu?: string;
@@ -23,7 +24,7 @@ export const bookingService = {
         const response = await api.get<BookingRequest[]>("/datphong");
         return response.data;
     },
-    createBooking: async (data: { idPhong: string; ngayDat: string; ghiChu?: string }) => {
+    createBooking: async (data: { idPhong: string; ngayDat: string; idSlot?: string; ghiChu?: string }) => {
         const response = await api.post<BookingRequest>("/datphong", data);
         return response.data;
     },

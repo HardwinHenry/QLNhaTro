@@ -1,9 +1,10 @@
 import YeuCauDatPhong from "../models/YeuCauDatPhong.js";
 import Phong from "../models/Phong.js";
+import LichXemPhong from "../models/LichXemPhong.js";
 
 export const createYeuCau = async (req, res) => {
     try {
-        const { idPhong, ngayDat, ghiChu } = req.body;
+        const { idPhong, ngayDat, ghiChu, idSlot } = req.body;
         const idKhach = req.user.id;
 
         // Check if room exists
@@ -12,9 +13,20 @@ export const createYeuCau = async (req, res) => {
             return res.status(404).json({ message: "Không tìm thấy phòng" });
         }
 
+        // If slot is provided, validate and mark it as booked
+        if (idSlot) {
+            const slot = await LichXemPhong.findById(idSlot);
+            if (!slot) return res.status(404).json({ message: "Không tìm thấy khung giờ" });
+            if (slot.trangThai === "Da_Dat") return res.status(400).json({ message: "Khung giờ này đã có người đặt" });
+            
+            slot.trangThai = "Da_Dat";
+            await slot.save();
+        }
+
         const newYeuCau = new YeuCauDatPhong({
             idKhach,
             idPhong,
+            idSlot,
             ngayDat,
             ghiChu
         });
