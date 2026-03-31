@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { LayoutGrid, Loader2, Building2 } from "lucide-react";
+import { LayoutGrid, Loader2, Building2, MapPin, ExternalLink } from "lucide-react";
 import { roomService } from "../services/roomService";
 import type { Room } from "../services/roomService";
+import { cauHinhService, type CauHinh } from "../services/cauHinhService";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router";
 import { dayPhongService, type DayPhong } from "../services/dayPhongService";
@@ -11,6 +12,7 @@ import FloorPlanMap from "../components/FloorPlanMap";
 export default function HomePage() {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [dayPhongs, setDayPhongs] = useState<DayPhong[]>([]);
+    const [cauHinh, setCauHinh] = useState<CauHinh | null>(null);
     const [loading, setLoading] = useState(true);
 
     const [searchParams] = useSearchParams();
@@ -19,12 +21,14 @@ export default function HomePage() {
     const fetchHomeData = async () => {
         setLoading(true);
         try {
-            const [roomsData, dayPhongsData] = await Promise.all([
+            const [roomsData, dayPhongsData, configData] = await Promise.all([
                 roomService.getAllPhongs(),
-                dayPhongService.getAllDayPhongs()
+                dayPhongService.getAllDayPhongs(),
+                cauHinhService.getLatestCauHinh()
             ]);
             setRooms(roomsData);
             setDayPhongs(dayPhongsData);
+            setCauHinh(configData);
         } catch (error) {
             console.error("Lỗi khi tải thông tin:", error);
             toast.error("Không thể tải thông tin trang chủ");
@@ -61,11 +65,26 @@ export default function HomePage() {
                         Hệ thống quản lý phòng trọ hiện đại, chuyên nghiệp và dễ sử dụng nhất.
                         Nâng cao trải nghiệm sống và quản lý của bạn.
                     </p>
-                    <div className="pt-2 sm:pt-4 flex items-center">
-                        <div className="flex items-center gap-3 bg-blue-50 px-4 sm:px-6 py-3 rounded-2xl border border-blue-100">
+                    <div className="flex flex-wrap items-center gap-3 pt-4">
+                        <div className="flex items-center gap-3 bg-blue-50 px-4 sm:px-6 py-3 rounded-2xl border border-blue-100 shadow-sm">
                             <LayoutGrid size={20} className="text-blue-600 sm:w-6 sm:h-6" />
                             <span className="text-base sm:text-lg font-black text-slate-800">{rooms.length} Phòng Hiện Có</span>
                         </div>
+
+                        <button
+                            onClick={() => {
+                                if (cauHinh?.diaChi) {
+                                    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cauHinh.diaChi)}`, '_blank');
+                                } else {
+                                    toast.warning("Địa chỉ nhà trọ chưa được cấu hình");
+                                }
+                            }}
+                            className="flex items-center gap-3 bg-rose-50 px-4 sm:px-6 py-3 rounded-2xl border border-rose-100 text-rose-600 hover:bg-rose-100 transition-all font-black shadow-sm group/btn"
+                        >
+                            <MapPin size={20} className="group-hover/btn:scale-110 transition-transform" />
+                            <span>Xem bản đồ</span>
+                            <ExternalLink size={14} className="opacity-50" />
+                        </button>
                     </div>
                 </div>
                 <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl -mr-48 -mt-48 group-hover:bg-blue-500/10 transition-colors duration-1000"></div>

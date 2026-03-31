@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     DoorOpen,
     FileText,
@@ -16,7 +16,9 @@ import {
     Layers,
     Plus,
     Edit3,
-    Trash
+    Trash,
+    Settings,
+    MapPin
 } from "lucide-react";
 import { dayPhongService, type DayPhong } from "../services/dayPhongService";
 import DayPhongFormModal from "../components/DayPhongFormModal";
@@ -26,6 +28,7 @@ import { roomService, type Room } from "../services/roomService";
 import { contractService, type Contract } from "../services/contractService";
 import { invoiceService, type Invoice } from "../services/invoiceService";
 import { utilityService } from "../services/utilityService";
+import { cauHinhService, type CauHinh } from "../services/cauHinhService";
 import { getAllUsers } from "../services/authService";
 import { toast } from "sonner";
 import { resolveBackendAssetUrl } from "../utils/url";
@@ -61,20 +64,38 @@ export default function AdminDashboardPage() {
         nuocCu: 0,
         nuocMoi: 0
     });
+    const [cauHinh, setCauHinh] = useState<CauHinh | null>(null);
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [settingsForm, setSettingsForm] = useState({
+        nganHang: "",
+        soTaiKhoan: "",
+        chuTaiKhoan: "",
+        diaChi: ""
+    });
 
     const fetchData = async () => {
         try {
-            const [dayPhongsData, , rooms, contracts, invoices, users] = await Promise.all([
+            const [dayPhongsData, , rooms, contracts, invoices, users, config] = await Promise.all([
                 dayPhongService.getAllDayPhongs(),
                 vatTuService.getAllVatTus(),
                 roomService.getAllPhongs(),
                 contractService.getAllHopDongs(),
                 invoiceService.getAllHoaDons(),
-                getAllUsers()
+                getAllUsers(),
+                cauHinhService.getLatestCauHinh()
             ]);
 
             setDayPhongs(dayPhongsData);
             setAllRooms(rooms);
+            if (config) {
+                setCauHinh(config);
+                setSettingsForm({
+                    nganHang: config.nganHang,
+                    soTaiKhoan: config.soTaiKhoan,
+                    chuTaiKhoan: config.chuTaiKhoan,
+                    diaChi: config.diaChi || ""
+                });
+            }
 
             // Enrich rented rooms with contracts and invoices
             const rented = rooms.filter(r => r.trangThai === "Da_Thue").map(r => {
@@ -183,6 +204,17 @@ export default function AdminDashboardPage() {
         }
     };
 
+    const handleSaveSettings = async () => {
+        try {
+            await cauHinhService.updateCauHinh(settingsForm);
+            toast.success("Cập nhật cấu hình thành công");
+            setIsSettingsModalOpen(false);
+            fetchData();
+        } catch (error) {
+            toast.error("Không thể lưu cấu hình");
+        }
+    };
+
     const statsCards = [
         { label: "Tổng phòng", value: stats.tongPhong.toString(), icon: DoorOpen, color: "text-blue-600", bg: "bg-blue-50", trend: "+2", colorCode: "#2563eb" },
         { label: "Phòng trống", value: stats.phongTrong.toString(), icon: LayoutDashboard, color: "text-emerald-600", bg: "bg-emerald-50", trend: "-1", colorCode: "#059669" },
@@ -204,6 +236,21 @@ export default function AdminDashboardPage() {
                         </div>
                         Bảng điều khiển
                     </h1>
+                    {cauHinh?.diaChi && (
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1 flex items-center gap-2">
+                            <MapPin size={12} className="text-rose-500" />
+                            {cauHinh.diaChi}
+                        </p>
+                    )}
+                </div>
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => setIsSettingsModalOpen(true)}
+                        className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-6 py-3 rounded-2xl text-sm font-black text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
+                    >
+                        <Settings size={18} />
+                        Cấu hình hệ thống
+                    </button>
                 </div>
             </div>
 
@@ -471,6 +518,92 @@ export default function AdminDashboardPage() {
                 onSuccess={fetchData}
                 editingDayPhong={editingDayPhong}
             />
+
+            {/* System Settings Modal */}
+            {isSettingsModalOpen && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-white rounded-[2.5rem] p-6 sm:p-10 w-full max-w-2xl shadow-2xl relative my-8">
+                        <button onClick={() => setIsSettingsModalOpen(false)} className="absolute top-8 right-8 p-2 hover:bg-slate-50 rounded-full transition-colors"><X size={24} /></button>
+                        <div className="mb-8">
+                            <h3 className="text-3xl font-black text-slate-900">Cấu hình hệ thống</h3>
+                            <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Thiết lập thanh toán và vị trí nhà trọ</p>
+                        </div>
+
+                        <div className="space-y-8">
+                            <div className="space-y-6">
+                                <h4 className="text-xs font-black text-blue-600 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <Wallet size={16} /> Thông tin thanh toán
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-black text-slate-500 uppercase tracking-widest">Ngân hàng (Viết tắt: MB, VCB...)</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold"
+                                            placeholder="Ví dụ: MB"
+                                            value={settingsForm.nganHang}
+                                            onChange={e => setSettingsForm({ ...settingsForm, nganHang: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-black text-slate-500 uppercase tracking-widest">Số tài khoản</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold"
+                                            placeholder="Nhập số tài khoản"
+                                            value={settingsForm.soTaiKhoan}
+                                            onChange={e => setSettingsForm({ ...settingsForm, soTaiKhoan: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="sm:col-span-2 space-y-2">
+                                        <label className="block text-xs font-black text-slate-500 uppercase tracking-widest">Chủ tài khoản (Không dấu)</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold"
+                                            placeholder="Ví dụ: NGUYEN VAN A"
+                                            value={settingsForm.chuTaiKhoan}
+                                            onChange={e => setSettingsForm({ ...settingsForm, chuTaiKhoan: e.target.value.toUpperCase() })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6 pt-4 border-t border-slate-100">
+                                <h4 className="text-xs font-black text-rose-600 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <MapPin size={16} /> Vị trí nhà trọ
+                                </h4>
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-black text-slate-500 uppercase tracking-widest">Địa chỉ hiển thị</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all font-bold"
+                                            placeholder="Số nhà, tên đường, quận/huyện..."
+                                            value={settingsForm.diaChi}
+                                            onChange={e => setSettingsForm({ ...settingsForm, diaChi: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                                <button
+                                    onClick={() => setIsSettingsModalOpen(false)}
+                                    className="flex-1 px-8 py-4 border-2 border-slate-100 text-slate-400 font-black rounded-2xl hover:bg-slate-50 transition-all font-sans uppercase tracking-widest text-xs"
+                                >
+                                    Đóng
+                                </button>
+                                <button
+                                    onClick={handleSaveSettings}
+                                    className="flex-[2] px-8 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black transition-all shadow-xl font-sans uppercase tracking-widest text-xs"
+                                >
+                                    Lưu cấu hình
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 }

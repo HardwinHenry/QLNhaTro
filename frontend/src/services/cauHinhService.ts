@@ -5,6 +5,7 @@ export interface CauHinh {
     nganHang: string;
     soTaiKhoan: string;
     chuTaiKhoan: string;
+    diaChi: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -15,7 +16,7 @@ export const cauHinhService = {
         return response.data;
     },
 
-    updateCauHinh: async (data: { nganHang: string; soTaiKhoan: string; chuTaiKhoan: string }) => {
+    updateCauHinh: async (data: { nganHang: string; soTaiKhoan: string; chuTaiKhoan: string; diaChi?: string }) => {
         const response = await api.put<CauHinh>("/cauhinh", data);
         return response.data;
     }

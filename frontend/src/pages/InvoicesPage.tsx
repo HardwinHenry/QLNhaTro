@@ -25,6 +25,7 @@ export default function InvoicesPage() {
     const [cfgNganHang, setCfgNganHang] = useState("");
     const [cfgSoTaiKhoan, setCfgSoTaiKhoan] = useState("");
     const [cfgChuTaiKhoan, setCfgChuTaiKhoan] = useState("");
+    const [cfgDiaChi, setCfgDiaChi] = useState("");
 
     // Form state
     const [contracts, setContracts] = useState<Contract[]>([]);
@@ -69,6 +70,7 @@ export default function InvoicesPage() {
                     setCfgNganHang(data.nganHang);
                     setCfgSoTaiKhoan(data.soTaiKhoan);
                     setCfgChuTaiKhoan(data.chuTaiKhoan);
+                    setCfgDiaChi(data.diaChi || "");
                 }
             } catch (err) { }
         };
@@ -429,7 +431,8 @@ export default function InvoicesPage() {
             const data = await cauHinhService.updateCauHinh({
                 nganHang: cfgNganHang,
                 soTaiKhoan: cfgSoTaiKhoan,
-                chuTaiKhoan: cfgChuTaiKhoan
+                chuTaiKhoan: cfgChuTaiKhoan,
+                diaChi: cfgDiaChi
             });
             setCauHinh(data);
             Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Lưu cấu hình thanh toán thành công', confirmButtonColor: '#2563eb' });
@@ -466,13 +469,22 @@ export default function InvoicesPage() {
                         </button>
                     )}
                     {isAdmin && (
-                        <button
-                            onClick={() => setIsCreateModalOpen(true)}
-                            className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-black hover:bg-black transition-all shadow-lg shadow-slate-200"
-                        >
-                            <Plus size={18} />
-                            Tạo hóa đơn
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setIsSettingsModalOpen(true)}
+                                className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-black text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
+                            >
+                                <Settings size={18} />
+                                Thiết lập
+                            </button>
+                            <button
+                                onClick={() => setIsCreateModalOpen(true)}
+                                className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-black hover:bg-black transition-all shadow-lg shadow-slate-200"
+                            >
+                                <Plus size={18} />
+                                Tạo hóa đơn
+                            </button>
+                        </div>
                     )}
                     <div className="relative w-full sm:w-auto">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />

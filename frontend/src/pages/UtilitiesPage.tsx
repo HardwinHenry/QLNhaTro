@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Zap, Droplets, Save, History, Loader2, Calculator } from "lucide-react";
+import { Zap, Droplets, Save, History, Loader2, Calculator, Trash2 } from "lucide-react";
+import Swal from "sweetalert2";
 import { utilityService, type ChiSoDienNuoc, type GiaDienNuoc } from "../services/utilityService";
 import { roomService } from "../services/roomService";
 import { useAuthStore } from "../store/authStore";
@@ -43,6 +44,51 @@ export default function UtilitiesPage() {
         fetchData();
     }, []);
 
+
+    const handleDeleteChiSo = async (id: string | undefined) => {
+        if (!id) return;
+        
+        const result = await Swal.fire({
+            title: 'Xác nhận xóa?',
+            text: "Bạn có chắc chắn muốn xóa bản ghi chỉ số này không? Hành động này không thể hoàn tác.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Xóa ngay',
+            cancelButtonText: 'Hủy',
+            reverseButtons: true,
+            customClass: {
+                popup: 'rounded-[2rem] p-8',
+                confirmButton: 'rounded-xl font-bold px-6 py-3',
+                cancelButton: 'rounded-xl font-bold px-6 py-3'
+            }
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await utilityService.deleteChiSo(id);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Đã xóa!',
+                    text: 'Bản ghi chỉ số đã được xóa thành công.',
+                    confirmButtonColor: '#2563eb',
+                    timer: 1500
+                });
+                
+                // Refresh list
+                const chiSosData = await utilityService.getAllChiSos();
+                setChiSos(chiSosData);
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Không thể xóa bản ghi này.',
+                    confirmButtonColor: '#2563eb'
+                });
+            }
+        }
+    };
 
     const handleUpdateGia = async () => {
         try {
@@ -115,7 +161,8 @@ export default function UtilitiesPage() {
                                     <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Kỳ (Ngày/Tháng/Năm)</th>
                                     <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-blue-600">Điện (Số mới)</th>
                                     <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-emerald-600">Nước (Số mới)</th>
-                                    <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest">Ngày ghi</th>
+                                    <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-center">Ngày ghi</th>
+                                    {isAdmin && <th className="px-8 py-5 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Thao tác</th>}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 font-medium">
@@ -125,7 +172,18 @@ export default function UtilitiesPage() {
                                         <td className="px-8 py-4 text-slate-600 font-bold">{item.thang.includes("-") && item.thang.split("-").length === 3 ? formatVi(item.thang) : item.thang}</td>
                                         <td className="px-8 py-4 text-blue-600 font-bold">{item.chiSoDienMoi} kWh</td>
                                         <td className="px-8 py-4 text-emerald-600 font-bold">{item.chiSoNuocMoi} m³</td>
-                                        <td className="px-8 py-4 text-slate-400 text-sm">{item.createdAt ? formatVi(item.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "N/A"}</td>
+                                        <td className="px-8 py-4 text-slate-400 text-sm text-center font-medium italic">{item.createdAt ? formatVi(item.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "N/A"}</td>
+                                        {isAdmin && (
+                                            <td className="px-8 py-4 text-right">
+                                                <button 
+                                                    onClick={() => handleDeleteChiSo(item._id)}
+                                                    className="p-3 bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm hover:shadow-red-200 border border-red-100 hover:border-red-500"
+                                                    title="Xóa bản ghi"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>

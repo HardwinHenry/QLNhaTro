@@ -22,13 +22,13 @@ export const getLatestCauHinh = async (req, res) => {
 
 export const updateCauHinh = async (req, res) => {
     try {
-        const { nganHang, soTaiKhoan, chuTaiKhoan } = req.body;
+        const { nganHang, soTaiKhoan, chuTaiKhoan, diaChi } = req.body;
         // Xóa sạch lịch sử nếu muốn tiết kiệm DB, vì chỉ cần 1 record duy nhất (tuỳ chọn)
         await CauHinh.deleteMany({});
-        
-        const newCauHinh = new CauHinh({ nganHang, soTaiKhoan, chuTaiKhoan });
+
+        const newCauHinh = new CauHinh({ nganHang, soTaiKhoan, chuTaiKhoan, diaChi });
         await newCauHinh.save();
-        
+
         res.status(201).json(newCauHinh);
     } catch (error) {
         res.status(400).json({ message: error.message });
