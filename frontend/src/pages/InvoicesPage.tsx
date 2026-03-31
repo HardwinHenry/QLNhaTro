@@ -86,39 +86,47 @@ export default function InvoicesPage() {
             if (!selectedContract) return;
 
             const contract = contracts.find(c => c._id === selectedContract);
-            if (contract) {
-                setTienPhong(contract.giaThue);
+            if (!contract) return;
 
-                const idPhong = contract.idPhong?._id || contract.idPhong;
-                    const invoiceDate = new Date(ngayThangNam);
-                    const invoiceMonth = `${invoiceDate.getFullYear()}-${String(invoiceDate.getMonth() + 1).padStart(2, '0')}`;
-                    const lookup = await utilityService.getChiSoLookup(idPhong, invoiceMonth);
+            // 1. Sync Room Rent from Contract
+            setTienPhong(contract.giaThue);
 
-                    if (lookup) {
-                        if (lookup.thang === invoiceMonth) {
-                            setChiSoDien(lookup.chiSoDienMoi);
-                            setChiSoDienCu(lookup.chiSoDienCu);
-                            setChiSoNuoc(lookup.chiSoNuocMoi);
-                            setChiSoNuocCu(lookup.chiSoNuocCu);
-                        } else {
-                            // Là bản ghi của tháng trước đó: Số mới của tháng trước là số cũ của tháng này
-                            setChiSoDien(lookup.chiSoDienMoi);
-                            setChiSoDienCu(lookup.chiSoDienMoi);
-                            setChiSoNuoc(lookup.chiSoNuocMoi);
-                            setChiSoNuocCu(lookup.chiSoNuocMoi);
-                        }
-                    } else {
-                        setChiSoDien(0);
-                        setChiSoDienCu(0);
-                        setChiSoNuoc(0);
-                        setChiSoNuocCu(0);
-                    }
+            // 2. Fetch Utility indices (Lookup this month or get latest from previous)
+            const idPhong = contract.idPhong?._id || contract.idPhong;
+            const invoiceDate = new Date(ngayThangNam);
+            const invoiceMonth = `${invoiceDate.getFullYear()}-${String(invoiceDate.getMonth() + 1).padStart(2, '0')}`;
 
-                const giaData = await utilityService.getLatestGia();
-                if (giaData) {
-                    setGiaDien(contract.giaDien || giaData.giaDien);
-                    setGiaNuoc(contract.giaNuoc || giaData.giaNuoc);
+            const [lookup, giaData] = await Promise.all([
+                utilityService.getChiSoLookup(idPhong, invoiceMonth),
+                utilityService.getLatestGia()
+            ]);
+
+            // 3. Handle Indices
+            if (lookup) {
+                if (lookup.thang === invoiceMonth) {
+                    setChiSoDien(lookup.chiSoDienMoi);
+                    setChiSoDienCu(lookup.chiSoDienCu);
+                    setChiSoNuoc(lookup.chiSoNuocMoi);
+                    setChiSoNuocCu(lookup.chiSoNuocCu);
+                } else {
+                    // Logic from lookup: previous month record
+                    setChiSoDien(lookup.chiSoDienMoi);
+                    setChiSoDienCu(lookup.chiSoDienMoi);
+                    setChiSoNuoc(lookup.chiSoNuocMoi);
+                    setChiSoNuocCu(lookup.chiSoNuocMoi);
                 }
+            } else {
+                // No records at all
+                setChiSoDien(0);
+                setChiSoDienCu(0);
+                setChiSoNuoc(0);
+                setChiSoNuocCu(0);
+            }
+
+            // 4. Sync Utility Prices from Global Config (Table)
+            if (giaData) {
+                setGiaDien(giaData.giaDien);
+                setGiaNuoc(giaData.giaNuoc);
             }
         };
 
@@ -135,7 +143,7 @@ export default function InvoicesPage() {
 
         setTienDien(calculatedTienDien);
         setTienNuoc(calculatedTienNuoc);
-        
+
         const total = (tienPhong || 0) + (calculatedTienDien || 0) + (calculatedTienNuoc || 0) + (tienDichVu || 0);
         setTongTien(total);
     }, [chiSoDien, chiSoDienCu, chiSoNuoc, chiSoNuocCu, giaDien, giaNuoc, tienPhong, tienDichVu]);
@@ -169,12 +177,12 @@ export default function InvoicesPage() {
         if (conflictInvoice) {
             const conflictDate = new Date(conflictInvoice.ngayThangNam);
             const isSameMonth = conflictDate.getMonth() === inputDate.getMonth() && conflictDate.getFullYear() === inputDate.getFullYear();
-            
+
             Swal.fire({
                 icon: 'error',
                 title: isSameMonth ? 'Hóa đơn đã tồn tại' : 'Thứ tự không hợp lệ',
-                text: isSameMonth 
-                    ? 'Đã có hóa đơn cho tháng này cho hợp đồng này.' 
+                text: isSameMonth
+                    ? 'Đã có hóa đơn cho tháng này cho hợp đồng này.'
                     : 'Không thể tạo hóa đơn cho tháng cũ khi đã có hóa đơn mới hơn cho hợp đồng này.',
                 confirmButtonColor: '#2563eb'
             });
@@ -198,21 +206,21 @@ export default function InvoicesPage() {
             }
         }
 
-        // Validation: Indices
-        if (chiSoDien < chiSoDienCu) {
+        // Validation: Indices (Strictly New > Old)
+        if (chiSoDien <= chiSoDienCu) {
             Swal.fire({
                 icon: 'error',
                 title: 'Chỉ số không hợp lệ',
-                text: 'Chỉ số điện mới không được nhỏ hơn chỉ số cũ.',
+                text: 'Chỉ số điện mới phải LỚN HƠN chỉ số cũ (Điều kiện bắt buộc).',
                 confirmButtonColor: '#2563eb'
             });
             return;
         }
-        if (chiSoNuoc < chiSoNuocCu) {
+        if (chiSoNuoc <= chiSoNuocCu) {
             Swal.fire({
                 icon: 'error',
                 title: 'Chỉ số không hợp lệ',
-                text: 'Chỉ số nước mới không được nhỏ hơn chỉ số cũ.',
+                text: 'Chỉ số nước mới phải LỚN HƠN chỉ số cũ (Điều kiện bắt buộc).',
                 confirmButtonColor: '#2563eb'
             });
             return;
@@ -314,6 +322,16 @@ export default function InvoicesPage() {
     const handleUpdateInvoice = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!currentInvoice) return;
+
+        // Validation: Indices (Strictly New > Old)
+        if (chiSoDien <= chiSoDienCu) {
+            Swal.fire({ icon: 'error', title: 'Lỗi!', text: 'Số điện mới phải lớn hơn số cũ', confirmButtonColor: '#2563eb' });
+            return;
+        }
+        if (chiSoNuoc <= chiSoNuocCu) {
+            Swal.fire({ icon: 'error', title: 'Lỗi!', text: 'Số nước mới phải lớn hơn số cũ', confirmButtonColor: '#2563eb' });
+            return;
+        }
 
         try {
             await invoiceService.updateHoaDon(currentInvoice._id, {
@@ -713,25 +731,43 @@ export default function InvoicesPage() {
                                     </div>
                                 </div>
 
-                                <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-center justify-between font-medium">
-                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Tiêu thụ Điện</p>
-                                    <span className="text-sm font-black text-blue-600">+{Math.max(0, chiSoDien - chiSoDienCu)} kWh</span>
+                                <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex flex-col gap-2">
+                                    <div className="flex items-center justify-between font-medium">
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Tiêu thụ Điện</p>
+                                        <span className="text-sm font-black text-blue-600">+{Math.max(0, chiSoDien - chiSoDienCu)} kWh</span>
+                                    </div>
+                                    <div className="text-[10px] text-blue-500 font-bold text-right border-t border-blue-100 pt-1">
+                                        {(Math.max(0, chiSoDien - chiSoDienCu) * giaDien).toLocaleString('vi-VN')}vnđ
+                                    </div>
                                 </div>
 
-                                <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex items-center justify-between font-medium">
-                                    <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Tiêu thụ Nước</p>
-                                    <span className="text-sm font-black text-emerald-600">+{Math.max(0, chiSoNuoc - chiSoNuocCu)} m³</span>
+                                <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex flex-col gap-2">
+                                    <div className="flex items-center justify-between font-medium">
+                                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Tiêu thụ Nước</p>
+                                        <span className="text-sm font-black text-emerald-600">+{Math.max(0, chiSoNuoc - chiSoNuocCu)} m³</span>
+                                    </div>
+                                    <div className="text-[10px] text-emerald-600 font-bold text-right border-t border-emerald-100 pt-1">
+                                        {(Math.max(0, chiSoNuoc - chiSoNuocCu) * giaNuoc).toLocaleString('vi-VN')}vnđ
+                                    </div>
                                 </div>
 
-                                <div className="sm:col-span-2">
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tổng tiền</label>
-                                    <input
-                                        type="number"
-                                        className="w-full bg-blue-50 border border-blue-200 text-blue-700 font-black rounded-2xl px-4 py-3 text-sm outline-none"
-                                        value={tongTien}
-                                        readOnly
-                                    />
+                                <div className="sm:col-span-2 p-6 bg-slate-900 rounded-[2rem] text-white shadow-xl space-y-4">
+                                    <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cấu trúc hóa đơn</p>
+                                        <Calculator size={16} className="text-blue-400" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiền phòng:</span> <span className="font-bold">{(tienPhong || 0).toLocaleString('vi-VN')}đ</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiền điện:</span> <span className="font-bold">{(tienDien || 0).toLocaleString('vi-VN')}đ</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiền nước:</span> <span className="font-bold">{(tienNuoc || 0).toLocaleString('vi-VN')}đ</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Dịch vụ:</span> <span className="font-bold">{(tienDichVu || 0).toLocaleString('vi-VN')}đ</span></div>
+                                    </div>
+                                    <div className="pt-4 border-t border-white/10 flex justify-between items-end">
+                                        <span className="text-xs font-black text-blue-400 uppercase tracking-tighter">Tổng cộng tháng này:</span>
+                                        <span className="text-3xl font-black">{tongTien.toLocaleString('vi-VN')}đ</span>
+                                    </div>
                                 </div>
+
                                 <div className="space-y-4 p-4 bg-purple-50/50 rounded-2xl border border-purple-100 sm:col-span-2">
                                     <h3 className="text-sm font-bold text-purple-700 flex items-center gap-2">
                                         <Plus size={16} /> Phí dịch vụ khác (vnđ)
@@ -845,24 +881,41 @@ export default function InvoicesPage() {
                                     </div>
                                 </div>
 
-                                <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-center justify-between font-medium">
-                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Tiêu thụ Điện</p>
-                                    <span className="text-sm font-black text-blue-600">+{Math.max(0, chiSoDien - chiSoDienCu)} kWh</span>
+                                <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex flex-col gap-2">
+                                    <div className="flex items-center justify-between font-medium">
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Tiêu thụ Điện</p>
+                                        <span className="text-sm font-black text-blue-600">+{Math.max(0, chiSoDien - chiSoDienCu)} kWh</span>
+                                    </div>
+                                    <div className="text-[10px] text-blue-500 font-bold text-right border-t border-blue-100 pt-1">
+                                        {(Math.max(0, chiSoDien - chiSoDienCu) * giaDien).toLocaleString('vi-VN')}vnđ
+                                    </div>
                                 </div>
 
-                                <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex items-center justify-between font-medium">
-                                    <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Tiêu thụ Nước</p>
-                                    <span className="text-sm font-black text-emerald-600">+{Math.max(0, chiSoNuoc - chiSoNuocCu)} m³</span>
+                                <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex flex-col gap-2">
+                                    <div className="flex items-center justify-between font-medium">
+                                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Tiêu thụ Nước</p>
+                                        <span className="text-sm font-black text-emerald-600">+{Math.max(0, chiSoNuoc - chiSoNuocCu)} m³</span>
+                                    </div>
+                                    <div className="text-[10px] text-emerald-600 font-bold text-right border-t border-emerald-100 pt-1">
+                                        {(Math.max(0, chiSoNuoc - chiSoNuocCu) * giaNuoc).toLocaleString('vi-VN')}vnđ
+                                    </div>
                                 </div>
 
-                                <div className="sm:col-span-2">
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tổng tiền</label>
-                                    <input
-                                        type="number"
-                                        className="w-full bg-blue-50 border border-blue-200 text-blue-700 font-black rounded-2xl px-4 py-3 text-sm outline-none"
-                                        value={tongTien}
-                                        readOnly
-                                    />
+                                <div className="sm:col-span-2 p-6 bg-slate-900 rounded-[2rem] text-white shadow-xl space-y-4">
+                                    <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cấu trúc hóa đơn</p>
+                                        <Calculator size={16} className="text-blue-400" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiền phòng:</span> <span className="font-bold">{(tienPhong || 0).toLocaleString('vi-VN')}đ</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiền điện:</span> <span className="font-bold">{(tienDien || 0).toLocaleString('vi-VN')}đ</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiền nước:</span> <span className="font-bold">{(tienNuoc || 0).toLocaleString('vi-VN')}đ</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Dịch vụ:</span> <span className="font-bold">{(tienDichVu || 0).toLocaleString('vi-VN')}đ</span></div>
+                                    </div>
+                                    <div className="pt-4 border-t border-white/10 flex justify-between items-end">
+                                        <span className="text-xs font-black text-blue-400 uppercase tracking-tighter">Tổng cộng tháng này:</span>
+                                        <span className="text-3xl font-black">{tongTien.toLocaleString('vi-VN')}đ</span>
+                                    </div>
                                 </div>
                                 <div className="space-y-4 p-4 bg-purple-50/50 rounded-2xl border border-purple-100 sm:col-span-2">
                                     <h3 className="text-sm font-bold text-purple-700 flex items-center gap-2">
@@ -922,7 +975,7 @@ export default function InvoicesPage() {
                                         {currentInvoice!.trangThai === "Da_Thanh_Toan" ? <CheckCircle2 size={14} /> : <Clock size={14} />}
                                         {getStatusLabel(currentInvoice!.trangThai).toUpperCase()}
                                     </span>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Ngày tạo: {new Date(currentInvoice!.createdAt).toLocaleString("vi-VN")}</p>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Ngày tạo: {formatVi(currentInvoice!.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                                 </div>
                             </div>
 

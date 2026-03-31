@@ -1,29 +1,18 @@
 import { useEffect, useState } from "react";
-import { Zap, Droplets, Save, History, Plus, Loader2, Calculator, LayoutTemplate } from "lucide-react";
+import { Zap, Droplets, Save, History, Loader2, Calculator } from "lucide-react";
 import { utilityService, type ChiSoDienNuoc, type GiaDienNuoc } from "../services/utilityService";
-import { roomService, type Room } from "../services/roomService";
+import { roomService } from "../services/roomService";
 import { useAuthStore } from "../store/authStore";
 import { formatVi } from "../utils/dateFormatter";
 
 export default function UtilitiesPage() {
     const { user } = useAuthStore();
     const isAdmin = user?.vaiTro === "Chu_Tro";
-    const [rooms, setRooms] = useState<Room[]>([]);
     const [chiSos, setChiSos] = useState<ChiSoDienNuoc[]>([]);
     const [latestGia, setLatestGia] = useState<GiaDienNuoc | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<"record" | "history" | "config">(isAdmin ? "record" : "history");
+    const [activeTab, setActiveTab] = useState<"history" | "config">("history");
     const [giaHistory, setGiaHistory] = useState<GiaDienNuoc[]>([]);
-
-    // Form states
-    const [selectedRoom, setSelectedRoom] = useState("");
-    const [roomSearchTerm, setRoomSearchTerm] = useState("");
-    const [isRoomDropdownOpen, setIsRoomDropdownOpen] = useState(false);
-    const [thang, setThang] = useState(new Date().toISOString().slice(0, 10)); // YYYY-MM-DD
-    const [dienCu, setDienCu] = useState(0);
-    const [dienMoi, setDienMoi] = useState(0);
-    const [nuocCu, setNuocCu] = useState(0);
-    const [nuocMoi, setNuocMoi] = useState(0);
 
     // Price form states
     const [giaDien, setGiaDien] = useState(0);
@@ -32,13 +21,12 @@ export default function UtilitiesPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [roomsData, chiSosData, giaData, giaHistoryData] = await Promise.all([
+                const [_, chiSosData, giaData, giaHistoryData] = await Promise.all([
                     roomService.getAllPhongs(),
                     utilityService.getAllChiSos(),
                     utilityService.getLatestGia(),
                     utilityService.getAllGias()
                 ]);
-                setRooms(roomsData);
                 setChiSos(chiSosData);
                 setGiaHistory(giaHistoryData);
                 if (giaData) {
@@ -55,57 +43,6 @@ export default function UtilitiesPage() {
         fetchData();
     }, []);
 
-    const handleRoomChange = async (idPhong: string) => {
-        setSelectedRoom(idPhong);
-        try {
-            const latest = await utilityService.getLatestChiSoByPhong(idPhong);
-            if (latest) {
-                setDienCu(latest.chiSoDienMoi);
-                setNuocCu(latest.chiSoNuocMoi);
-                setDienMoi(latest.chiSoDienMoi);
-                setNuocMoi(latest.chiSoNuocMoi);
-            } else {
-                setDienCu(0);
-                setNuocCu(0);
-                setDienMoi(0);
-                setNuocMoi(0);
-            }
-            // Clear search when a room is explicitly unselected by deleting
-            if(!idPhong) setRoomSearchTerm("");
-
-        } catch (error) {
-            console.error("Lỗi khi tải chỉ số cũ:", error);
-        }
-    };
-
-    const handleSaveChiSo = async () => {
-        if (!selectedRoom) return alert("Vui lòng chọn phòng");
-
-        if (dienMoi < dienCu) {
-            return alert("Chỉ số điện mới không được nhỏ hơn chỉ số cũ");
-        }
-        if (nuocMoi < nuocCu) {
-            return alert("Chỉ số nước mới không được nhỏ hơn chỉ số cũ");
-        }
-
-        try {
-            await utilityService.createChiSo({
-                idPhong: selectedRoom,
-                thang,
-                chiSoDienCu: dienCu,
-                chiSoDienMoi: dienMoi,
-                chiSoNuocCu: nuocCu,
-                chiSoNuocMoi: nuocMoi
-            });
-            alert("Lưu chỉ số thành công");
-            // Refresh history
-            const chiSosData = await utilityService.getAllChiSos();
-            setChiSos(chiSosData);
-            setActiveTab("history");
-        } catch (error) {
-            alert("Lỗi khi lưu chỉ số: " + (error as any).response?.data?.message || "Lỗi không xác định");
-        }
-    };
 
     const handleUpdateGia = async () => {
         try {
@@ -121,7 +58,8 @@ export default function UtilitiesPage() {
             ]);
             setLatestGia(giaData);
             setGiaHistory(giaHistoryData);
-            setActiveTab("record");
+            setGiaHistory(giaHistoryData);
+            setActiveTab("history");
         } catch (error) {
             alert("Lỗi khi cập nhật giá");
         }
@@ -144,24 +82,13 @@ export default function UtilitiesPage() {
             </div>
 
             <div className="flex flex-wrap bg-white p-1 rounded-2xl border border-slate-200 w-full sm:w-fit shadow-sm gap-1">
-                {isAdmin && (
-                    <button
-                        onClick={() => setActiveTab("record")}
-                        className={`px-4 sm:px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === "record" ? "bg-slate-900 text-white shadow-lg" : "text-slate-500 hover:bg-slate-50"}`}
-                    >
-                        <div className="flex items-center gap-2">
-                            <Plus size={16} />
-                            Ghi chỉ số
-                        </div>
-                    </button>
-                )}
                 <button
                     onClick={() => setActiveTab("history")}
                     className={`px-4 sm:px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === "history" ? "bg-slate-900 text-white shadow-lg" : "text-slate-500 hover:bg-slate-50"}`}
                 >
                     <div className="flex items-center gap-2">
                         <History size={16} />
-                        Lịch sử
+                        Lịch sử chỉ số
                     </div>
                 </button>
                 {isAdmin && (
@@ -171,194 +98,12 @@ export default function UtilitiesPage() {
                     >
                         <div className="flex items-center gap-2">
                             <Calculator size={16} />
-                            Cấu hình giá
+                            Đơn giá & Cấu hình
                         </div>
                     </button>
                 )}
             </div>
 
-            {activeTab === "record" && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-                    <div className="bg-white p-5 sm:p-8 rounded-[2rem] border border-slate-200 shadow-sm space-y-6">
-                        <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
-                            <Plus className="text-blue-600" size={20} />
-                            Nhập chỉ số mới
-                        </h2>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chọn phòng</label>
-                                <div className="relative">
-                                    <div className="relative">
-                                        <LayoutTemplate className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                        <input
-                                            type="text"
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                            placeholder="Nhập số phòng..."
-                                            value={roomSearchTerm}
-                                            onChange={(e) => {
-                                                setRoomSearchTerm(e.target.value);
-                                                setIsRoomDropdownOpen(true);
-                                                if (!e.target.value) setSelectedRoom("");
-                                            }}
-                                            onFocus={() => setIsRoomDropdownOpen(true)}
-                                            required={!selectedRoom}
-                                        />
-                                    </div>
-
-                                    {isRoomDropdownOpen && (
-                                        <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
-                                            {rooms.filter(r =>
-                                                r.trangThai === "Da_Thue" && r.tenPhong.toLowerCase().includes(roomSearchTerm.toLowerCase())
-                                            ).length > 0 ? (
-                                                rooms.filter(r =>
-                                                    r.trangThai === "Da_Thue" && r.tenPhong.toLowerCase().includes(roomSearchTerm.toLowerCase())
-                                                ).map(room => (
-                                                    <button
-                                                        key={room._id}
-                                                        type="button"
-                                                        className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 flex flex-col gap-0.5 transition-colors border-b border-slate-50 last:border-0"
-                                                        onClick={() => {
-                                                            handleRoomChange(room._id);
-                                                            setRoomSearchTerm(room.tenPhong);
-                                                            setIsRoomDropdownOpen(false);
-                                                        }}
-                                                    >
-                                                        <span className="font-bold text-slate-800">{room.tenPhong}</span>
-                                                    </button>
-                                                ))
-                                            ) : (
-                                                <div className="px-4 py-3 text-sm text-slate-400 italic">Không tìm thấy phòng...</div>
-                                            )}
-                                        </div>
-                                    )}
-                                    {/* Hidden required field to ensure form validation */}
-                                    <input type="hidden" value={selectedRoom} required />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Ngày / Tháng / Năm</label>
-                                <input
-                                    type="date"
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    value={thang}
-                                    onChange={(e) => setThang(e.target.value)}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="space-y-4 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
-                                    <h3 className="text-sm font-bold text-blue-700 flex items-center gap-2">
-                                        <Zap size={16} /> Điện (kWh)
-                                    </h3>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 mb-1 italic">Chỉ số cũ</label>
-                                        <input
-                                            type="number"
-                                            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm"
-                                            value={dienCu}
-                                            onChange={(e) => setDienCu(Number(e.target.value))}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 mb-1 italic text-blue-600">Chỉ số mới</label>
-                                        <input
-                                            type="number"
-                                            className="w-full bg-white border border-blue-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                                            value={dienMoi}
-                                            onChange={(e) => setDienMoi(Number(e.target.value))}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
-                                    <h3 className="text-sm font-bold text-emerald-700 flex items-center gap-2">
-                                        <Droplets size={16} /> Nước (m³)
-                                    </h3>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 mb-1 italic">Chỉ số cũ</label>
-                                        <input
-                                            type="number"
-                                            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm"
-                                            value={nuocCu}
-                                            onChange={(e) => setNuocCu(Number(e.target.value))}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-400 mb-1 italic text-emerald-600">Chỉ số mới</label>
-                                        <input
-                                            type="number"
-                                            className="w-full bg-white border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-                                            value={nuocMoi}
-                                            onChange={(e) => setNuocMoi(Number(e.target.value))}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={handleSaveChiSo}
-                                className="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 mt-4"
-                            >
-                                <Save size={18} />
-                                Lưu chỉ số
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="bg-slate-900 p-5 sm:p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full -mr-32 -mt-32 blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
-
-                        <div className="relative z-10">
-                            <h2 className="text-xl sm:text-2xl font-black mb-6 sm:mb-8 flex items-center gap-2 text-blue-400">
-                                <Calculator size={24} />
-                                Đơn giá hiện tại
-                            </h2>
-
-                            <div className="space-y-6 sm:space-y-8">
-                                <div className="flex items-center justify-between p-4 sm:p-6 bg-white/5 rounded-3xl border border-white/10">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-amber-500/20 text-amber-500 rounded-2xl flex items-center justify-center">
-                                            <Zap size={24} />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Giá điện</p>
-                                            <p className="text-2xl font-black">{latestGia?.giaDien.toLocaleString("vi-VN")}đ <span className="text-sm font-normal text-slate-400">/ kWh</span></p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between p-4 sm:p-6 bg-white/5 rounded-3xl border border-white/10">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-blue-500/20 text-blue-500 rounded-2xl flex items-center justify-center">
-                                            <Droplets size={24} />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Giá nước</p>
-                                            <p className="text-2xl font-black">{latestGia?.giaNuoc.toLocaleString("vi-VN")}đ <span className="text-sm font-normal text-slate-400">/ m³</span></p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="p-6 bg-blue-600/10 rounded-3xl border border-blue-500/20">
-                                    <p className="text-sm font-medium text-blue-300 italic flex items-center gap-2">
-                                        <Save size={14} />
-                                        Áp dụng từ: {latestGia ? formatVi(latestGia.ngayApDung) : "N/A"}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={() => setActiveTab("config")}
-                                className="w-full mt-8 sm:mt-10 py-3.5 sm:py-4 bg-white text-slate-900 rounded-2xl font-black text-sm hover:bg-blue-50 transition-all shadow-xl shadow-black/20"
-                            >
-                                Thay đổi đơn giá
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {activeTab === "history" && (
                 <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
@@ -380,7 +125,7 @@ export default function UtilitiesPage() {
                                         <td className="px-8 py-4 text-slate-600 font-bold">{item.thang.includes("-") && item.thang.split("-").length === 3 ? formatVi(item.thang) : item.thang}</td>
                                         <td className="px-8 py-4 text-blue-600 font-bold">{item.chiSoDienMoi} kWh</td>
                                         <td className="px-8 py-4 text-emerald-600 font-bold">{item.chiSoNuocMoi} m³</td>
-                                        <td className="px-8 py-4 text-slate-400 text-sm">{item.createdAt ? formatVi(item.createdAt) : "N/A"}</td>
+                                        <td className="px-8 py-4 text-slate-400 text-sm">{item.createdAt ? formatVi(item.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "N/A"}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -390,7 +135,49 @@ export default function UtilitiesPage() {
             )}
 
             {activeTab === "config" && (
-                <div className="max-w-2xl mx-auto bg-white p-6 sm:p-10 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-200 shadow-xl space-y-6 sm:space-y-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Current Price Display - Left side or atop on mobile */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group h-full">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full -mr-32 -mt-32 blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
+
+                            <div className="relative z-10 space-y-8">
+                                <h2 className="text-2xl font-black flex items-center gap-3 text-blue-400">
+                                    <Calculator size={28} />
+                                    Đơn giá hiện tại
+                                </h2>
+
+                                <div className="space-y-6">
+                                    <div className="p-6 bg-white/5 rounded-3xl border border-white/10 group-hover:bg-white/10 transition-colors">
+                                        <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Giá điện</p>
+                                        <div className="flex items-end gap-2">
+                                            <p className="text-3xl font-black text-amber-500">{latestGia?.giaDien.toLocaleString("vi-VN")}đ</p>
+                                            <p className="text-sm font-medium text-slate-400 mb-1">/ kWh</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-6 bg-white/5 rounded-3xl border border-white/10 group-hover:bg-white/10 transition-colors">
+                                        <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Giá nước</p>
+                                        <div className="flex items-end gap-2">
+                                            <p className="text-3xl font-black text-blue-400">{latestGia?.giaNuoc.toLocaleString("vi-VN")}đ</p>
+                                            <p className="text-sm font-medium text-slate-400 mb-1">/ m³</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-6 bg-blue-600/10 rounded-3xl border border-blue-500/20">
+                                        <p className="text-sm font-bold text-blue-300 italic flex items-center gap-2">
+                                            <Save size={14} />
+                                            Cập nhật lần cuối: {latestGia ? formatVi(latestGia.ngayApDung) : "N/A"}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* Edit Form */}
+                        <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-200 shadow-xl space-y-8">
                     <div className="text-center">
                         <h2 className="text-2xl font-black text-slate-900">Thiết lập đơn giá</h2>
                         <p className="text-slate-500 font-medium mt-2 italic">Giá này sẽ được tự động áp dụng khi tính hóa đơn</p>
@@ -476,7 +263,9 @@ export default function UtilitiesPage() {
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
+        </div>
+    )}
         </div>
     );
 }
