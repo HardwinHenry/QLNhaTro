@@ -71,20 +71,28 @@ export default function HomePage() {
                             <span className="text-base sm:text-lg font-black text-slate-800">{rooms.length} Phòng Hiện Có</span>
                         </div>
 
-                        <button
-                            onClick={() => {
-                                if (cauHinh?.diaChi) {
-                                    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cauHinh.diaChi)}`, '_blank');
-                                } else {
-                                    toast.warning("Địa chỉ nhà trọ chưa được cấu hình");
-                                }
-                            }}
-                            className="flex items-center gap-3 bg-rose-50 px-4 sm:px-6 py-3 rounded-2xl border border-rose-100 text-rose-600 hover:bg-rose-100 transition-all font-black shadow-sm group/btn"
-                        >
-                            <MapPin size={20} className="group-hover/btn:scale-110 transition-transform" />
-                            <span>Xem bản đồ</span>
-                            <ExternalLink size={14} className="opacity-50" />
-                        </button>
+                        <div className="flex flex-col gap-2">
+                            {cauHinh?.diaChi && (
+                                <p className="text-xs font-black text-rose-500 uppercase tracking-widest flex items-center gap-2 mb-1 animate-in fade-in slide-in-from-left duration-700">
+                                    <MapPin size={12} />
+                                    {cauHinh.diaChi}
+                                </p>
+                            )}
+                            <button
+                                onClick={() => {
+                                    if (cauHinh?.diaChi) {
+                                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cauHinh.diaChi)}`, '_blank');
+                                    } else {
+                                        toast.warning("Địa chỉ nhà trọ chưa được cấu hình");
+                                    }
+                                }}
+                                className="flex items-center gap-3 bg-rose-50 px-4 sm:px-6 py-3 rounded-2xl border border-rose-100 text-rose-600 hover:bg-rose-100 transition-all font-black shadow-sm group/btn w-fit"
+                            >
+                                <MapPin size={20} className="group-hover/btn:scale-110 transition-transform" />
+                                <span>Xem bản đồ</span>
+                                <ExternalLink size={14} className="opacity-50" />
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl -mr-48 -mt-48 group-hover:bg-blue-500/10 transition-colors duration-1000"></div>

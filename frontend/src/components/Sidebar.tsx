@@ -14,10 +14,7 @@ import {
     Calendar,
     X,
     Users as UsersIcon,
-    MapPin,
 } from "lucide-react";
-import { cauHinhService, type CauHinh } from "../services/cauHinhService";
-import { useEffect, useState } from "react";
 
 interface SidebarProps {
     isOpen: boolean;
@@ -28,30 +25,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const { user, logout } = useAuthStore();
     const location = useLocation();
     const isAdmin = user?.vaiTro === "Chu_Tro";
-    const [cauHinh, setCauHinh] = useState<CauHinh | null>(null);
-
-    useEffect(() => {
-        const fetchConfig = async () => {
-            try {
-                const config = await cauHinhService.getLatestCauHinh();
-                setCauHinh(config);
-            } catch (err) {}
-        };
-        fetchConfig();
-    }, []);
-
-    const handleOpenMap = () => {
-        if (cauHinh?.diaChi) {
-            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cauHinh.diaChi)}`, '_blank');
-        } else {
-            toast.warning("Chưa cấu hình địa chỉ nhà trọ");
-        }
-        onClose();
-    };
 
     const menuItems = [
         { icon: Home, label: "Trang chủ", href: "/", roles: ["Chu_Tro", "Khach"] },
-        { icon: MapPin, label: "Bản đồ", onClick: handleOpenMap, roles: ["Chu_Tro", "Khach"] },
         { icon: DoorOpen, label: "Xem Phòng", href: "/rooms", roles: ["Chu_Tro", "Khach"] },
         { icon: Receipt, label: "Hóa đơn", href: "/invoices", roles: ["Chu_Tro", "Khach"] },
         { icon: Zap, label: "Điện & Nước", href: "/utilities", roles: ["Chu_Tro", "Khach"] },
@@ -95,40 +71,23 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <div>
                     <p className="text-xs font-semibold text-blue-300 uppercase tracking-widest px-3 mb-2">Chức năng</p>
                     <div className="space-y-1">
-                        {menuItems.map((item) => {
-                            if (item.onClick) {
-                                return (
-                                    <button
-                                        key={item.label}
-                                        onClick={item.onClick}
-                                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-blue-100 hover:bg-blue-800"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <item.icon size={18} />
-                                            <span className="text-sm font-medium">{item.label}</span>
-                                        </div>
-                                        <ChevronRight size={14} className="opacity-0 group-hover:opacity-100" />
-                                    </button>
-                                );
-                            }
-                            return (
-                                <Link
-                                    key={item.label}
-                                    to={item.href!}
-                                    onClick={onClose}
-                                    className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors group ${location.pathname === item.href
-                                        ? "bg-blue-700 text-white"
-                                        : "text-blue-100 hover:bg-blue-800"
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <item.icon size={18} />
-                                        <span className="text-sm font-medium">{item.label}</span>
-                                    </div>
-                                    {location.pathname === item.href && <ChevronRight size={14} />}
-                                </Link>
-                            );
-                        })}
+                        {menuItems.map((item) => (
+                            <Link
+                                key={item.label}
+                                to={item.href}
+                                onClick={onClose}
+                                className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors group ${location.pathname === item.href
+                                    ? "bg-blue-700 text-white"
+                                    : "text-blue-100 hover:bg-blue-800"
+                                    }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <item.icon size={18} />
+                                    <span className="text-sm font-medium">{item.label}</span>
+                                </div>
+                                {location.pathname === item.href && <ChevronRight size={14} />}
+                            </Link>
+                        ))}
                     </div>
                 </div>
 
