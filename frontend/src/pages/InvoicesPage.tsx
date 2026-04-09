@@ -460,15 +460,6 @@ export default function InvoicesPage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     {isAdmin && (
-                        <button
-                            onClick={() => setIsSettingsModalOpen(true)}
-                            className="flex items-center gap-2 bg-white text-slate-700 border border-slate-200 px-6 py-2.5 rounded-xl text-sm font-black hover:bg-slate-50 transition-all shadow-sm"
-                        >
-                            <Settings size={18} />
-                            Thiết lập Thanh toán
-                        </button>
-                    )}
-                    {isAdmin && (
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setIsSettingsModalOpen(true)}
