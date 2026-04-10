@@ -127,7 +127,6 @@ export default function RegisterPage() {
                                     <p className="text-red-500 text-xs mt-1">{errors.tenDangNhap.message}</p>
                                 )}
                             </div>
-                        </div>
 
 
                         <div>
