@@ -6,6 +6,7 @@ import express from "express";
 import cors from "cors";
 import { connectDB } from "./libs/db.js";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import router from "./routes/index.js";
 
@@ -24,10 +25,21 @@ app.use("/api", router);
 
 if (isProduction) {
   const frontendDistPath = path.resolve(__dirname, "../../frontend/dist");
-  app.use(express.static(frontendDistPath));
-  app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(frontendDistPath, "index.html"));
-  });
+  console.log(`Production mode: serving frontend from ${frontendDistPath}`);
+  
+  if (fs.existsSync(frontendDistPath)) {
+    app.use(express.static(frontendDistPath));
+    app.get(/.*/, (req, res) => {
+      const indexPath = path.join(frontendDistPath, "index.html");
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send("Frontend build not found (index.html missing)");
+      }
+    });
+  } else {
+    console.warn("Warning: frontend/dist directory not found. Static serving might fail.");
+  }
 }
 
 connectDB().then(() => {

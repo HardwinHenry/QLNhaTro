@@ -34,6 +34,12 @@ export const connectDB = async () => {
     await seedAdmin();
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
-    process.exit(1);
+    // In production, we might want to let the process stay alive for a bit to allow logs to be read
+    // or just let the cloud provider handle the restart.
+    if (process.env.NODE_ENV === "production") {
+      console.error("Database connection failed in production. App might not function correctly.");
+    } else {
+      process.exit(1);
+    }
   }
 };
