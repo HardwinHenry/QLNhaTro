@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
-import { User, Phone, IdCard, Shield, Edit3, Camera, Save, X, Loader2, Home, Key, AlertTriangle, Eye, EyeOff } from "lucide-react";
+import { User, Phone, IdCard, Shield, Edit3, Camera, Save, X, Loader2, Home, Key, Eye, EyeOff } from "lucide-react";
 import { updateMe, getMe, changePassword } from "../services/authService";
 import { toast } from "sonner";
 
