@@ -1,4 +1,4 @@
-﻿import { useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate, Link } from "react-router";
@@ -122,9 +122,6 @@ export default function LoginPage() {
                                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
                             </div>
-                            {errors.matKhau && (
-                                <p className="text-red-500 text-xs mt-1">{errors.matKhau.message}</p>
-                            )}
                         </div>
 
                         <button

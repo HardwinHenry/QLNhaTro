@@ -1,4 +1,4 @@
-﻿import { useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate, Link } from "react-router";
@@ -123,9 +123,10 @@ export default function RegisterPage() {
                                     placeholder="Nhập tên đăng nhập"
                                 />
                             </div>
-                            {errors.tenDangNhap && (
-                                <p className="text-red-500 text-xs mt-1">{errors.tenDangNhap.message}</p>
-                            )}
+                                {errors.tenDangNhap && (
+                                    <p className="text-red-500 text-xs mt-1">{errors.tenDangNhap.message}</p>
+                                )}
+                            </div>
                         </div>
 
 

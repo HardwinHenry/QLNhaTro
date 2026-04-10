@@ -458,7 +458,7 @@ export default function InvoicesPage() {
                     <h1 className="text-3xl font-black text-slate-800 tracking-tight">Hóa đơn</h1>
                     <p className="text-slate-500 mt-1 font-medium italic">Quản lý các khoản thanh toán của bạn</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">z
                     {isAdmin && (
                         <div className="flex gap-2">
                             <button

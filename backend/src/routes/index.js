@@ -1,5 +1,5 @@
 import express from "express";
-import { login, register, getMe, refreshAccessToken, getAllUsers, updateMe } from "../controllers/auth.js";
+import { login, register, getMe, refreshAccessToken, getAllUsers, updateMe, changePassword } from "../controllers/auth.js";
 import { getAllPhongs, getPhongById, createPhong, updatePhong, deletePhong } from "../controllers/phong.js";
 import { getAllHopDongs, createHopDong, updateHopDong, deleteHopDong, extendHopDong } from "../controllers/hopdong.js";
 import { getAllHoaDons, createHoaDon, updateHoaDon, deleteHoaDon, confirmPayment, requestPayment } from "../controllers/hoadon.js";
@@ -21,6 +21,7 @@ router.post("/auth/refresh", refreshAccessToken);
 router.get("/auth/me", auth(), getMe);
 router.put("/auth/me", auth(), updateMe);
 router.get("/auth/users", auth(["Chu_Tro"]), getAllUsers);
+router.put("/auth/change-password", auth(), changePassword);
 
 // Admin routes - chỉ Chu_Tro mới truy cập được
 router.get("/admin/dashboard", auth(["Chu_Tro"]), (req, res) => {

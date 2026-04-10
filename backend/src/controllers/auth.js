@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import HopDong from "../models/HopDong.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 export const register = async (req, res) => {
   try {
@@ -122,5 +123,26 @@ export const updateMe = async (req, res) => {
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: error.message || "Lỗi khi cập nhật hồ sơ" });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!user) return res.status(404).json({ message: "Người dùng không tồn tại" });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.matKhau);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Mật khẩu hiện tại không chính xác" });
+    }
+
+    user.matKhau = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.json({ message: "Đổi mật khẩu thành công" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

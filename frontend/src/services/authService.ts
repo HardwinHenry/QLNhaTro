@@ -30,3 +30,8 @@ export const getMe = async () => {
     const response = await api.get("/auth/me");
     return response.data;
 };
+
+export const changePassword = async (currentPassword: string, newPassword: string) => {
+    const response = await api.put("/auth/change-password", { currentPassword, newPassword });
+    return response.data;
+};
