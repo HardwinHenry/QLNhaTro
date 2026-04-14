@@ -5,7 +5,7 @@ import { getAllHopDongs, createHopDong, updateHopDong, deleteHopDong, extendHopD
 import { getAllHoaDons, createHoaDon, updateHoaDon, deleteHoaDon, confirmPayment, requestPayment } from "../controllers/hoadon.js";
 import { getAllDayPhongs, createDayPhong, updateDayPhong, deleteDayPhong } from "../controllers/dayphong.js";
 import { getAllVatTus, createVatTu, updateVatTu, deleteVatTu } from "../controllers/vattu.js";
-import { getAllChiSos, getLatestChiSoByPhong, getChiSoLookupByPhong, createChiSo, deleteAllChiSos, deleteChiSo, getChiSoGanNhat } from "../controllers/chisodiennuoc.js";
+import { getAllChiSos, getLatestChiSoByPhong, getChiSoLookupByPhong, createChiSo, deleteAllChiSos, deleteChiSo } from "../controllers/chisodiennuoc.js";
 import { getLatestGia, updateGia, getAllGias } from "../controllers/giadiennuoc.js";
 import { createYeuCau, getAllYeuCaus, confirmYeuCau, cancelYeuCau, updateYeuCau, deleteYeuCau } from "../controllers/datphong.js";
 import { createSlot, getAllSlots, deleteSlot } from "../controllers/lichxemphong.js";
@@ -59,6 +59,7 @@ router.delete("/hoadon/:id", auth(["Chu_Tro"]), deleteHoaDon);
 router.post("/hoadon/:id/request-payment", auth(["Chu_Tro"]), requestPayment);
 router.put("/hoadon/:id/confirm-payment", auth(["Chu_Tro"]), confirmPayment);
 
+
 // DayPhong routes
 router.get("/dayphong", auth(), getAllDayPhongs);
 router.post("/dayphong", auth(["Chu_Tro"]), upload.single("hinhAnh"), createDayPhong);
@@ -73,7 +74,7 @@ router.delete("/vattu/:id", auth(["Chu_Tro"]), deleteVatTu);
 
 // Utility routes
 router.get("/chisodiennuoc", auth(["Chu_Tro", "Khach"]), getAllChiSos);
-router.get("/chisodiennuoc/latest/:idPhong", auth(["Chu_Tro", "Khach"]), getChiSoGanNhat);
+router.get("/chisodiennuoc/latest/:idPhong", auth(["Chu_Tro", "Khach"]), getLatestChiSoByPhong);
 router.get("/chisodiennuoc/lookup/:idPhong", auth(["Chu_Tro", "Khach"]), getChiSoLookupByPhong);
 router.post("/chisodiennuoc", auth(["Chu_Tro"]), createChiSo);
 router.delete("/chisodiennuoc/delete-all", auth(["Chu_Tro"]), deleteAllChiSos);
