@@ -694,7 +694,7 @@ export default function InvoicesPage() {
                                             <LayoutTemplate size={20} />
                                         </div>
                                         <div>
-                                            <h3 className="font-black text-slate-800 leading-tight">Phòng {roomName}</h3>
+                                            <h3 className="font-black text-slate-800 leading-tight">{roomName}</h3>
                                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{roomInvoices.length} hóa đơn</p>
                                         </div>
                                     </div>
