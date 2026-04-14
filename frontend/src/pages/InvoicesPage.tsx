@@ -96,23 +96,31 @@ export default function InvoicesPage() {
             // 1. Sync Room Rent from Contract
             setTienPhong(contract.giaThue);
 
-            // 2. Fetch Utility indices (Get latest record for this room)
+            // 2. Fetch Utility indices (Lookup this month or get latest from previous)
             const idPhong = contract.idPhong?._id || contract.idPhong;
+            const invoiceDate = new Date(ngayThangNam);
+            const invoiceMonth = `${invoiceDate.getFullYear()}-${String(invoiceDate.getMonth() + 1).padStart(2, '0')}`;
 
-            const [latest, giaData] = await Promise.all([
-                utilityService.getChiSoGanNhat(idPhong),
-                utilityService.getLatestGia()
+            const [lookup, giaData] = await Promise.all([
+                utilityService.getChiSoLookup(idPhong, invoiceMonth),
+                utilityService.getLatestGia(),
+
             ]);
 
             // 3. Handle Indices
-            if (latest) {
-                // Pre-fill "Old" values with previous "New" values
-                setChiSoDienCu(latest.chiSoDienMoi);
-                setChiSoNuocCu(latest.chiSoNuocMoi);
-                
-                // Also default "New" values to "Old" for easier input
-                setChiSoDien(latest.chiSoDienMoi);
-                setChiSoNuoc(latest.chiSoNuocMoi);
+            if (lookup) {
+                if (lookup.thang === invoiceMonth) {
+                    setChiSoDien(lookup.chiSoDienMoi);
+                    setChiSoDienCu(lookup.chiSoDienCu);
+                    setChiSoNuoc(lookup.chiSoNuocMoi);
+                    setChiSoNuocCu(lookup.chiSoNuocCu);
+                } else {
+                    // Logic from lookup: previous month record
+                    setChiSoDien(lookup.chiSoDienMoi);
+                    setChiSoDienCu(lookup.chiSoDienMoi);
+                    setChiSoNuoc(lookup.chiSoNuocMoi);
+                    setChiSoNuocCu(lookup.chiSoNuocMoi);
+                }
             } else {
                 // No records at all
                 setChiSoDien(0);
