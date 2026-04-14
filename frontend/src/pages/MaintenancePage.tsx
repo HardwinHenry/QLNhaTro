@@ -330,7 +330,7 @@ export default function MaintenancePage() {
                                     </div>
                                 )}
 
-                                {isAdmin && (
+                                {(isAdmin || (!isAdmin && req.idKhach?._id === user?._id && req.trangThai === "Dang_Cho")) && (
                                     <button
                                         onClick={() => handleDelete(req._id)}
                                         className="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-sm text-red-500 rounded-lg lg:opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 shadow-sm z-10"
@@ -472,7 +472,7 @@ export default function MaintenancePage() {
                                                 <Camera size={24} />
                                             </div>
                                             <p className="text-sm font-medium text-slate-600">Bấm để tải ảnh lên</p>
-                                            <p className="text-xs text-slate-400">JPG, PNG</p>
+                                            <p className="text-xs text-slate-400">JPG, PNG, WebP tối đa 10MB</p>
                                         </>
                                     )}
                                     <input

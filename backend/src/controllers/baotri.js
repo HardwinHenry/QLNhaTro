@@ -73,6 +73,19 @@ export const deleteYeuCauBaoTri = async (req, res) => {
         const item = await YeuCauBaoTri.findById(id);
         if (!item) return res.status(404).json({ message: "Không tìm thấy yêu cầu" });
 
+        // Phân quyền xóa
+        const isOwner = item.idKhach.toString() === req.user.id;
+        const isAdmin = req.user.vaiTro === "Chu_Tro";
+
+        if (!isAdmin) {
+            if (!isOwner) {
+                return res.status(403).json({ message: "Bạn không có quyền xóa yêu cầu này" });
+            }
+            if (item.trangThai !== "Dang_Cho") {
+                return res.status(400).json({ message: "Không thể xóa yêu cầu đã được xử lý" });
+            }
+        }
+
         // Delete image file if exists
         if (item.hinhAnh) {
             const imagePath = path.join(process.cwd(), "public", item.hinhAnh);

@@ -108,7 +108,7 @@ router.get("/baotri", auth(["Chu_Tro"]), getAllYeuCauBaoTri);
 router.get("/baotri/me", auth(["Khach"]), getYeuCauBaoTriByKhach);
 router.post("/baotri", auth(["Khach"]), upload.single("hinhAnh"), createYeuCauBaoTri);
 router.put("/baotri/:id", auth(["Chu_Tro"]), updateTrangThaiBaoTri);
-router.delete("/baotri/:id", auth(["Chu_Tro"]), deleteYeuCauBaoTri);
+router.delete("/baotri/:id", auth(["Chu_Tro", "Khach"]), deleteYeuCauBaoTri);
 
 router.post("/thanhtoan", auth(["Khach"]), (req, res) => res.json({ message: "Thanh Toan route" }));
 
