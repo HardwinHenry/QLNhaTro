@@ -18,7 +18,7 @@ export const createYeuCau = async (req, res) => {
             const slot = await LichXemPhong.findById(idSlot);
             if (!slot) return res.status(404).json({ message: "Không tìm thấy khung giờ" });
             if (slot.trangThai === "Da_Dat") return res.status(400).json({ message: "Khung giờ này đã có người đặt" });
-            
+
             slot.trangThai = "Da_Dat";
             await slot.save();
         }

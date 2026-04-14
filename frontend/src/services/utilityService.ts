@@ -50,5 +50,9 @@ export const utilityService = {
     getChiSoLookup: async (idPhong: string, thang: string) => {
         const response = await api.get<ChiSoDienNuoc>(`/chisodiennuoc/lookup/${idPhong}?thang=${thang}`);
         return response.data;
+    },
+    getChiSoGanNhat: async (idPhong: string) => {
+        const response = await api.get<ChiSoDienNuoc>(`/chisodiennuoc/latest/${idPhong}`);
+        return response.data;
     }
 };

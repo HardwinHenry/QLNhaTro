@@ -95,3 +95,21 @@ export const deleteChiSo = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+export const getChiSoGanNhat = async (req, res) => {
+    try {
+        const { idPhong } = req.params;
+
+        // Tìm bản ghi mới nhất dựa trên tháng (thang: -1)
+        const chiSo = await ChiSoDienVaNuoc.findOne({ idPhong })
+            .sort({ thang: -1 });
+
+        if (!chiSo) {
+            return res.json(null);
+        }
+
+        res.json(chiSo);
+    } catch (err) {
+        res.status(500).json({ message: "Lỗi server" });
+    }
+};

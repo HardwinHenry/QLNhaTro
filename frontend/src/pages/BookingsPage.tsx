@@ -56,7 +56,7 @@ export default function BookingsPage() {
     const handleCreateSlot = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newSlotTime) return toast.error("Vui lòng chọn thời gian");
-        
+
         try {
             await slotService.createSlot({
                 thoiGian: newSlotTime,
@@ -436,7 +436,7 @@ export default function BookingsPage() {
                         {slots.length > 0 ? (
                             slots.map((slot) => (
                                 <div key={slot._id} className="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm relative group overflow-hidden">
-                                     <div className={`absolute top-0 right-0 px-4 py-1 rounded-bl-2xl text-[9px] font-black uppercase tracking-widest ${slot.trangThai === "Trong" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
+                                    <div className={`absolute top-0 right-0 px-4 py-1 rounded-bl-2xl text-[9px] font-black uppercase tracking-widest ${slot.trangThai === "Trong" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
                                         {slot.trangThai === "Trong" ? "Trống" : "Đã đặt"}
                                     </div>
                                     <div className="space-y-3">

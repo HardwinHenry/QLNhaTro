@@ -3,7 +3,7 @@ import LichXemPhong from "../models/LichXemPhong.js";
 export const createSlot = async (req, res) => {
     try {
         const { thoiGian, ghiChu } = req.body;
-        
+
         // Prevent duplicate slots for the same time
         const existing = await LichXemPhong.findOne({ thoiGian: new Date(thoiGian) });
         if (existing) {

@@ -18,6 +18,9 @@ export default function InvoicesPage() {
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [currentInvoice, setCurrentInvoice] = useState<Invoice | null>(null);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterStatus, setFilterStatus] = useState<"all" | "Chua_Thanh_Toan" | "Da_Thanh_Toan">("all");
+    const [viewMode, setViewMode] = useState<"list" | "room">("list");
 
     // Setup Settings State
     const [cauHinh, setCauHinh] = useState<CauHinh | null>(null);
@@ -93,30 +96,23 @@ export default function InvoicesPage() {
             // 1. Sync Room Rent from Contract
             setTienPhong(contract.giaThue);
 
-            // 2. Fetch Utility indices (Lookup this month or get latest from previous)
+            // 2. Fetch Utility indices (Get latest record for this room)
             const idPhong = contract.idPhong?._id || contract.idPhong;
-            const invoiceDate = new Date(ngayThangNam);
-            const invoiceMonth = `${invoiceDate.getFullYear()}-${String(invoiceDate.getMonth() + 1).padStart(2, '0')}`;
 
-            const [lookup, giaData] = await Promise.all([
-                utilityService.getChiSoLookup(idPhong, invoiceMonth),
+            const [latest, giaData] = await Promise.all([
+                utilityService.getChiSoGanNhat(idPhong),
                 utilityService.getLatestGia()
             ]);
 
             // 3. Handle Indices
-            if (lookup) {
-                if (lookup.thang === invoiceMonth) {
-                    setChiSoDien(lookup.chiSoDienMoi);
-                    setChiSoDienCu(lookup.chiSoDienCu);
-                    setChiSoNuoc(lookup.chiSoNuocMoi);
-                    setChiSoNuocCu(lookup.chiSoNuocCu);
-                } else {
-                    // Logic from lookup: previous month record
-                    setChiSoDien(lookup.chiSoDienMoi);
-                    setChiSoDienCu(lookup.chiSoDienMoi);
-                    setChiSoNuoc(lookup.chiSoNuocMoi);
-                    setChiSoNuocCu(lookup.chiSoNuocMoi);
-                }
+            if (latest) {
+                // Pre-fill "Old" values with previous "New" values
+                setChiSoDienCu(latest.chiSoDienMoi);
+                setChiSoNuocCu(latest.chiSoNuocMoi);
+                
+                // Also default "New" values to "Old" for easier input
+                setChiSoDien(latest.chiSoDienMoi);
+                setChiSoNuoc(latest.chiSoNuocMoi);
             } else {
                 // No records at all
                 setChiSoDien(0);
@@ -153,17 +149,17 @@ export default function InvoicesPage() {
     const handleCreateInvoice = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validation: No past months
+        // Validation: Only allow current month
         const today = new Date();
         const firstDayOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         const inputDate = new Date(ngayThangNam);
         const firstDayOfInputMonth = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
 
-        if (firstDayOfInputMonth < firstDayOfThisMonth) {
+        if (firstDayOfInputMonth.getTime() !== firstDayOfThisMonth.getTime()) {
             Swal.fire({
                 icon: 'error',
                 title: 'Ngày không hợp lệ',
-                text: 'Không thể tạo hóa đơn cho các tháng trước tháng hiện tại.',
+                text: 'Chỉ có thể tạo hóa đơn cho tháng hiện tại.',
                 confirmButtonColor: '#2563eb'
             });
             return;
@@ -325,6 +321,22 @@ export default function InvoicesPage() {
         e.preventDefault();
         if (!currentInvoice) return;
 
+        // Validation: Only allow current month
+        const today = new Date();
+        const firstDayOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const inputDate = new Date(ngayThangNam);
+        const firstDayOfInputMonth = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
+
+        if (firstDayOfInputMonth.getTime() !== firstDayOfThisMonth.getTime()) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Ngày không hợp lệ',
+                text: 'Chỉ có thể điều chỉnh hóa đơn trong tháng hiện tại.',
+                confirmButtonColor: '#2563eb'
+            });
+            return;
+        }
+
         // Validation: Indices (Strictly New > Old)
         if (chiSoDien <= chiSoDienCu) {
             Swal.fire({ icon: 'error', title: 'Lỗi!', text: 'Số điện mới phải lớn hơn số cũ', confirmButtonColor: '#2563eb' });
@@ -442,6 +454,22 @@ export default function InvoicesPage() {
         }
     };
 
+    const filteredInvoices = invoices.filter(inv => {
+        const matchesSearch =
+            inv.idHopDong?.idPhong?.tenPhong?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            inv.idHopDong?.idKhach?.hoVaTen?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            inv._id.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = filterStatus === "all" || inv.trangThai === filterStatus;
+        return matchesSearch && matchesStatus;
+    });
+
+    const groupedInvoices = filteredInvoices.reduce((acc, inv) => {
+        const roomName = inv.idHopDong?.idPhong?.tenPhong || "Khác";
+        if (!acc[roomName]) acc[roomName] = [];
+        acc[roomName].push(inv);
+        return acc;
+    }, {} as Record<string, Invoice[]>);
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-96">
@@ -458,7 +486,7 @@ export default function InvoicesPage() {
                     <h1 className="text-3xl font-black text-slate-800 tracking-tight">Hóa đơn</h1>
                     <p className="text-slate-500 mt-1 font-medium italic">Quản lý các khoản thanh toán của bạn</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">z
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     {isAdmin && (
                         <div className="flex gap-2">
                             <button
@@ -482,126 +510,254 @@ export default function InvoicesPage() {
                         <input
                             type="text"
                             placeholder="Tìm kiếm hóa đơn..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all w-full sm:w-64 shadow-sm"
                         />
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-[900px] text-left border-collapse">
-                        <thead>
-                            <tr className="bg-slate-50/50">
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Hóa đơn</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Phòng</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thời gian</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Tổng tiền</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Trạng thái</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                            {invoices.length > 0 ? (
-                                invoices.map((invoice) => (
-                                    <tr key={invoice._id} className="hover:bg-slate-50/50 transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
-                                                    <Receipt size={20} />
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-slate-800 text-sm">#INV-{invoice._id.slice(-6).toUpperCase()}</p>
-                                                    <p className="text-[10px] text-slate-400 font-medium">Tạo ngày: {formatVi(invoice.createdAt)}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <p className="text-sm font-bold text-slate-700">{invoice.idHopDong?.idPhong?.tenPhong || "N/A"}</p>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <p className="text-sm font-medium text-slate-600">
-                                                {formatVi(invoice.ngayThangNam, { month: "2-digit", year: "numeric" })}
-                                            </p>
-                                        </td>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex bg-slate-100 p-1 rounded-2xl w-fit">
+                    {[
+                        { id: "all", label: "Tất cả" },
+                        { id: "Chua_Thanh_Toan", label: "Chưa thanh toán" },
+                        { id: "Da_Thanh_Toan", label: "Lịch sử / Đã thanh toán" },
+                    ].map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setFilterStatus(tab.id as any)}
+                            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${filterStatus === tab.id
+                                ? "bg-white text-slate-900 shadow-sm"
+                                : "text-slate-500 hover:text-slate-800"
+                                }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
 
-                                        <td className="px-6 py-4">
-                                            <p className="text-sm font-black text-blue-600">{(invoice.tongTien ?? 0).toLocaleString("vi-VN")}đ</p>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border ${getStatusStyle(invoice.trangThai)}`}>
-                                                {invoice.trangThai === "Da_Thanh_Toan" ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-                                                {getStatusLabel(invoice.trangThai)}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setCurrentInvoice(invoice);
-                                                        setIsDetailsModalOpen(true);
-                                                    }}
-                                                    className="text-blue-600 hover:text-blue-800 text-sm font-bold transition-colors"
-                                                >
-                                                    Chi tiết
-                                                </button>
-                                                {(!isAdmin && invoice.trangThai === "Chua_Thanh_Toan") && (
-                                                    <button
-                                                        onClick={() => handlePayment(invoice)}
-                                                        className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1 rounded-xl text-xs font-black hover:bg-black transition-all shadow-md shadow-blue-100"
-                                                    >
-                                                        <CreditCard size={12} />
-                                                        Thanh toán
-                                                    </button>
-                                                )}
-                                                {isAdmin && (
-                                                    <div className="flex items-center gap-1">
-                                                        {invoice.trangThai === "Chua_Thanh_Toan" && (
-                                                            <button
-                                                                onClick={() => handleConfirmPayment(invoice._id)}
-                                                                className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-                                                                title="Xác nhận thanh toán"
-                                                            >
-                                                                <CheckCircle2 size={16} />
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            onClick={() => handleOpenEdit(invoice)}
-                                                            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                                                            title="Sửa"
-                                                        >
-                                                            <Edit2 size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteInvoice(invoice._id)}
-                                                            className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                            title="Xóa"
-                                                            disabled={isDeleting === invoice._id}
-                                                        >
-                                                            {isDeleting === invoice._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                                                        </button>
+                <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-2xl w-fit">
+                    <button
+                        onClick={() => setViewMode("list")}
+                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${viewMode === "list"
+                            ? "bg-white text-slate-900 shadow-sm"
+                            : "text-slate-500 hover:text-slate-800"
+                            }`}
+                    >
+                        Danh sách
+                    </button>
+                    <button
+                        onClick={() => setViewMode("room")}
+                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${viewMode === "room"
+                            ? "bg-white text-slate-900 shadow-sm"
+                            : "text-slate-500 hover:text-slate-800"
+                            }`}
+                    >
+                        Theo phòng
+                    </button>
+                </div>
+            </div>
+
+            {viewMode === "list" ? (
+                <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[900px] text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50/50">
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Hóa đơn</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Phòng</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thời gian</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Tổng tiền</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Trạng thái</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {filteredInvoices.length > 0 ? (
+                                    filteredInvoices.map((invoice) => (
+                                        <tr key={invoice._id} className="hover:bg-slate-50/50 transition-colors group">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                                                        <Receipt size={20} />
                                                     </div>
-                                                )}
+                                                    <div>
+                                                        <p className="font-bold text-slate-800 text-sm">#INV-{invoice._id.slice(-6).toUpperCase()}</p>
+                                                        <p className="text-[10px] text-slate-400 font-medium">Tạo ngày: {formatVi(invoice.createdAt)}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <p className="text-sm font-bold text-slate-700">{invoice.idHopDong?.idPhong?.tenPhong || "N/A"}</p>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <p className="text-sm font-medium text-slate-600">
+                                                    {formatVi(invoice.ngayThangNam, { month: "2-digit", year: "numeric" })}
+                                                </p>
+                                            </td>
+
+                                            <td className="px-6 py-4">
+                                                <p className="text-sm font-black text-blue-600">{(invoice.tongTien ?? 0).toLocaleString("vi-VN")}đ</p>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border ${getStatusStyle(invoice.trangThai)}`}>
+                                                    {invoice.trangThai === "Da_Thanh_Toan" ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                                                    {getStatusLabel(invoice.trangThai)}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setCurrentInvoice(invoice);
+                                                            setIsDetailsModalOpen(true);
+                                                        }}
+                                                        className="text-blue-600 hover:text-blue-800 text-sm font-bold transition-colors"
+                                                    >
+                                                        Chi tiết
+                                                    </button>
+                                                    {(!isAdmin && invoice.trangThai === "Chua_Thanh_Toan") && (
+                                                        <button
+                                                            onClick={() => handlePayment(invoice)}
+                                                            className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1 rounded-xl text-xs font-black hover:bg-black transition-all shadow-md shadow-blue-100"
+                                                        >
+                                                            <CreditCard size={12} />
+                                                            Thanh toán
+                                                        </button>
+                                                    )}
+                                                    {isAdmin && (
+                                                        <div className="flex items-center gap-1">
+                                                            {invoice.trangThai === "Chua_Thanh_Toan" && (
+                                                                <button
+                                                                    onClick={() => handleConfirmPayment(invoice._id)}
+                                                                    className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                                                                    title="Xác nhận thanh toán"
+                                                                >
+                                                                    <CheckCircle2 size={16} />
+                                                                </button>
+                                                            )}
+                                                            <button
+                                                                onClick={() => handleOpenEdit(invoice)}
+                                                                className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                                title="Sửa"
+                                                            >
+                                                                <Edit2 size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteInvoice(invoice._id)}
+                                                                className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                                title="Xóa"
+                                                                disabled={isDeleting === invoice._id}
+                                                            >
+                                                                {isDeleting === invoice._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-12 text-center">
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-dashed border-slate-200">
+                                                    <Receipt size={32} className="text-slate-300" />
+                                                </div>
+                                                <p className="text-slate-400 font-medium">Không tìm thấy hóa đơn phù hợp.</p>
                                             </div>
                                         </td>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center">
-                                        <div className="flex flex-col items-center">
-                                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-dashed border-slate-200">
-                                                <Receipt size={32} className="text-slate-300" />
-                                            </div>
-                                            <p className="text-slate-400 font-medium">Bạn chưa có hóa đơn nào.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Object.keys(groupedInvoices).length > 0 ? (
+                        Object.entries(groupedInvoices).map(([roomName, roomInvoices]) => (
+                            <div key={roomName} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-fit">
+                                <div className="p-5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center">
+                                            <LayoutTemplate size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-black text-slate-800 leading-tight">Phòng {roomName}</h3>
+                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{roomInvoices.length} hóa đơn</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs font-bold text-slate-400">Nợ: </p>
+                                        <p className="text-sm font-black text-red-500">
+                                            {roomInvoices
+                                                .filter(i => i.trangThai === "Chua_Thanh_Toan")
+                                                .reduce((sum, i) => sum + (i.tongTien || 0), 0)
+                                                .toLocaleString("vi-VN")}đ
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto custom-scrollbar">
+                                    {roomInvoices
+                                        .sort((a, b) => new Date(b.ngayThangNam).getTime() - new Date(a.ngayThangNam).getTime())
+                                        .map((invoice) => (
+                                            <div key={invoice._id} className="p-4 hover:bg-slate-50 transition-all group flex items-center justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className={`w-2 h-2 rounded-full ${invoice.trangThai === "Da_Thanh_Toan" ? "bg-emerald-500" : "bg-amber-500"}`}></span>
+                                                        <p className="text-xs font-black text-slate-700 truncate">
+                                                            {formatVi(invoice.ngayThangNam, { month: "2-digit", year: "numeric" })}
+                                                        </p>
+                                                    </div>
+                                                    <p className="text-[10px] font-black text-blue-600">{(invoice.tongTien ?? 0).toLocaleString("vi-VN")}đ</p>
+                                                </div>
+                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <button
+                                                        onClick={() => {
+                                                            setCurrentInvoice(invoice);
+                                                            setIsDetailsModalOpen(true);
+                                                        }}
+                                                        className="p-1.5 text-slate-400 hover:text-blue-600 transition-colors"
+                                                        title="Chi tiết"
+                                                    >
+                                                        <Search size={14} />
+                                                    </button>
+                                                    {isAdmin && invoice.trangThai === "Chua_Thanh_Toan" && (
+                                                        <button
+                                                            onClick={() => handleConfirmPayment(invoice._id)}
+                                                            className="p-1.5 text-slate-400 hover:text-emerald-600 transition-colors"
+                                                            title="Thu tiền"
+                                                        >
+                                                            <CheckCircle2 size={14} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+                                <div className="p-4 bg-slate-50/30 border-t border-slate-100">
+                                    <button
+                                        onClick={() => {
+                                            // Optional: Room-specific action
+                                        }}
+                                        className="w-full py-2 text-[10px] font-black text-slate-500 hover:text-slate-900 border border-transparent hover:border-slate-200 rounded-xl transition-all uppercase tracking-widest"
+                                    >
+                                        Xem toàn bộ lịch sử
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="col-span-full py-12 text-center bg-white rounded-3xl border border-slate-200 border-dashed">
+                            <Receipt size={48} className="mx-auto text-slate-200 mb-4" />
+                            <p className="text-slate-400 font-medium">Không tìm thấy phòng nào.</p>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Create Invoice Modal */}
             {isCreateModalOpen && (
@@ -676,6 +832,7 @@ export default function InvoicesPage() {
                                         value={ngayThangNam}
                                         onChange={(e) => setNgayThangNam(e.target.value)}
                                         min={new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10)}
+                                        max={new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().slice(0, 10)}
                                         required
                                     />
                                 </div>

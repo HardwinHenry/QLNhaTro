@@ -85,14 +85,14 @@ export const createHoaDon = async (req, res) => {
             return res.status(400).json({ message: "Không thể tạo hóa đơn cho tháng cũ khi đã có hóa đơn mới hơn cho hợp đồng này." });
         }
 
-        // Validation: No past months
+        // Validation: Only allow current month
         const today = new Date();
         const firstDayOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         const inputDate = new Date(ngayThangNam);
         const firstDayOfInputMonth = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
 
-        if (firstDayOfInputMonth < firstDayOfThisMonth) {
-            return res.status(400).json({ message: "Không thể tạo hóa đơn cho các tháng trước tháng hiện tại." });
+        if (firstDayOfInputMonth.getTime() !== firstDayOfThisMonth.getTime()) {
+            return res.status(400).json({ message: "Chỉ có thể tạo hóa đơn cho tháng hiện tại." });
         }
 
         // Validation: Must be within contract term
@@ -164,8 +164,8 @@ export const updateHoaDon = async (req, res) => {
             const inputDate = new Date(ngayThangNam);
             const firstDayOfInputMonth = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
 
-            if (firstDayOfInputMonth < firstDayOfThisMonth) {
-                return res.status(400).json({ message: "Không thể chỉnh sửa hóa đơn cho các tháng trước tháng hiện tại." });
+            if (firstDayOfInputMonth.getTime() !== firstDayOfThisMonth.getTime()) {
+                return res.status(400).json({ message: "Chỉ có thể điều chỉnh hóa đơn trong tháng hiện tại." });
             }
         }
 
@@ -218,6 +218,16 @@ export const updateHoaDon = async (req, res) => {
 
 export const deleteHoaDon = async (req, res) => {
     try {
+        const hoaDon = await HoaDon.findById(req.params.id).populate("idHopDong");
+        if (hoaDon && hoaDon.idHopDong) {
+            const idPhong = hoaDon.idHopDong.idPhong;
+            const inputDate = new Date(hoaDon.ngayThangNam);
+            const thang = `${inputDate.getFullYear()}-${String(inputDate.getMonth() + 1).padStart(2, '0')}`;
+            
+            // Delete the synced utility history entry for this month
+            await ChiSoDienVaNuoc.findOneAndDelete({ idPhong, thang });
+        }
+
         await HoaDon.findByIdAndDelete(req.params.id);
         res.json({ message: "Xóa hóa đơn thành công" });
     } catch (error) {
