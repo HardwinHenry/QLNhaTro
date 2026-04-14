@@ -12,6 +12,7 @@ import { createSlot, getAllSlots, deleteSlot, cleanupOldSlots } from "../control
 import { auth } from "../middlewares/auth.js";
 import { upload } from "../middlewares/upload.js";
 import { getLatestCauHinh, updateCauHinh } from "../controllers/cauhinh.js";
+import { createYeuCauBaoTri, getAllYeuCauBaoTri, getYeuCauBaoTriByKhach, updateTrangThaiBaoTri, deleteYeuCauBaoTri } from "../controllers/baotri.js";
 const router = express.Router();
 
 // Auth routes
@@ -101,6 +102,13 @@ router.delete("/lich-xem-phong/:id", auth(["Chu_Tro"]), deleteSlot);
 // CauHinh routes
 router.get("/cauhinh/latest", auth(), getLatestCauHinh);
 router.put("/cauhinh", auth(["Chu_Tro"]), updateCauHinh);
+
+// BaoTri routes
+router.get("/baotri", auth(["Chu_Tro"]), getAllYeuCauBaoTri);
+router.get("/baotri/me", auth(["Khach"]), getYeuCauBaoTriByKhach);
+router.post("/baotri", auth(["Khach"]), upload.single("hinhAnh"), createYeuCauBaoTri);
+router.put("/baotri/:id", auth(["Chu_Tro"]), updateTrangThaiBaoTri);
+router.delete("/baotri/:id", auth(["Chu_Tro"]), deleteYeuCauBaoTri);
 
 router.post("/thanhtoan", auth(["Khach"]), (req, res) => res.json({ message: "Thanh Toan route" }));
 

@@ -14,6 +14,8 @@ import {
     Calendar,
     X,
     Users as UsersIcon,
+    Wrench,
+    Package,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -33,6 +35,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         { icon: Zap, label: "Điện & Nước", href: "/utilities", roles: ["Chu_Tro", "Khach"] },
         { icon: Calendar, label: "Lịch xem phòng", href: "/bookings", roles: ["Chu_Tro", "Khach"] },
         { icon: FileText, label: "Hợp đồng", href: "/contracts", roles: ["Chu_Tro", "Khach"] },
+        { icon: Wrench, label: "Bảo trì", href: "/maintenance", roles: ["Chu_Tro", "Khach"] },
         { icon: User, label: "Cá nhân", href: "/profile", roles: ["Chu_Tro", "Khach"] },
     ];
 
@@ -40,6 +43,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         { icon: Settings, label: "Bảng quản trị", href: "/admin", roles: ["Chu_Tro"] },
         { icon: DoorOpen, label: "Phòng đang thuê", href: "/rented-rooms", roles: ["Chu_Tro"] },
         { icon: UsersIcon, label: "Quản lý khách", href: "/customers", roles: ["Chu_Tro"] },
+        { icon: Package, label: "Quản lý vật tư", href: "/assets", roles: ["Chu_Tro"] },
     ];
 
     return (

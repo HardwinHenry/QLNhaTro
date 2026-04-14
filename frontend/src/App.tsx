@@ -13,6 +13,8 @@ import UtilitiesPage from "./pages/UtilitiesPage";
 import BookingsPage from "./pages/BookingsPage";
 import CustomersPage from "./pages/CustomersPage";
 import RentedRoomsPage from "./pages/RentedRoomsPage";
+import MaintenancePage from "./pages/MaintenancePage";
+import AssetsPage from "./pages/AssetsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
 import "./App.css";
@@ -39,6 +41,8 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/maintenance" element={<MaintenancePage />} />
+            <Route path="/assets" element={<AssetsPage />} />
           </Route>
         </Route>
 
