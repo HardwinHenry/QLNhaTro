@@ -27,7 +27,17 @@ export default function BookingsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [editingBooking, setEditingBooking] = useState<BookingRequest | null>(null);
     const [activeTab, setActiveTab] = useState<"requests" | "slots">("requests");
-    const [newSlotTime, setNewSlotTime] = useState("");
+    const [newSlotDate, setNewSlotDate] = useState(() => new Date().toISOString().split('T')[0]);
+    const [newSlotStartTimeOnly, setNewSlotStartTimeOnly] = useState(() => {
+        const now = new Date();
+        return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    });
+    const [newSlotEndTimeOnly, setNewSlotEndTimeOnly] = useState(() => {
+        const now = new Date();
+        now.setHours(now.getHours() + 1);
+        return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    });
+    const [newSlotMaxGuests, setNewSlotMaxGuests] = useState(1);
     const [newSlotNote, setNewSlotNote] = useState("");
     const { user } = useAuthStore();
     const isAdmin = user?.vaiTro === "Chu_Tro";
@@ -55,15 +65,32 @@ export default function BookingsPage() {
 
     const handleCreateSlot = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newSlotTime) return toast.error("Vui lòng chọn thời gian");
+        if (!newSlotDate || !newSlotStartTimeOnly || !newSlotEndTimeOnly) {
+            return toast.error("Vui lòng chọn ngày và khoảng thời gian");
+        }
+
+        const startISO = `${newSlotDate}T${newSlotStartTimeOnly}:00`;
+        const endISO = `${newSlotDate}T${newSlotEndTimeOnly}:00`;
+        
+        const start = new Date(startISO);
+        const end = new Date(endISO);
+        const now = new Date();
+
+        if (start < now) return toast.error("Thời gian bắt đầu không thể trong quá khứ");
+        if (end <= start) return toast.error("Thời gian kết thúc phải sau thời gian bắt đầu");
 
         try {
             await slotService.createSlot({
-                thoiGian: newSlotTime,
+                thoiGianBatDau: startISO,
+                thoiGianKetThuc: endISO,
+                soLuongToiDa: newSlotMaxGuests,
                 ghiChu: newSlotNote
             });
             toast.success("Thêm khung giờ thành công");
-            setNewSlotTime("");
+            setNewSlotDate("");
+            setNewSlotStartTimeOnly("");
+            setNewSlotEndTimeOnly("");
+            setNewSlotMaxGuests(1);
             setNewSlotNote("");
             const slotData = await slotService.getAllSlots();
             setSlots(slotData);
@@ -72,13 +99,55 @@ export default function BookingsPage() {
         }
     };
 
-    const handleDeleteSlot = async (id: string) => {
-        try {
-            await slotService.deleteSlot(id);
-            toast.success("Đã xóa khung giờ");
-            setSlots(prev => prev.filter(s => s._id !== id));
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || "Lỗi khi xóa");
+    const handleDeleteSlot = async (id: string, isBooked: boolean = false) => {
+        const result = await Swal.fire({
+            title: "Xác nhận xóa?",
+            text: isBooked 
+                ? "Khung giờ này đã có khách đặt! Xóa sẽ làm mất thông tin liên kết lịch hẹn. Bạn có chắc chắn muốn xóa không?"
+                : "Bạn không thể hoàn tác sau khi hành động này!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: isBooked ? "#ef4444" : "#3085d6",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Đồng ý, xóa nó!",
+            cancelButtonText: "Hủy",
+            reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await slotService.deleteSlot(id);
+                toast.success("Đã xóa khung giờ thành công");
+                setSlots(prev => prev.filter(s => s._id !== id));
+                // Optional: refresh bookings if booked slot was deleted
+                if (isBooked) fetchData();
+            } catch (error: any) {
+                toast.error(error.response?.data?.message || "Lỗi khi xóa khung giờ");
+            }
+        }
+    };
+
+    const handleCleanupSlots = async () => {
+        const result = await Swal.fire({
+            title: "Dọn dẹp lịch cũ?",
+            text: "Tất cả các khung giờ TRỐNG đã qua thời gian hiện tại sẽ bị xóa.",
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Đồng ý dọn dẹp",
+            cancelButtonText: "Quay lại"
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const response = await slotService.cleanupOldSlots();
+                toast.success(response.message);
+                const slotData = await slotService.getAllSlots();
+                setSlots(slotData);
+            } catch (error: any) {
+                toast.error(error.response?.data?.message || "Lỗi khi dọn dẹp");
+            }
         }
     };
 
@@ -393,37 +462,88 @@ export default function BookingsPage() {
                             <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
                                 <Plus size={24} />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <h3 className="text-xl font-black text-slate-800 tracking-tight">Thêm khung giờ rảnh</h3>
                                 <p className="text-sm text-slate-400 font-medium italic">Tạo khung giờ để khách hàng lựa chọn khi đặt lịch</p>
                             </div>
+                            <button
+                                onClick={handleCleanupSlots}
+                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-black transition-all flex items-center gap-2"
+                                title="Xóa các khung giờ trống đã qua"
+                            >
+                                <Trash2 size={14} />
+                                Dọn dẹp lịch cũ
+                            </button>
                         </div>
-                        <form onSubmit={handleCreateSlot} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Thời gian (Ngày & Giờ)</label>
-                                <input
-                                    type="datetime-local"
-                                    required
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
-                                    value={newSlotTime}
-                                    onChange={(e) => setNewSlotTime(e.target.value)}
-                                    min={new Date().toISOString().slice(0, 16)}
-                                />
+                        <form onSubmit={handleCreateSlot} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Chọn ngày</label>
+                                    <input
+                                        type="date"
+                                        required
+                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-mono"
+                                        value={newSlotDate}
+                                        onChange={(e) => setNewSlotDate(e.target.value)}
+                                        min={new Date().toISOString().split('T')[0]}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Bắt đầu</label>
+                                    <input
+                                        type="time"
+                                        required
+                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-mono"
+                                        value={newSlotStartTimeOnly}
+                                        onChange={(e) => {
+                                            setNewSlotStartTimeOnly(e.target.value);
+                                            // Auto-set end time to 1 hour later if empty
+                                            const [h, m] = e.target.value.split(':').map(Number);
+                                            const d = new Date();
+                                            d.setHours(h);
+                                            d.setMinutes(m);
+                                            d.setHours(d.getHours() + 1);
+                                            setNewSlotEndTimeOnly(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
+                                        }}
+                                        min={newSlotDate === new Date().toISOString().split('T')[0] ? `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}` : undefined}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Kết thúc</label>
+                                    <input
+                                        type="time"
+                                        required
+                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-mono"
+                                        value={newSlotEndTimeOnly}
+                                        onChange={(e) => setNewSlotEndTimeOnly(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Số khách</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        required
+                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+                                        value={newSlotMaxGuests}
+                                        onChange={(e) => setNewSlotMaxGuests(parseInt(e.target.value))}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ghi chú</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ví dụ: P101..."
+                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+                                        value={newSlotNote}
+                                        onChange={(e) => setNewSlotNote(e.target.value)}
+                                    />
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ghi chú (Tùy chọn)</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ví dụ: Chỉ tiếp khách buổi sáng..."
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
-                                    value={newSlotNote}
-                                    onChange={(e) => setNewSlotNote(e.target.value)}
-                                />
-                            </div>
-                            <div className="flex items-end">
+                            <div className="flex justify-end">
                                 <button
                                     type="submit"
-                                    className="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 active:scale-95"
+                                    className="w-full md:w-auto px-10 bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 active:scale-95"
                                 >
                                     <Plus size={20} />
                                     Tạo khung giờ
@@ -446,21 +566,36 @@ export default function BookingsPage() {
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Thời gian</p>
                                             <p className="font-black text-slate-800 leading-tight">
-                                                {formatVi(slot.thoiGian, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                {formatVi(slot.thoiGianBatDau, { weekday: 'short', day: '2-digit', month: '2-digit' })}
                                             </p>
-                                            <p className="text-xl font-black text-blue-600 mt-1">
-                                                {formatVi(slot.thoiGian, { hour: '2-digit', minute: '2-digit' })}
-                                            </p>
+                                            <div className="flex items-center gap-1.5 mt-1">
+                                                <span className="text-lg font-black text-blue-600">
+                                                    {formatVi(slot.thoiGianBatDau, { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                                <span className="text-slate-300 font-bold">-</span>
+                                                <span className="text-lg font-black text-slate-400">
+                                                    {formatVi(slot.thoiGianKetThuc, { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                            <div className="mt-2 flex items-center gap-2">
+                                                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className={`h-full transition-all duration-500 ${slot.soLuongDaDat >= slot.soLuongToiDa ? 'bg-red-500' : 'bg-blue-500'}`}
+                                                        style={{ width: `${(slot.soLuongDaDat / slot.soLuongToiDa) * 100}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-[10px] font-black text-slate-500">
+                                                    {slot.soLuongDaDat}/{slot.soLuongToiDa} khách
+                                                </span>
+                                            </div>
                                         </div>
-                                        {slot.trangThai === "Trong" && (
-                                            <button
-                                                onClick={() => handleDeleteSlot(slot._id)}
-                                                className="absolute bottom-4 right-4 p-2 text-slate-300 hover:text-red-500 transition-colors"
-                                                title="Xóa khung giờ"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        )}
+                                        <button
+                                            onClick={() => handleDeleteSlot(slot._id, slot.trangThai === "Da_Dat")}
+                                            className={`absolute bottom-4 right-4 p-2 transition-colors ${slot.trangThai === "Da_Dat" ? "text-red-200 hover:text-red-600" : "text-slate-300 hover:text-red-500"}`}
+                                            title="Xóa khung giờ"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
                                 </div>
                             ))

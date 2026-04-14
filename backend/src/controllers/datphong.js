@@ -13,13 +13,19 @@ export const createYeuCau = async (req, res) => {
             return res.status(404).json({ message: "Không tìm thấy phòng" });
         }
 
-        // If slot is provided, validate and mark it as booked
+        // If slot is provided, validate and handle occupancy
         if (idSlot) {
             const slot = await LichXemPhong.findById(idSlot);
             if (!slot) return res.status(404).json({ message: "Không tìm thấy khung giờ" });
-            if (slot.trangThai === "Da_Dat") return res.status(400).json({ message: "Khung giờ này đã có người đặt" });
+            
+            if (slot.soLuongDaDat >= slot.soLuongToiDa) {
+                return res.status(400).json({ message: "Khung giờ này đã hết chỗ" });
+            }
 
-            slot.trangThai = "Da_Dat";
+            slot.soLuongDaDat += 1;
+            if (slot.soLuongDaDat >= slot.soLuongToiDa) {
+                slot.trangThai = "Da_Dat";
+            }
             await slot.save();
         }
 
@@ -87,6 +93,16 @@ export const cancelYeuCau = async (req, res) => {
         yeuCau.trangThai = "Da_Huy";
         await yeuCau.save();
 
+        // Release slot capacity if applicable
+        if (yeuCau.idSlot) {
+            const slot = await LichXemPhong.findById(yeuCau.idSlot);
+            if (slot) {
+                slot.soLuongDaDat = Math.max(0, slot.soLuongDaDat - 1);
+                slot.trangThai = "Trong"; // Set back to available
+                await slot.save();
+            }
+        }
+
         res.json({ message: "Đã hủy yêu cầu", success: true });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -123,6 +139,14 @@ export const deleteYeuCau = async (req, res) => {
         const yeuCau = await YeuCauDatPhong.findByIdAndDelete(req.params.id);
         if (!yeuCau) {
             return res.status(404).json({ message: "Không tìm thấy yêu cầu" });
+        }
+        if (yeuCau.idSlot) {
+            const slot = await LichXemPhong.findById(yeuCau.idSlot);
+            if (slot) {
+                slot.soLuongDaDat = Math.max(0, slot.soLuongDaDat - 1);
+                slot.trangThai = "Trong";
+                await slot.save();
+            }
         }
         res.json({ message: "Đã xóa yêu cầu xem phòng", success: true });
     } catch (error) {

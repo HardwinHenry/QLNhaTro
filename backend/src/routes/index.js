@@ -8,7 +8,7 @@ import { getAllVatTus, createVatTu, updateVatTu, deleteVatTu } from "../controll
 import { getAllChiSos, getLatestChiSoByPhong, getChiSoLookupByPhong, createChiSo, deleteAllChiSos, deleteChiSo } from "../controllers/chisodiennuoc.js";
 import { getLatestGia, updateGia, getAllGias } from "../controllers/giadiennuoc.js";
 import { createYeuCau, getAllYeuCaus, confirmYeuCau, cancelYeuCau, updateYeuCau, deleteYeuCau } from "../controllers/datphong.js";
-import { createSlot, getAllSlots, deleteSlot } from "../controllers/lichxemphong.js";
+import { createSlot, getAllSlots, deleteSlot, cleanupOldSlots } from "../controllers/lichxemphong.js";
 import { auth } from "../middlewares/auth.js";
 import { upload } from "../middlewares/upload.js";
 import { getLatestCauHinh, updateCauHinh } from "../controllers/cauhinh.js";
@@ -95,6 +95,7 @@ router.put("/datphong/:id/cancel", auth(), cancelYeuCau);
 // LichXemPhong routes
 router.get("/lich-xem-phong", auth(), getAllSlots);
 router.post("/lich-xem-phong", auth(["Chu_Tro"]), createSlot);
+router.delete("/lich-xem-phong/cleanup/old", auth(["Chu_Tro"]), cleanupOldSlots);
 router.delete("/lich-xem-phong/:id", auth(["Chu_Tro"]), deleteSlot);
 
 // CauHinh routes

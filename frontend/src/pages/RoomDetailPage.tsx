@@ -133,7 +133,7 @@ export default function RoomDetailPage() {
             await bookingService.createBooking({
                 idPhong: id!,
                 idSlot: selectedSlotId,
-                ngayDat: selectedSlot.thoiGian,
+                ngayDat: selectedSlot.thoiGianBatDau,
                 ghiChu: bookingNote
             });
             toast.success("Gửi yêu cầu đặt lịch thành công");
@@ -352,11 +352,22 @@ export default function RoomDetailPage() {
                                                 >
                                                     <div className="flex flex-col gap-1">
                                                         <span className={`text-[10px] font-black uppercase tracking-tighter ${selectedSlotId === slot._id ? "text-blue-600" : "text-slate-400"}`}>
-                                                            {formatVi(slot.thoiGian, { weekday: 'short', day: '2-digit', month: '2-digit' })}
+                                                            {formatVi(slot.thoiGianBatDau, { weekday: 'short', day: '2-digit', month: '2-digit' })}
                                                         </span>
-                                                        <span className={`text-lg font-black ${selectedSlotId === slot._id ? "text-blue-700" : "text-slate-700"}`}>
-                                                            {formatVi(slot.thoiGian, { hour: '2-digit', minute: '2-digit' })}
-                                                        </span>
+                                                        <div className="flex items-center gap-1.5">
+                                                           <span className={`text-base font-black ${selectedSlotId === slot._id ? "text-blue-700" : "text-slate-700"}`}>
+                                                               {formatVi(slot.thoiGianBatDau, { hour: '2-digit', minute: '2-digit' })}
+                                                           </span>
+                                                           <span className="text-slate-300 font-bold">-</span>
+                                                           <span className={`text-xs font-bold ${selectedSlotId === slot._id ? "text-blue-400" : "text-slate-400"}`}>
+                                                               {formatVi(slot.thoiGianKetThuc, { hour: '2-digit', minute: '2-digit' })}
+                                                           </span>
+                                                        </div>
+                                                        <div className="mt-1.5 flex items-center justify-between">
+                                                           <span className={`text-[9px] font-black uppercase ${slot.soLuongDaDat >= slot.soLuongToiDa ? 'text-red-500' : 'text-blue-500'}`}>
+                                                               {slot.soLuongDaDat}/{slot.soLuongToiDa} Chỗ
+                                                           </span>
+                                                        </div>
                                                     </div>
                                                     {selectedSlotId === slot._id && (
                                                         <div className="absolute top-2 right-2 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-200">

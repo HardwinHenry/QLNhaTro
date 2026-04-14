@@ -346,9 +346,6 @@ export default function ContractsPage() {
                                         </button>
                                     </>
                                 )}
-                                <button className="flex-1 md:w-32 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold py-2 rounded-xl text-sm transition-all">
-                                    Tải về (PDF)
-                                </button>
                             </div>
                         </div>
                     ))
