@@ -22,7 +22,8 @@ export const getAllUsers = async () => {
     return response.data;
 };
 export const updateMe = async (userData: any) => {
-    const response = await api.put("/auth/me", userData);
+    const headers = userData instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
+    const response = await api.put("/auth/me", userData, { headers });
     return response.data;
 };
 

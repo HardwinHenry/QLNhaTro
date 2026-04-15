@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
-import { User, Phone, IdCard, Shield, Edit3, Camera, Save, X, Loader2, Home, Key, Eye, EyeOff } from "lucide-react";
+import { User, Phone, IdCard, Shield, Edit3, Camera, Save, X, Loader2, Home, Key, Eye, EyeOff, Trash2 } from "lucide-react";
 import { updateMe, getMe, changePassword } from "../services/authService";
 import { toast } from "sonner";
+import { resolveBackendAssetUrl } from "../utils/url";
 
 export default function ProfilePage() {
     const { user, updateUser } = useAuthStore();
@@ -24,6 +25,50 @@ export default function ProfilePage() {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [avatarLoading, setAvatarLoading] = useState(false);
+
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("avatar", file);
+        formData.append("hoVaTen", user?.hoVaTen || "");
+        formData.append("sdt", user?.sdt || "");
+        formData.append("cccd", user?.cccd || "");
+
+        setAvatarLoading(true);
+        try {
+            const updatedUser = await updateMe(formData);
+            updateUser(updatedUser);
+            toast.success("Cập nhật ảnh đại diện thành công!");
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Lỗi khi cập nhật ảnh đại diện");
+        } finally {
+            setAvatarLoading(false);
+        }
+    };
+
+    const handleRemoveAvatar = async () => {
+        if (!confirm("Bạn có chắc chắn muốn xóa ảnh đại diện hiện tại?")) return;
+
+        setAvatarLoading(true);
+        try {
+            // Send empty string to clear avatar
+            const updatedUser = await updateMe({
+                avatar: "",
+                hoVaTen: user?.hoVaTen,
+                sdt: user?.sdt,
+                cccd: user?.cccd
+            });
+            updateUser(updatedUser);
+            toast.success("Đã xóa ảnh đại diện!");
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Lỗi khi xóa ảnh đại diện");
+        } finally {
+            setAvatarLoading(false);
+        }
+    };
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -143,12 +188,50 @@ export default function ProfilePage() {
                     <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 flex flex-col items-center text-center shadow-sm relative overflow-hidden group">
                         <div className="absolute top-0 left-0 w-full h-24 bg-blue-600/5 group-hover:h-28 transition-all duration-500"></div>
                         <div className="relative z-10 group mt-4">
-                            <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center text-blue-600 text-4xl font-black border-4 border-white shadow-2xl group-hover:bg-blue-50 transition-colors">
-                                {user?.tenDangNhap?.charAt(0).toUpperCase()}
+                            <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center text-blue-600 text-4xl font-black border-4 border-white shadow-2xl group-hover:bg-blue-50 transition-colors overflow-hidden">
+                                {user?.avatar ? (
+                                    <img 
+                                        src={resolveBackendAssetUrl(user.avatar)} 
+                                        alt="Avatar" 
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <span>{user?.tenDangNhap?.charAt(0).toUpperCase()}</span>
+                                )}
+                                
+                                {avatarLoading && (
+                                    <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                                        <Loader2 className="animate-spin text-blue-600" size={24} />
+                                    </div>
+                                )}
                             </div>
-                            <button className="absolute bottom-1 right-1 p-2.5 bg-blue-600 text-white rounded-2xl shadow-lg border-4 border-white hover:scale-110 transition-transform">
-                                <Camera size={16} />
-                            </button>
+                            <div className="absolute bottom-1 right-1 flex flex-col gap-1">
+                                <button 
+                                    onClick={() => document.getElementById('avatar-upload')?.click()}
+                                    disabled={avatarLoading}
+                                    title="Tải ảnh mới"
+                                    className="p-2 bg-blue-600 text-white rounded-xl shadow-lg border-2 border-white hover:scale-110 transition-transform disabled:opacity-50 disabled:scale-100"
+                                >
+                                    <Camera size={14} />
+                                </button>
+                                {user?.avatar && (
+                                    <button 
+                                        onClick={handleRemoveAvatar}
+                                        disabled={avatarLoading}
+                                        title="Xóa ảnh hiện tại"
+                                        className="p-2 bg-rose-500 text-white rounded-xl shadow-lg border-2 border-white hover:scale-110 transition-transform disabled:opacity-50 disabled:scale-100"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                )}
+                            </div>
+                            <input 
+                                id="avatar-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleAvatarChange}
+                                className="hidden"
+                            />
                         </div>
                         <h2 className="mt-8 font-black text-2xl text-slate-800 relative z-10">{user?.hoVaTen || user?.tenDangNhap}</h2>
                         <span className="mt-3 px-4 py-1.5 bg-blue-50 text-blue-600 text-[10px] font-black rounded-full border border-blue-100 uppercase tracking-[0.2em] relative z-10">

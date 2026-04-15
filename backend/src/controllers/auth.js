@@ -110,11 +110,20 @@ export const getAllUsers = async (req, res) => {
 
 export const updateMe = async (req, res) => {
   try {
-    const { hoVaTen, sdt, cccd } = req.body;
+    const { hoVaTen, sdt, cccd, avatar } = req.body;
+    const updateData = { hoVaTen, sdt, cccd };
+
+    if (avatar === "" || avatar === null) {
+      updateData.avatar = "";
+    }
+
+    if (req.file) {
+      updateData.avatar = `/uploads/${req.file.filename}`;
+    }
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { hoVaTen, sdt, cccd },
+      updateData,
       { new: true }
     ).select("-matKhau");
 

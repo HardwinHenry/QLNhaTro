@@ -16,7 +16,7 @@ const phongSchema = new mongoose.Schema({
     enum: ["Trong", "Da_Thue"],
     default: "Trong"
   },
-  hinhAnh: { type: String },
+  hinhAnh: [{ type: String }],
   moTa: { type: String },
   vatTu: [{ type: mongoose.Schema.Types.ObjectId, ref: "VatTu" }]
 }, { timestamps: true });

@@ -37,9 +37,15 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
     const [loading, setLoading] = useState(false);
     const [selectedRow, setSelectedRow] = useState<string>("");
 
+    interface ImagePreview {
+        id: string;
+        url: string;
+        file?: File;
+        isExisting: boolean;
+        originalPath?: string;
+    }
 
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [images, setImages] = useState<ImagePreview[]>([]);
 
     const { register, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm<RoomFormValues>({
         resolver: zodResolver(roomSchema),
@@ -81,11 +87,20 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                 loaiPhong: editingRoom.loaiPhong,
                 moTa: editingRoom.moTa,
                 trangThai: editingRoom.trangThai,
-                hinhAnh: typeof editingRoom.hinhAnh === 'string' ? editingRoom.hinhAnh : editingRoom.hinhAnh?.[0],
+                hinhAnh: editingRoom.hinhAnh,
                 vatTu: editingRoom.vatTu?.map(v => typeof v === 'string' ? v : v._id) || []
             });
-            const mainImg = typeof editingRoom.hinhAnh === 'string' ? editingRoom.hinhAnh : editingRoom.hinhAnh?.[0];
-            setImagePreview(mainImg ? resolveBackendAssetUrl(mainImg) : null);
+            
+            const existingImages = Array.isArray(editingRoom.hinhAnh) 
+                ? editingRoom.hinhAnh 
+                : (editingRoom.hinhAnh ? [editingRoom.hinhAnh] : []);
+            
+            setImages(existingImages.map((img, idx) => ({
+                id: `existing-${idx}`,
+                url: resolveBackendAssetUrl(img),
+                isExisting: true,
+                originalPath: img
+            } as any)));
         } else {
             reset({
                 idPhong: "",
@@ -96,11 +111,10 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                 loaiPhong: "",
                 moTa: "",
                 trangThai: "Trong",
-                hinhAnh: "",
+                hinhAnh: [],
                 vatTu: []
             });
-            setImagePreview(null);
-            setImageFile(null);
+            setImages([]);
         }
     }, [editingRoom, reset, isOpen]);
 
@@ -142,15 +156,24 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                 if (key === "vatTu" && Array.isArray(value)) {
                     value.forEach(v => formData.append("vatTu[]", v));
                 } else if (key === "hinhAnh") {
-                    if (imageFile) {
-                        formData.append("hinhAnh", imageFile);
-                    } else if (typeof value === 'string' && value) {
-                        formData.append("hinhAnh", value);
-                    }
+                    // Skip handling hinhAnh here, we'll do it manually below
                 } else if (value !== undefined && value !== null) {
                     formData.append(key, value.toString());
                 }
             });
+
+            // Handle images
+            const existingHinhAnh = images
+                .filter(img => img.isExisting)
+                .map(img => (img as any).originalPath);
+            
+            existingHinhAnh.forEach(path => formData.append("existingHinhAnh[]", path));
+
+            const newFiles = images
+                .filter(img => !img.isExisting && img.file)
+                .map(img => img.file as File);
+            
+            newFiles.forEach(file => formData.append("hinhAnh", file));
 
             if (editingRoom) {
                 await roomService.updatePhong(editingRoom._id, formData);
@@ -314,61 +337,62 @@ export default function RoomFormModal({ isOpen, onClose, onSuccess, editingRoom 
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ảnh phòng (Upload)</label>
-                        <div className="flex flex-col gap-3">
-                            {imagePreview ? (
-                                <div className="relative w-full h-48 rounded-2xl overflow-hidden group border border-slate-200">
-                                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => document.getElementById('room-image-upload')?.click()}
-                                            className="px-4 py-2 bg-white text-slate-900 rounded-xl hover:bg-slate-100 transition-all font-bold text-xs"
-                                        >
-                                            Thay đổi
-                                        </button>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ảnh phòng ({images.length}/10)</label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {images.map((img) => (
+                                <div key={img.id} className="relative aspect-video rounded-xl overflow-hidden group border border-slate-200">
+                                    <img src={img.url} alt="Preview" className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setImagePreview(null);
-                                                setImageFile(null);
-                                                setValue("hinhAnh", "");
+                                                setImages(prev => prev.filter(i => i.id !== img.id));
                                             }}
-                                            className="px-4 py-2 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-all font-bold text-xs"
+                                            className="p-1.5 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-all font-bold text-[10px]"
                                         >
-                                            Gỡ bỏ
+                                            <X size={14} />
                                         </button>
                                     </div>
+                                    {!img.isExisting && (
+                                        <div className="absolute top-1 left-1 bg-blue-600 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">
+                                            Mới
+                                        </div>
+                                    )}
                                 </div>
-                            ) : (
+                            ))}
+                            
+                            {images.length < 10 && (
                                 <button
                                     type="button"
                                     onClick={() => document.getElementById('room-image-upload')?.click()}
-                                    className="w-full h-32 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all"
+                                    className="aspect-video border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-1 text-slate-400 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all"
                                 >
-                                    <div className="p-2 bg-slate-50 rounded-full">
-                                        <Upload size={20} />
-                                    </div>
-                                    <span className="text-xs font-bold">Tải lên hình ảnh phòng</span>
+                                    <Upload size={18} />
+                                    <span className="text-[10px] font-bold">Thêm ảnh</span>
                                 </button>
                             )}
-                            <input
-                                id="room-image-upload"
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                        setImageFile(file);
-                                        setValue("hinhAnh", file);
-                                        const reader = new FileReader();
-                                        reader.onloadend = () => setImagePreview(reader.result as string);
-                                        reader.readAsDataURL(file);
-                                    }
-                                }}
-                                className="hidden"
-                            />
                         </div>
+                        <input
+                            id="room-image-upload"
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={(e) => {
+                                const files = Array.from(e.target.files || []);
+                                if (files.length > 0) {
+                                    const newImages: ImagePreview[] = files.map(file => ({
+                                        id: `new-${Date.now()}-${Math.random()}`,
+                                        url: URL.createObjectURL(file),
+                                        file: file,
+                                        isExisting: false
+                                    }));
+                                    setImages(prev => [...prev, ...newImages].slice(0, 10));
+                                    // Reset input so the same file can be selection again
+                                    e.target.value = "";
+                                }
+                            }}
+                            className="hidden"
+                        />
                     </div>
 
                     <div className="space-y-1">

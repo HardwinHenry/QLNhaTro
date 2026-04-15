@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
   matKhau: { type: String, required: true },
   sdt: String,
   cccd: String,
+  avatar: String,
   vaiTro: {
     type: String,
     enum: ["Chu_Tro", "Khach"],

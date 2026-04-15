@@ -121,8 +121,8 @@ export const getPhongById = async (req, res) => {
 export const createPhong = async (req, res) => {
     try {
         const data = { ...req.body };
-        if (req.file) {
-            data.hinhAnh = `/uploads/${req.file.filename}`;
+        if (req.files && req.files.length > 0) {
+            data.hinhAnh = req.files.map(file => `/uploads/${file.filename}`);
         }
         const newPhong = new Phong(data);
         await newPhong.save();
@@ -136,9 +136,23 @@ export const createPhong = async (req, res) => {
 export const updatePhong = async (req, res) => {
     try {
         const data = { ...req.body };
-        if (req.file) {
-            data.hinhAnh = `/uploads/${req.file.filename}`;
+        
+        let hinhAnh = [];
+        // Handle existing images to keep
+        if (req.body.existingHinhAnh) {
+            hinhAnh = Array.isArray(req.body.existingHinhAnh) 
+                ? req.body.existingHinhAnh 
+                : [req.body.existingHinhAnh];
         }
+
+        // Handle new uploaded files
+        if (req.files && req.files.length > 0) {
+            const newImages = req.files.map(file => `/uploads/${file.filename}`);
+            hinhAnh = [...hinhAnh, ...newImages];
+        }
+
+        data.hinhAnh = hinhAnh;
+
         const updatedPhong = await Phong.findByIdAndUpdate(req.params.id, data, { new: true });
         res.json(updatedPhong);
     } catch (error) {

@@ -20,7 +20,7 @@ router.post("/auth/login", login);
 router.post("/auth/register", register);
 router.post("/auth/refresh", refreshAccessToken);
 router.get("/auth/me", auth(), getMe);
-router.put("/auth/me", auth(), updateMe);
+router.put("/auth/me", auth(), upload.single("avatar"), updateMe);
 router.get("/auth/users", auth(["Chu_Tro"]), getAllUsers);
 router.put("/auth/change-password", auth(), changePassword);
 
@@ -40,8 +40,8 @@ router.get("/admin/dashboard", auth(["Chu_Tro"]), (req, res) => {
 // Phong routes
 router.get("/phong", auth(), getAllPhongs);
 router.get("/phong/:id", auth(), getPhongById);
-router.post("/phong", auth(["Chu_Tro"]), upload.single("hinhAnh"), createPhong);
-router.put("/phong/:id", auth(["Chu_Tro"]), upload.single("hinhAnh"), updatePhong);
+router.post("/phong", auth(["Chu_Tro"]), upload.array("hinhAnh", 10), createPhong);
+router.put("/phong/:id", auth(["Chu_Tro"]), upload.array("hinhAnh", 10), updatePhong);
 router.delete("/phong/:id", auth(["Chu_Tro"]), deletePhong);
 
 

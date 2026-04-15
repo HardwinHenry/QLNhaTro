@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router";
 import { useAuthStore } from "../store/authStore";
 import { toast } from "sonner";
+import { resolveBackendAssetUrl } from "../utils/url";
 import {
     Home,
     DoorOpen,
@@ -123,8 +124,16 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
             <div className="p-4 border-t border-blue-800 bg-blue-950/30">
                 <div className="flex items-center gap-3 mb-4 px-2">
-                    <div className="w-9 h-9 bg-blue-700 rounded-full flex items-center justify-center text-sm font-bold uppercase shadow-inner border border-blue-600">
-                        {user?.tenDangNhap?.charAt(0)}
+                    <div className="w-9 h-9 bg-blue-700 rounded-full flex items-center justify-center text-sm font-bold uppercase shadow-inner border border-blue-600 overflow-hidden">
+                        {user?.avatar ? (
+                            <img 
+                                src={resolveBackendAssetUrl(user.avatar)} 
+                                alt="Avatar" 
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            user?.tenDangNhap?.charAt(0)
+                        )}
                     </div>
                     <div className="overflow-hidden">
                         <p className="text-sm font-semibold truncate">{user?.tenDangNhap}</p>
