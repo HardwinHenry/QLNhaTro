@@ -10,7 +10,6 @@ import {
     X,
     Loader2,
     Filter,
-    ChevronDown,
     Trash2,
     DoorOpen,
     Search

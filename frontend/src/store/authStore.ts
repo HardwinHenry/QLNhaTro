@@ -5,6 +5,7 @@ interface User {
     tenDangNhap: string;
     hoVaTen: string;
     vaiTro: string;
+    avatar?: string;
     sdt?: string;
     cccd?: string;
     phongHienTai?: {
