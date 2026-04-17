@@ -135,14 +135,20 @@ export const createHoaDon = async (req, res) => {
         const tongTien = (tienPhong || 0) + (tienDien || 0) + (tienNuoc || 0) + (tienDichVu || 0);
 
         const newHoaDon = new HoaDon({
-            ...req.body,
+            idHopDong,
+            ngayThangNam,
             tienPhong,
+            chiSoDienCu,
+            chiSoDienMoi,
             giaDien,
             tienDien,
+            chiSoNuocCu,
+            chiSoNuocMoi,
             giaNuoc,
             tienNuoc,
             tienDichVu,
-            tongTien
+            tongTien,
+            trangThai: "Chua_Thanh_Toan"
         });
         await newHoaDon.save();
         
@@ -196,11 +202,13 @@ export const updateHoaDon = async (req, res) => {
         const tienNuoc = (finalNuocMoi - finalNuocCu) * finalGiaNuoc;
         const calculatedTotal = (finalTienPhong || 0) + (tienDien || 0) + (tienNuoc || 0) + (finalTienDichVu || 0);
 
+        const { trangThai: _ignoredTrangThai, idHopDong: _ignoredHopDong, ...safeUpdateBody } = req.body;
+
         const updateData = {
-            ...req.body,
+            ...safeUpdateBody,
             tienDien,
             tienNuoc,
-            tongTien: tongTien || calculatedTotal
+            tongTien: tongTien ?? calculatedTotal
         };
 
         const updatedHoaDon = await HoaDon.findByIdAndUpdate(req.params.id, updateData, { new: true });
@@ -230,25 +238,6 @@ export const deleteHoaDon = async (req, res) => {
 
         await HoaDon.findByIdAndDelete(req.params.id);
         res.json({ message: "Xóa hóa đơn thành công" });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-export const confirmPayment = async (req, res) => {
-    try {
-        const hoaDon = await HoaDon.findById(req.params.id);
-        if (!hoaDon) {
-            return res.status(404).json({ message: "Không tìm thấy hóa đơn" });
-        }
-
-        hoaDon.trangThai = "Da_Thanh_Toan";
-        await hoaDon.save();
-
-        res.json({
-            message: "Xác nhận thanh toán thành công",
-            hoaDon
-        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

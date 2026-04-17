@@ -2,7 +2,7 @@ import express from "express";
 import { login, register, getMe, refreshAccessToken, getAllUsers, updateMe, changePassword } from "../controllers/auth.js";
 import { getAllPhongs, getPhongById, createPhong, updatePhong, deletePhong } from "../controllers/phong.js";
 import { getAllHopDongs, createHopDong, updateHopDong, deleteHopDong, extendHopDong } from "../controllers/hopdong.js";
-import { getAllHoaDons, createHoaDon, updateHoaDon, deleteHoaDon, confirmPayment, requestPayment } from "../controllers/hoadon.js";
+import { getAllHoaDons, createHoaDon, updateHoaDon, deleteHoaDon, requestPayment } from "../controllers/hoadon.js";
 import { getAllDayPhongs, createDayPhong, updateDayPhong, deleteDayPhong } from "../controllers/dayphong.js";
 import { getAllVatTus, createVatTu, updateVatTu, deleteVatTu } from "../controllers/vattu.js";
 import { getAllChiSos, getLatestChiSoByPhong, getChiSoLookupByPhong, createChiSo, deleteAllChiSos, deleteChiSo } from "../controllers/chisodiennuoc.js";
@@ -13,7 +13,11 @@ import { auth } from "../middlewares/auth.js";
 import { upload } from "../middlewares/upload.js";
 import { getLatestCauHinh, updateCauHinh } from "../controllers/cauhinh.js";
 import { createYeuCauBaoTri, getAllYeuCauBaoTri, getYeuCauBaoTriByKhach, updateTrangThaiBaoTri, deleteYeuCauBaoTri } from "../controllers/baotri.js";
+import { handleSePayWebhook, sepayRateLimit } from "../controllers/sepayWebhook.js";
 const router = express.Router();
+
+// Public webhooks
+router.post("/webhook/sepay", sepayRateLimit, handleSePayWebhook);
 
 // Auth routes
 router.post("/auth/login", login);
@@ -58,7 +62,6 @@ router.post("/hoadon", auth(["Chu_Tro"]), createHoaDon);
 router.put("/hoadon/:id", auth(["Chu_Tro"]), updateHoaDon);
 router.delete("/hoadon/:id", auth(["Chu_Tro"]), deleteHoaDon);
 router.post("/hoadon/:id/request-payment", auth(["Chu_Tro"]), requestPayment);
-router.put("/hoadon/:id/confirm-payment", auth(["Chu_Tro"]), confirmPayment);
 
 
 // DayPhong routes
@@ -109,8 +112,5 @@ router.get("/baotri/me", auth(["Khach"]), getYeuCauBaoTriByKhach);
 router.post("/baotri", auth(["Khach"]), upload.single("hinhAnh"), createYeuCauBaoTri);
 router.put("/baotri/:id", auth(["Chu_Tro"]), updateTrangThaiBaoTri);
 router.delete("/baotri/:id", auth(["Chu_Tro", "Khach"]), deleteYeuCauBaoTri);
-
-router.post("/thanhtoan", auth(["Khach"]), (req, res) => res.json({ message: "Thanh Toan route" }));
-
 
 export default router;

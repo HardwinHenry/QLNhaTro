@@ -9,6 +9,7 @@ import Swal from "sweetalert2";
 import { utilityService } from "../services/utilityService";
 
 export default function InvoicesPage() {
+    const INVOICE_POLLING_MS = 15000;
     const { user } = useAuthStore();
     const isAdmin = user?.vaiTro === "Chu_Tro";
     const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -61,6 +62,10 @@ export default function InvoicesPage() {
 
     useEffect(() => {
         fetchInvoices();
+        const pollTimer = window.setInterval(() => {
+            fetchInvoices();
+        }, INVOICE_POLLING_MS);
+
         const fetchContracts = async () => {
             const data = await contractService.getAllHopDongs();
             setContracts(data);
@@ -79,6 +84,10 @@ export default function InvoicesPage() {
         };
         fetchContracts();
         fetchCauHinh();
+
+        return () => {
+            window.clearInterval(pollTimer);
+        };
     }, []);
 
     const handleContractChange = async (idHopDong: string) => {
@@ -284,29 +293,6 @@ export default function InvoicesPage() {
         }
     };
 
-    const handleConfirmPayment = async (id: string) => {
-        const result = await Swal.fire({
-            title: "Xác nhận thanh toán?",
-            text: "Bạn có chắc chắn muốn xác nhận khách đã thanh toán hóa đơn này?",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: "#10b981",
-            cancelButtonColor: "#94a3b8",
-            confirmButtonText: "Xác nhận",
-            cancelButtonText: "Hủy",
-        });
-
-        if (result.isConfirmed) {
-            try {
-                await invoiceService.confirmPayment(id);
-                fetchInvoices();
-                Swal.fire("Thành công!", "Đã xác nhận thanh toán thành công.", "success");
-            } catch (error) {
-                Swal.fire("Lỗi!", "Không thể xác nhận thanh toán.", "error");
-            }
-        }
-    };
-
     const handleOpenEdit = (invoice: Invoice) => {
         setCurrentInvoice(invoice);
         setSelectedContract(invoice.idHopDong?._id || "");
@@ -385,7 +371,9 @@ export default function InvoicesPage() {
     const handlePayment = (invoice: Invoice) => {
         const amount = invoice.tongTien || 0;
         const monthYear = formatVi(invoice.ngayThangNam, { month: '2-digit', year: 'numeric' });
-        const description = `Thanh toan tien phong va dien nuoc thang ${monthYear} phong ${invoice.idHopDong?.idPhong?.tenPhong}`;
+        const paymentCode = `HD:${invoice._id}`;
+        const roomName = invoice.idHopDong?.idPhong?.tenPhong || "NA";
+        const description = `${paymentCode} thanh toan phong ${roomName} thang ${monthYear}`;
         const accountName = cauHinh?.chuTaiKhoan || "TRAN TRUONG DANG KHOA";
         const bankCode = cauHinh?.nganHang || "MB";
         const accountNo = cauHinh?.soTaiKhoan || "0987706342";
@@ -406,6 +394,7 @@ export default function InvoicesPage() {
                         <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Số tài khoản:</span> <span class="text-sm font-black text-slate-800">${accountNo}</span></div>
                         <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Số tiền:</span> <span class="text-sm font-black text-blue-600">${amount.toLocaleString('vi-VN')}đ</span></div>
                         <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Nội dung:</span> <span class="text-xs font-black text-slate-800 truncate ml-4" title="${description}">${description}</span></div>
+                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Mã đối soát:</span> <span class="text-xs font-black text-emerald-700">${paymentCode}</span></div>
                     </div>
                     <p class="text-xs text-red-500 font-bold text-center mt-2">Lưu ý: Bạn cần quét theo đúng số tiền và nội dung chuyển khoản tự động.</p>
                 </div>
@@ -417,17 +406,6 @@ export default function InvoicesPage() {
                 popup: 'rounded-[2.5rem] p-4 sm:p-6'
             }
         });
-    };
-
-    const handleMarkAsPaid = async (id: string) => {
-        try {
-            await invoiceService.updateHoaDon(id, { trangThai: "Da_Thanh_Toan" });
-            Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Đã xác nhận thu tiền thành công', confirmButtonColor: '#2563eb' });
-            fetchInvoices();
-            setIsDetailsModalOpen(false);
-        } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi cập nhật hóa đơn', confirmButtonColor: '#2563eb' });
-        }
     };
 
     const getStatusStyle = (status: string) => {
@@ -637,15 +615,6 @@ export default function InvoicesPage() {
                                                     )}
                                                     {isAdmin && (
                                                         <div className="flex items-center gap-1">
-                                                            {invoice.trangThai === "Chua_Thanh_Toan" && (
-                                                                <button
-                                                                    onClick={() => handleConfirmPayment(invoice._id)}
-                                                                    className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-                                                                    title="Xác nhận thanh toán"
-                                                                >
-                                                                    <CheckCircle2 size={16} />
-                                                                </button>
-                                                            )}
                                                             <button
                                                                 onClick={() => handleOpenEdit(invoice)}
                                                                 className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
@@ -733,15 +702,6 @@ export default function InvoicesPage() {
                                                     >
                                                         <Search size={14} />
                                                     </button>
-                                                    {isAdmin && invoice.trangThai === "Chua_Thanh_Toan" && (
-                                                        <button
-                                                            onClick={() => handleConfirmPayment(invoice._id)}
-                                                            className="p-1.5 text-slate-400 hover:text-emerald-600 transition-colors"
-                                                            title="Thu tiền"
-                                                        >
-                                                            <CheckCircle2 size={14} />
-                                                        </button>
-                                                    )}
                                                 </div>
                                             </div>
                                         ))}
@@ -1264,14 +1224,6 @@ export default function InvoicesPage() {
                                     className="px-10 bg-blue-600 text-white font-black py-4 rounded-3xl shadow-xl shadow-blue-200 transition-all active:scale-95 flex items-center gap-2 hover:bg-black"
                                 >
                                     <CreditCard size={18} /> Thanh toán ngay
-                                </button>
-                            )}
-                            {(isAdmin && currentInvoice!.trangThai === "Chua_Thanh_Toan") && (
-                                <button
-                                    onClick={() => handleMarkAsPaid(currentInvoice!._id)}
-                                    className="px-10 bg-emerald-600 text-white font-black py-4 rounded-3xl shadow-xl shadow-emerald-200 transition-all active:scale-95 flex items-center gap-2 hover:bg-emerald-700 whitespace-nowrap"
-                                >
-                                    <CheckCircle2 size={18} /> Xác nhận đã thu tiền
                                 </button>
                             )}
                             <button className="px-10 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-600 hover:text-blue-600 font-bold py-4 rounded-3xl transition-all shadow-sm active:scale-95 flex items-center gap-2">
