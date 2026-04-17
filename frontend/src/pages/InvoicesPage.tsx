@@ -369,7 +369,7 @@ export default function InvoicesPage() {
 
 
     const handlePayment = (invoice: Invoice) => {
-        const amount = invoice.tongTien || 0;
+        const amount = Math.max(0, Math.round(invoice.tongTien || 0));
         const monthYear = formatVi(invoice.ngayThangNam, { month: "2-digit", year: "numeric" });
         const paymentCode = `HD:${invoice._id}`;
         const roomName = invoice.idHopDong?.idPhong?.tenPhong || "NA";
@@ -377,12 +377,20 @@ export default function InvoicesPage() {
         const accountName = cauHinh?.chuTaiKhoan || "TRAN TRUONG DANG KHOA";
         const bankCode = cauHinh?.nganHang || "MB";
         const accountNo = cauHinh?.soTaiKhoan || "0987706342";
+        const sepayQrUrl =
+            `https://qr.sepay.vn/img?acc=${encodeURIComponent(accountNo)}` +
+            `&bank=${encodeURIComponent(bankCode)}` +
+            `&amount=${amount}` +
+            `&des=${encodeURIComponent(description)}`;
 
         Swal.fire({
             title: "Thanh toan chuyen khoan (SePay)",
             html: `
                 <div class="flex flex-col items-center space-y-4">
-                    <p class="text-sm text-slate-500">Mo app ngan hang va chuyen khoan theo thong tin ben duoi.</p>
+                    <p class="text-sm text-slate-500">Mo app ngan hang va quet ma QR SePay ben duoi de chuyen khoan.</p>
+                    <div class="p-4 bg-white border-2 border-slate-100 rounded-3xl shadow-lg inline-block">
+                        <img src="${sepayQrUrl}" alt="SePay QR" class="w-64 h-auto rounded-xl block mx-auto" />
+                    </div>
                     <div class="text-left w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-2 space-y-2">
                         <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Ngan hang:</span> <span class="text-sm font-black text-slate-800">${bankCode}</span></div>
                         <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Chu tai khoan:</span> <span class="text-sm font-black text-slate-800">${accountName}</span></div>
