@@ -9,6 +9,7 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import router from "./routes/index.js";
+import { startSePayReconciliationJob } from "./jobs/sepayReconcile.js";
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -45,6 +46,7 @@ if (isProduction) {
 
 connectDB().then(() => {
   console.log("JWT_SECRET is loaded:", !!process.env.JWT_SECRET);
+  startSePayReconciliationJob();
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });

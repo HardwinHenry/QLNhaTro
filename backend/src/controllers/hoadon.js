@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import mongoose from "mongoose";
 import HoaDon from "../models/HoaDon.js";
 import HopDong from "../models/HopDong.js";
@@ -6,6 +7,31 @@ import Phong from "../models/Phong.js";
 import DayPhong from "../models/DayPhong.js";
 import GiaDienVaNuoc from "../models/GiaDienVaNuoc.js";
 import ChiSoDienVaNuoc from "../models/ChiSoDienVaNuoc.js";
+
+function normalizeCodePart(rawValue) {
+    return String(rawValue || "")
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "");
+}
+
+async function generateUniquePaymentCode(roomRef, invoiceDate) {
+    const prefix = normalizeCodePart(process.env.SEPAY_PAYMENT_PREFIX || "TRO").slice(0, 4) || "TRO";
+    const roomToken = normalizeCodePart(roomRef).slice(0, 4) || "ROOM";
+    const monthToken = `${invoiceDate.getFullYear()}${String(invoiceDate.getMonth() + 1).padStart(2, "0")}`;
+
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+        const randomToken = crypto.randomBytes(2).toString("hex").toUpperCase().slice(0, 3);
+        const paymentCode = `${prefix}${roomToken}${monthToken}${randomToken}`.slice(0, 20);
+
+        // eslint-disable-next-line no-await-in-loop
+        const existed = await HoaDon.exists({ maThanhToan: paymentCode });
+        if (!existed) {
+            return paymentCode;
+        }
+    }
+
+    throw new Error("Không thể tạo mã thanh toán duy nhất cho hóa đơn.");
+}
 
 export const getAllHoaDons = async (req, res) => {
     try {
@@ -133,10 +159,21 @@ export const createHoaDon = async (req, res) => {
         const tienDien = (chiSoDienMoi - chiSoDienCu) * giaDien;
         const tienNuoc = (chiSoNuocMoi - chiSoNuocCu) * giaNuoc;
         const tongTien = (tienPhong || 0) + (tienDien || 0) + (tienNuoc || 0) + (tienDichVu || 0);
+        const thangThanhToan = `${inputDate.getFullYear()}-${String(inputDate.getMonth() + 1).padStart(2, "0")}`;
+        const dueDayRaw = Number.parseInt(process.env.INVOICE_DUE_DAY || "5", 10);
+        const dueDay = Number.isFinite(dueDayRaw) ? Math.min(28, Math.max(1, dueDayRaw)) : 5;
+        const hanThanhToan = new Date(inputDate.getFullYear(), inputDate.getMonth(), dueDay, 23, 59, 59, 999);
+        const maThanhToan = await generateUniquePaymentCode(hopDong.idPhong, inputDate);
+        const trangThaiBanDau = hanThanhToan.getTime() < Date.now() ? "Qua_Han" : "Chua_Thanh_Toan";
 
         const newHoaDon = new HoaDon({
             idHopDong,
+            idKhach: hopDong.idKhach,
+            idPhong: hopDong.idPhong,
             ngayThangNam,
+            thangThanhToan,
+            hanThanhToan,
+            maThanhToan,
             tienPhong,
             chiSoDienCu,
             chiSoDienMoi,
@@ -148,7 +185,7 @@ export const createHoaDon = async (req, res) => {
             tienNuoc,
             tienDichVu,
             tongTien,
-            trangThai: "Chua_Thanh_Toan"
+            trangThai: trangThaiBanDau
         });
         await newHoaDon.save();
         

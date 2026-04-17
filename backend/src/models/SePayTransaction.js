@@ -16,6 +16,14 @@ const sePayTransactionSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
+    accumulated: {
+      type: Number,
+      default: 0
+    },
+    paymentCode: {
+      type: String,
+      default: ""
+    },
     content: {
       type: String,
       default: ""
@@ -29,6 +37,10 @@ const sePayTransactionSchema = new mongoose.Schema(
       default: ""
     },
     referenceCode: {
+      type: String,
+      default: ""
+    },
+    description: {
       type: String,
       default: ""
     },
@@ -51,6 +63,13 @@ const sePayTransactionSchema = new mongoose.Schema(
     result: {
       type: String,
       enum: [
+        "processing",
+        "success",
+        "duplicate",
+        "unmatched_code",
+        "amount_mismatch",
+        "wrong_direction",
+        "already_paid",
         "received",
         "processed_exact",
         "processed_overpaid",
@@ -62,7 +81,7 @@ const sePayTransactionSchema = new mongoose.Schema(
         "invalid_amount",
         "failed"
       ],
-      default: "received"
+      default: "processing"
     },
     processingState: {
       type: String,

@@ -14,10 +14,23 @@ import { upload } from "../middlewares/upload.js";
 import { getLatestCauHinh, updateCauHinh } from "../controllers/cauhinh.js";
 import { createYeuCauBaoTri, getAllYeuCauBaoTri, getYeuCauBaoTriByKhach, updateTrangThaiBaoTri, deleteYeuCauBaoTri } from "../controllers/baotri.js";
 import { handleSePayWebhook, sepayRateLimit } from "../controllers/sepayWebhook.js";
+import {
+  exportPaymentsCsv,
+  generateInvoicesByMonth,
+  getInvoiceStatusByCode,
+  getInvoicesForLandlord,
+  getPaymentsReport,
+  getPublicInvoiceByCode
+} from "../controllers/payments.js";
 const router = express.Router();
 
 // Public webhooks
 router.post("/webhook/sepay", sepayRateLimit, handleSePayWebhook);
+router.post("/payments/webhook", sepayRateLimit, handleSePayWebhook);
+
+// Public invoice status routes
+router.get("/invoices/:code/status", getInvoiceStatusByCode);
+router.get("/invoices/:code/public", getPublicInvoiceByCode);
 
 // Auth routes
 router.post("/auth/login", login);
@@ -62,6 +75,10 @@ router.post("/hoadon", auth(["Chu_Tro"]), createHoaDon);
 router.put("/hoadon/:id", auth(["Chu_Tro"]), updateHoaDon);
 router.delete("/hoadon/:id", auth(["Chu_Tro"]), deleteHoaDon);
 router.post("/hoadon/:id/request-payment", auth(["Chu_Tro"]), requestPayment);
+router.post("/invoices/generate", auth(["Chu_Tro"]), generateInvoicesByMonth);
+router.get("/invoices", auth(["Chu_Tro"]), getInvoicesForLandlord);
+router.get("/payments/report", auth(["Chu_Tro"]), getPaymentsReport);
+router.get("/payments/export", auth(["Chu_Tro"]), exportPaymentsCsv);
 
 
 // DayPhong routes

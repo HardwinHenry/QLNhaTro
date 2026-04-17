@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { Receipt, Search, Loader2, CheckCircle2, Clock, Plus, X, Calculator, Trash2, Edit2, CreditCard, LayoutTemplate, Settings } from "lucide-react";
 import { invoiceService, type Invoice } from "../services/invoiceService";
 import { contractService, type Contract } from "../services/contractService";
-import { cauHinhService, type CauHinh } from "../services/cauHinhService";
+import { cauHinhService } from "../services/cauHinhService";
 import { useAuthStore } from "../store/authStore";
 import { formatVi } from "../utils/dateFormatter";
 import Swal from "sweetalert2";
@@ -10,6 +11,7 @@ import { utilityService } from "../services/utilityService";
 
 export default function InvoicesPage() {
     const INVOICE_POLLING_MS = 15000;
+    const navigate = useNavigate();
     const { user } = useAuthStore();
     const isAdmin = user?.vaiTro === "Chu_Tro";
     const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -20,11 +22,10 @@ export default function InvoicesPage() {
     const [currentInvoice, setCurrentInvoice] = useState<Invoice | null>(null);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [filterStatus, setFilterStatus] = useState<"all" | "Chua_Thanh_Toan" | "Da_Thanh_Toan">("all");
+    const [filterStatus, setFilterStatus] = useState<"all" | "Chua_Thanh_Toan" | "Da_Thanh_Toan" | "Qua_Han">("all");
     const [viewMode, setViewMode] = useState<"list" | "room">("list");
 
     // Setup Settings State
-    const [cauHinh, setCauHinh] = useState<CauHinh | null>(null);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [cfgNganHang, setCfgNganHang] = useState("");
     const [cfgSoTaiKhoan, setCfgSoTaiKhoan] = useState("");
@@ -54,7 +55,7 @@ export default function InvoicesPage() {
             const data = await invoiceService.getAllHoaDons();
             setInvoices(data);
         } catch (error) {
-            console.error("Lỗi khi tải hóa đơn:", error);
+            console.error("Lá»—i khi táº£i hÃ³a Ä‘Æ¡n:", error);
         } finally {
             setLoading(false);
         }
@@ -74,7 +75,6 @@ export default function InvoicesPage() {
             try {
                 const data = await cauHinhService.getLatestCauHinh();
                 if (data) {
-                    setCauHinh(data);
                     setCfgNganHang(data.nganHang);
                     setCfgSoTaiKhoan(data.soTaiKhoan);
                     setCfgChuTaiKhoan(data.chuTaiKhoan);
@@ -175,8 +175,8 @@ export default function InvoicesPage() {
         if (firstDayOfInputMonth.getTime() !== firstDayOfThisMonth.getTime()) {
             Swal.fire({
                 icon: 'error',
-                title: 'Ngày không hợp lệ',
-                text: 'Chỉ có thể tạo hóa đơn cho tháng hiện tại.',
+                title: 'NgÃ y khÃ´ng há»£p lá»‡',
+                text: 'Chá»‰ cÃ³ thá»ƒ táº¡o hÃ³a Ä‘Æ¡n cho thÃ¡ng hiá»‡n táº¡i.',
                 confirmButtonColor: '#2563eb'
             });
             return;
@@ -195,10 +195,10 @@ export default function InvoicesPage() {
 
             Swal.fire({
                 icon: 'error',
-                title: isSameMonth ? 'Hóa đơn đã tồn tại' : 'Thứ tự không hợp lệ',
+                title: isSameMonth ? 'HÃ³a Ä‘Æ¡n Ä‘Ã£ tá»“n táº¡i' : 'Thá»© tá»± khÃ´ng há»£p lá»‡',
                 text: isSameMonth
-                    ? 'Đã có hóa đơn cho tháng này cho hợp đồng này.'
-                    : 'Không thể tạo hóa đơn cho tháng cũ khi đã có hóa đơn mới hơn cho hợp đồng này.',
+                    ? 'ÄÃ£ cÃ³ hÃ³a Ä‘Æ¡n cho thÃ¡ng nÃ y cho há»£p Ä‘á»“ng nÃ y.'
+                    : 'KhÃ´ng thá»ƒ táº¡o hÃ³a Ä‘Æ¡n cho thÃ¡ng cÅ© khi Ä‘Ã£ cÃ³ hÃ³a Ä‘Æ¡n má»›i hÆ¡n cho há»£p Ä‘á»“ng nÃ y.',
                 confirmButtonColor: '#2563eb'
             });
             return;
@@ -213,8 +213,8 @@ export default function InvoicesPage() {
             if (inputDate < startDate || (endDate && inputDate > endDate)) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Ngày không hợp lệ',
-                    text: `Ngày lập phải nằm trong thời hạn hợp đồng (${formatVi(startDate)}${endDate ? ` - ${formatVi(endDate)}` : ""})`,
+                    title: 'NgÃ y khÃ´ng há»£p lá»‡',
+                    text: `NgÃ y láº­p pháº£i náº±m trong thá»i háº¡n há»£p Ä‘á»“ng (${formatVi(startDate)}${endDate ? ` - ${formatVi(endDate)}` : ""})`,
                     confirmButtonColor: '#2563eb'
                 });
                 return;
@@ -225,8 +225,8 @@ export default function InvoicesPage() {
         if (chiSoDien <= chiSoDienCu) {
             Swal.fire({
                 icon: 'error',
-                title: 'Chỉ số không hợp lệ',
-                text: 'Chỉ số điện mới phải LỚN HƠN chỉ số cũ (Điều kiện bắt buộc).',
+                title: 'Chá»‰ sá»‘ khÃ´ng há»£p lá»‡',
+                text: 'Chá»‰ sá»‘ Ä‘iá»‡n má»›i pháº£i Lá»šN HÆ N chá»‰ sá»‘ cÅ© (Äiá»u kiá»‡n báº¯t buá»™c).',
                 confirmButtonColor: '#2563eb'
             });
             return;
@@ -234,8 +234,8 @@ export default function InvoicesPage() {
         if (chiSoNuoc <= chiSoNuocCu) {
             Swal.fire({
                 icon: 'error',
-                title: 'Chỉ số không hợp lệ',
-                text: 'Chỉ số nước mới phải LỚN HƠN chỉ số cũ (Điều kiện bắt buộc).',
+                title: 'Chá»‰ sá»‘ khÃ´ng há»£p lá»‡',
+                text: 'Chá»‰ sá»‘ nÆ°á»›c má»›i pháº£i Lá»šN HÆ N chá»‰ sá»‘ cÅ© (Äiá»u kiá»‡n báº¯t buá»™c).',
                 confirmButtonColor: '#2563eb'
             });
             return;
@@ -258,25 +258,25 @@ export default function InvoicesPage() {
                 tongTien: tongTien || (tienPhong + tienDien + tienNuoc + tienDichVu),
                 trangThai: "Chua_Thanh_Toan"
             });
-            Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Tạo hóa đơn thành công', confirmButtonColor: '#2563eb' });
+            Swal.fire({ icon: 'success', title: 'ThÃ nh cÃ´ng!', text: 'Táº¡o hÃ³a Ä‘Æ¡n thÃ nh cÃ´ng', confirmButtonColor: '#2563eb' });
             setIsCreateModalOpen(false);
             fetchInvoices();
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi tạo hóa đơn', confirmButtonColor: '#2563eb' });
+            Swal.fire({ icon: 'error', title: 'Tháº¥t báº¡i!', text: 'Lá»—i khi táº¡o hÃ³a Ä‘Æ¡n', confirmButtonColor: '#2563eb' });
         }
     };
 
 
     const handleDeleteInvoice = async (id: string) => {
         const result = await Swal.fire({
-            title: 'Bạn có chắc chắn?',
-            text: 'Bạn có chắc chắn muốn xóa hóa đơn này? Hành động này không thể hoàn tác.',
+            title: 'Báº¡n cÃ³ cháº¯c cháº¯n?',
+            text: 'Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n xÃ³a hÃ³a Ä‘Æ¡n nÃ y? HÃ nh Ä‘á»™ng nÃ y khÃ´ng thá»ƒ hoÃ n tÃ¡c.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#94a3b8',
-            confirmButtonText: 'Đồng ý xóa',
-            cancelButtonText: 'Hủy'
+            confirmButtonText: 'Äá»“ng Ã½ xÃ³a',
+            cancelButtonText: 'Há»§y'
         });
 
         if (!result.isConfirmed) return;
@@ -284,10 +284,10 @@ export default function InvoicesPage() {
         setIsDeleting(id);
         try {
             await invoiceService.deleteHoaDon(id);
-            Swal.fire({ icon: 'success', title: 'Đã xóa!', text: 'Xóa hóa đơn thành công', confirmButtonColor: '#2563eb' });
+            Swal.fire({ icon: 'success', title: 'ÄÃ£ xÃ³a!', text: 'XÃ³a hÃ³a Ä‘Æ¡n thÃ nh cÃ´ng', confirmButtonColor: '#2563eb' });
             fetchInvoices();
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi xóa hóa đơn', confirmButtonColor: '#2563eb' });
+            Swal.fire({ icon: 'error', title: 'Tháº¥t báº¡i!', text: 'Lá»—i khi xÃ³a hÃ³a Ä‘Æ¡n', confirmButtonColor: '#2563eb' });
         } finally {
             setIsDeleting(null);
         }
@@ -324,8 +324,8 @@ export default function InvoicesPage() {
         if (firstDayOfInputMonth.getTime() !== firstDayOfThisMonth.getTime()) {
             Swal.fire({
                 icon: 'error',
-                title: 'Ngày không hợp lệ',
-                text: 'Chỉ có thể điều chỉnh hóa đơn trong tháng hiện tại.',
+                title: 'NgÃ y khÃ´ng há»£p lá»‡',
+                text: 'Chá»‰ cÃ³ thá»ƒ Ä‘iá»u chá»‰nh hÃ³a Ä‘Æ¡n trong thÃ¡ng hiá»‡n táº¡i.',
                 confirmButtonColor: '#2563eb'
             });
             return;
@@ -333,11 +333,11 @@ export default function InvoicesPage() {
 
         // Validation: Indices (Strictly New > Old)
         if (chiSoDien <= chiSoDienCu) {
-            Swal.fire({ icon: 'error', title: 'Lỗi!', text: 'Số điện mới phải lớn hơn số cũ', confirmButtonColor: '#2563eb' });
+            Swal.fire({ icon: 'error', title: 'Lá»—i!', text: 'Sá»‘ Ä‘iá»‡n má»›i pháº£i lá»›n hÆ¡n sá»‘ cÅ©', confirmButtonColor: '#2563eb' });
             return;
         }
         if (chiSoNuoc <= chiSoNuocCu) {
-            Swal.fire({ icon: 'error', title: 'Lỗi!', text: 'Số nước mới phải lớn hơn số cũ', confirmButtonColor: '#2563eb' });
+            Swal.fire({ icon: 'error', title: 'Lá»—i!', text: 'Sá»‘ nÆ°á»›c má»›i pháº£i lá»›n hÆ¡n sá»‘ cÅ©', confirmButtonColor: '#2563eb' });
             return;
         }
 
@@ -356,57 +356,26 @@ export default function InvoicesPage() {
                 tienDichVu,
                 tongTien: tongTien || (tienPhong + tienDien + tienNuoc + tienDichVu)
             });
-            Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Cập nhật hóa đơn thành công', confirmButtonColor: '#2563eb' });
+            Swal.fire({ icon: 'success', title: 'ThÃ nh cÃ´ng!', text: 'Cáº­p nháº­t hÃ³a Ä‘Æ¡n thÃ nh cÃ´ng', confirmButtonColor: '#2563eb' });
             setIsEditModalOpen(false);
             fetchInvoices();
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi cập nhật hóa đơn', confirmButtonColor: '#2563eb' });
+            Swal.fire({ icon: 'error', title: 'Tháº¥t báº¡i!', text: 'Lá»—i khi cáº­p nháº­t hÃ³a Ä‘Æ¡n', confirmButtonColor: '#2563eb' });
         }
     };
 
 
     const handlePayment = (invoice: Invoice) => {
-        const amount = Math.max(0, Math.round(invoice.tongTien || 0));
-        const monthYear = formatVi(invoice.ngayThangNam, { month: "2-digit", year: "numeric" });
-        const paymentCode = `HD:${invoice._id}`;
-        const roomName = invoice.idHopDong?.idPhong?.tenPhong || "NA";
-        const description = `${paymentCode} thanh toan phong ${roomName} thang ${monthYear}`;
-        const accountName = cauHinh?.chuTaiKhoan || "TRAN TRUONG DANG KHOA";
-        const bankCode = cauHinh?.nganHang || "MB";
-        const accountNo = cauHinh?.soTaiKhoan || "0987706342";
-        const sepayQrUrl =
-            `https://qr.sepay.vn/img?acc=${encodeURIComponent(accountNo)}` +
-            `&bank=${encodeURIComponent(bankCode)}` +
-            `&amount=${amount}` +
-            `&des=${encodeURIComponent(description)}`;
+        if (!invoice.maThanhToan) {
+            Swal.fire({
+                icon: "warning",
+                title: "Thiếu mã thanh toán",
+                text: "Hóa đơn này chưa có mã thanh toán SePay. Vui lòng liên hệ chủ trọ để tạo lại hóa đơn."
+            });
+            return;
+        }
 
-        Swal.fire({
-            title: "Thanh toán chuyển khoản (SePay)",
-            html: `
-                <div class="flex flex-col items-center space-y-4">
-                    <p class="text-sm text-slate-500">Mở app ngân hàng và quét mã QR SePay bên dưới để chuyển khoản.</p>
-                    <div class="p-4 bg-white border-2 border-slate-100 rounded-3xl shadow-lg inline-block">
-                        <img src="${sepayQrUrl}" alt="SePay QR" class="w-64 h-auto rounded-xl block mx-auto" />
-                    </div>
-                    <div class="text-left w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-2 space-y-2">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Ngân hàng:</span> <span class="text-sm font-black text-slate-800">${bankCode}</span></div>
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Chủ tài khoản:</span> <span class="text-sm font-black text-slate-800">${accountName}</span></div>
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Số tài khoản:</span> <span class="text-sm font-black text-slate-800">${accountNo}</span></div>
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Số tiền:</span> <span class="text-sm font-black text-blue-600">${amount.toLocaleString('vi-VN')}đ</span></div>
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Nội dung:</span> <span class="text-xs font-black text-slate-800 truncate ml-4" title="${description}">${description}</span></div>
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-400">Mã đối soát:</span> <span class="text-xs font-black text-emerald-700">${paymentCode}</span></div>
-                    </div>
-                    <p class="text-xs text-emerald-600 font-bold text-center mt-2">Hệ thống tự động đối soát qua SePay webhook và cập nhật hóa đơn sau khi nhận giao dịch hợp lệ.</p>
-                    <p class="text-xs text-red-500 font-bold text-center">Lưu ý: Chuyển đúng số tiền và đúng nội dung để hệ thống tự xác nhận.</p>
-                </div>
-            `,
-            showCloseButton: true,
-            showConfirmButton: false,
-            width: "28rem",
-            customClass: {
-                popup: "rounded-[2.5rem] p-4 sm:p-6"
-            }
-        });
+        navigate(`/invoice/${encodeURIComponent(invoice.maThanhToan)}`);
     };
     const getStatusStyle = (status: string) => {
         switch (status) {
@@ -414,29 +383,32 @@ export default function InvoicesPage() {
                 return "bg-emerald-100 text-emerald-700 border-emerald-200";
             case "Chua_Thanh_Toan":
                 return "bg-amber-100 text-amber-700 border-amber-200";
+            case "Qua_Han":
+                return "bg-red-100 text-red-700 border-red-200";
             default:
                 return "bg-slate-100 text-slate-700 border-slate-200";
         }
     };
 
     const getStatusLabel = (status: string) => {
-        return status === "Da_Thanh_Toan" ? "Đã thanh toán" : "Chưa thanh toán";
+        if (status === "Da_Thanh_Toan") return "Đã thanh toán";
+        if (status === "Qua_Han") return "Quá hạn";
+        return "Chưa thanh toán";
     };
 
     const handleSaveSettings = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const data = await cauHinhService.updateCauHinh({
+            await cauHinhService.updateCauHinh({
                 nganHang: cfgNganHang,
                 soTaiKhoan: cfgSoTaiKhoan,
                 chuTaiKhoan: cfgChuTaiKhoan,
                 diaChi: cfgDiaChi
             });
-            setCauHinh(data);
-            Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Lưu cấu hình thanh toán thành công', confirmButtonColor: '#2563eb' });
+            Swal.fire({ icon: 'success', title: 'ThÃ nh cÃ´ng!', text: 'LÆ°u cáº¥u hÃ¬nh thanh toÃ¡n thÃ nh cÃ´ng', confirmButtonColor: '#2563eb' });
             setIsSettingsModalOpen(false);
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Thất bại!', text: 'Lỗi khi lưu cấu hình', confirmButtonColor: '#2563eb' });
+            Swal.fire({ icon: 'error', title: 'Tháº¥t báº¡i!', text: 'Lá»—i khi lÆ°u cáº¥u hÃ¬nh', confirmButtonColor: '#2563eb' });
         }
     };
 
@@ -450,7 +422,7 @@ export default function InvoicesPage() {
     });
 
     const groupedInvoices = filteredInvoices.reduce((acc, inv) => {
-        const roomName = inv.idHopDong?.idPhong?.tenPhong || "Khác";
+        const roomName = inv.idHopDong?.idPhong?.tenPhong || "KhÃ¡c";
         if (!acc[roomName]) acc[roomName] = [];
         acc[roomName].push(inv);
         return acc;
@@ -460,7 +432,7 @@ export default function InvoicesPage() {
         return (
             <div className="flex flex-col items-center justify-center h-96">
                 <Loader2 size={48} className="text-blue-600 animate-spin mb-4" />
-                <p className="text-slate-500 font-medium">Đang tải danh sách hóa đơn...</p>
+                <p className="text-slate-500 font-medium">Äang táº£i danh sÃ¡ch hÃ³a Ä‘Æ¡n...</p>
             </div>
         );
     }
@@ -469,8 +441,8 @@ export default function InvoicesPage() {
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-800 tracking-tight">Hóa đơn</h1>
-                    <p className="text-slate-500 mt-1 font-medium italic">Quản lý các khoản thanh toán của bạn</p>
+                    <h1 className="text-3xl font-black text-slate-800 tracking-tight">HÃ³a Ä‘Æ¡n</h1>
+                    <p className="text-slate-500 mt-1 font-medium italic">Quáº£n lÃ½ cÃ¡c khoáº£n thanh toÃ¡n cá»§a báº¡n</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     {isAdmin && (
@@ -480,14 +452,14 @@ export default function InvoicesPage() {
                                 className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-black text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
                             >
                                 <Settings size={18} />
-                                Thiết lập
+                                Thiáº¿t láº­p
                             </button>
                             <button
                                 onClick={() => setIsCreateModalOpen(true)}
                                 className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-black hover:bg-black transition-all shadow-lg shadow-slate-200"
                             >
                                 <Plus size={18} />
-                                Tạo hóa đơn
+                                Táº¡o hÃ³a Ä‘Æ¡n
                             </button>
                         </div>
                     )}
@@ -495,7 +467,7 @@ export default function InvoicesPage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
-                            placeholder="Tìm kiếm hóa đơn..."
+                            placeholder="TÃ¬m kiáº¿m hÃ³a Ä‘Æ¡n..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all w-full sm:w-64 shadow-sm"
@@ -507,9 +479,10 @@ export default function InvoicesPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex bg-slate-100 p-1 rounded-2xl w-fit">
                     {[
-                        { id: "all", label: "Tất cả" },
-                        { id: "Chua_Thanh_Toan", label: "Chưa thanh toán" },
-                        { id: "Da_Thanh_Toan", label: "Lịch sử / Đã thanh toán" },
+                        { id: "all", label: "Táº¥t cáº£" },
+                        { id: "Chua_Thanh_Toan", label: "ChÆ°a thanh toÃ¡n" },
+                        { id: "Qua_Han", label: "QuÃ¡ háº¡n" },
+                        { id: "Da_Thanh_Toan", label: "Lá»‹ch sá»­ / ÄÃ£ thanh toÃ¡n" },
                     ].map((tab) => (
                         <button
                             key={tab.id}
@@ -532,7 +505,7 @@ export default function InvoicesPage() {
                             : "text-slate-500 hover:text-slate-800"
                             }`}
                     >
-                        Danh sách
+                        Danh sÃ¡ch
                     </button>
                     <button
                         onClick={() => setViewMode("room")}
@@ -541,7 +514,7 @@ export default function InvoicesPage() {
                             : "text-slate-500 hover:text-slate-800"
                             }`}
                     >
-                        Theo phòng
+                        Theo phÃ²ng
                     </button>
                 </div>
             </div>
@@ -552,12 +525,12 @@ export default function InvoicesPage() {
                         <table className="w-full min-w-[900px] text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50/50">
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Hóa đơn</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Phòng</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thời gian</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Tổng tiền</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Trạng thái</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thao tác</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">HÃ³a Ä‘Æ¡n</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">PhÃ²ng</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thá»i gian</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Tá»•ng tiá»n</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Tráº¡ng thÃ¡i</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thao tÃ¡c</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -571,7 +544,7 @@ export default function InvoicesPage() {
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-slate-800 text-sm">#INV-{invoice._id.slice(-6).toUpperCase()}</p>
-                                                        <p className="text-[10px] text-slate-400 font-medium">Tạo ngày: {formatVi(invoice.createdAt)}</p>
+                                                        <p className="text-[10px] text-slate-400 font-medium">Táº¡o ngÃ y: {formatVi(invoice.createdAt)}</p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -585,7 +558,7 @@ export default function InvoicesPage() {
                                             </td>
 
                                             <td className="px-6 py-4">
-                                                <p className="text-sm font-black text-blue-600">{(invoice.tongTien ?? 0).toLocaleString("vi-VN")}đ</p>
+                                                <p className="text-sm font-black text-blue-600">{(invoice.tongTien ?? 0).toLocaleString("vi-VN")}Ä‘</p>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border ${getStatusStyle(invoice.trangThai)}`}>
@@ -602,15 +575,15 @@ export default function InvoicesPage() {
                                                         }}
                                                         className="text-blue-600 hover:text-blue-800 text-sm font-bold transition-colors"
                                                     >
-                                                        Chi tiết
+                                                        Chi tiáº¿t
                                                     </button>
-                                                    {(!isAdmin && invoice.trangThai === "Chua_Thanh_Toan") && (
+                                                    {(!isAdmin && invoice.trangThai !== "Da_Thanh_Toan") && (
                                                         <button
                                                             onClick={() => handlePayment(invoice)}
                                                             className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1 rounded-xl text-xs font-black hover:bg-black transition-all shadow-md shadow-blue-100"
                                                         >
                                                             <CreditCard size={12} />
-                                                            Thanh toán
+                                                            Thanh toÃ¡n
                                                         </button>
                                                     )}
                                                     {isAdmin && (
@@ -618,14 +591,14 @@ export default function InvoicesPage() {
                                                             <button
                                                                 onClick={() => handleOpenEdit(invoice)}
                                                                 className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                                                                title="Sửa"
+                                                                title="Sá»­a"
                                                             >
                                                                 <Edit2 size={16} />
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDeleteInvoice(invoice._id)}
                                                                 className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                                title="Xóa"
+                                                                title="XÃ³a"
                                                                 disabled={isDeleting === invoice._id}
                                                             >
                                                                 {isDeleting === invoice._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
@@ -643,7 +616,7 @@ export default function InvoicesPage() {
                                                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-dashed border-slate-200">
                                                     <Receipt size={32} className="text-slate-300" />
                                                 </div>
-                                                <p className="text-slate-400 font-medium">Không tìm thấy hóa đơn phù hợp.</p>
+                                                <p className="text-slate-400 font-medium">KhÃ´ng tÃ¬m tháº¥y hÃ³a Ä‘Æ¡n phÃ¹ há»£p.</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -664,16 +637,16 @@ export default function InvoicesPage() {
                                         </div>
                                         <div>
                                             <h3 className="font-black text-slate-800 leading-tight">{roomName}</h3>
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{roomInvoices.length} hóa đơn</p>
+                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{roomInvoices.length} hÃ³a Ä‘Æ¡n</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-xs font-bold text-slate-400">Nợ: </p>
+                                        <p className="text-xs font-bold text-slate-400">Ná»£: </p>
                                         <p className="text-sm font-black text-red-500">
                                             {roomInvoices
-                                                .filter(i => i.trangThai === "Chua_Thanh_Toan")
+                                                .filter(i => i.trangThai !== "Da_Thanh_Toan")
                                                 .reduce((sum, i) => sum + (i.tongTien || 0), 0)
-                                                .toLocaleString("vi-VN")}đ
+                                                .toLocaleString("vi-VN")}Ä‘
                                         </p>
                                     </div>
                                 </div>
@@ -684,12 +657,12 @@ export default function InvoicesPage() {
                                             <div key={invoice._id} className="p-4 hover:bg-slate-50 transition-all group flex items-center justify-between gap-3">
                                                 <div className="min-w-0">
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <span className={`w-2 h-2 rounded-full ${invoice.trangThai === "Da_Thanh_Toan" ? "bg-emerald-500" : "bg-amber-500"}`}></span>
+                                                        <span className={`w-2 h-2 rounded-full ${invoice.trangThai === "Da_Thanh_Toan" ? "bg-emerald-500" : invoice.trangThai === "Qua_Han" ? "bg-red-500" : "bg-amber-500"}`}></span>
                                                         <p className="text-xs font-black text-slate-700 truncate">
                                                             {formatVi(invoice.ngayThangNam, { month: "2-digit", year: "numeric" })}
                                                         </p>
                                                     </div>
-                                                    <p className="text-[10px] font-black text-blue-600">{(invoice.tongTien ?? 0).toLocaleString("vi-VN")}đ</p>
+                                                    <p className="text-[10px] font-black text-blue-600">{(invoice.tongTien ?? 0).toLocaleString("vi-VN")}Ä‘</p>
                                                 </div>
                                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                                     <button
@@ -698,7 +671,7 @@ export default function InvoicesPage() {
                                                             setIsDetailsModalOpen(true);
                                                         }}
                                                         className="p-1.5 text-slate-400 hover:text-blue-600 transition-colors"
-                                                        title="Chi tiết"
+                                                        title="Chi tiáº¿t"
                                                     >
                                                         <Search size={14} />
                                                     </button>
@@ -713,7 +686,7 @@ export default function InvoicesPage() {
                                         }}
                                         className="w-full py-2 text-[10px] font-black text-slate-500 hover:text-slate-900 border border-transparent hover:border-slate-200 rounded-xl transition-all uppercase tracking-widest"
                                     >
-                                        Xem toàn bộ lịch sử
+                                        Xem toÃ n bá»™ lá»‹ch sá»­
                                     </button>
                                 </div>
                             </div>
@@ -721,7 +694,7 @@ export default function InvoicesPage() {
                     ) : (
                         <div className="col-span-full py-12 text-center bg-white rounded-3xl border border-slate-200 border-dashed">
                             <Receipt size={48} className="mx-auto text-slate-200 mb-4" />
-                            <p className="text-slate-400 font-medium">Không tìm thấy phòng nào.</p>
+                            <p className="text-slate-400 font-medium">KhÃ´ng tÃ¬m tháº¥y phÃ²ng nÃ o.</p>
                         </div>
                     )}
                 </div>
@@ -734,7 +707,7 @@ export default function InvoicesPage() {
                         <div className="p-4 sm:p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                             <h2 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-3">
                                 <Plus size={24} className="text-blue-600" />
-                                Tạo hóa đơn mới
+                                Táº¡o hÃ³a Ä‘Æ¡n má»›i
                             </h2>
                             <button onClick={() => setIsCreateModalOpen(false)} className="p-2 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200">
                                 <X size={20} className="text-slate-400" />
@@ -744,13 +717,13 @@ export default function InvoicesPage() {
                         <form onSubmit={handleCreateInvoice} className="p-4 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="sm:col-span-2 relative">
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Hợp đồng / Phòng</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Há»£p Ä‘á»“ng / PhÃ²ng</label>
                                     <div className="relative">
                                         <LayoutTemplate className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                         <input
                                             type="text"
                                             className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
-                                            placeholder="Nhập số phòng hoặc tên khách..."
+                                            placeholder="Nháº­p sá»‘ phÃ²ng hoáº·c tÃªn khÃ¡ch..."
                                             value={contractSearchTerm}
                                             onChange={(e) => {
                                                 setContractSearchTerm(e.target.value);
@@ -785,7 +758,7 @@ export default function InvoicesPage() {
                                                     </button>
                                                 ))
                                             ) : (
-                                                <div className="px-4 py-3 text-sm text-slate-400 italic">Không tìm thấy hợp đồng...</div>
+                                                <div className="px-4 py-3 text-sm text-slate-400 italic">KhÃ´ng tÃ¬m tháº¥y há»£p Ä‘á»“ng...</div>
                                             )}
                                         </div>
                                     )}
@@ -793,7 +766,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Ngày lập</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">NgÃ y láº­p</label>
                                     <input
                                         type="date"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
@@ -806,7 +779,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tiền phòng (vnđ)</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tiá»n phÃ²ng (vnÄ‘)</label>
                                     <input
                                         type="number"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none"
@@ -817,7 +790,7 @@ export default function InvoicesPage() {
 
                                 <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/50 p-4 rounded-3xl border border-slate-200/50">
                                     <div>
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Chỉ số điện (Cũ)</label>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Chá»‰ sá»‘ Ä‘iá»‡n (CÅ©)</label>
                                         <input
                                             type="number"
                                             className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed outline-none transition-all"
@@ -826,7 +799,7 @@ export default function InvoicesPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Chỉ số điện (Mới nhất)</label>
+                                        <label className="block text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Chá»‰ sá»‘ Ä‘iá»‡n (Má»›i nháº¥t)</label>
                                         <input
                                             type="number"
                                             className="w-full bg-white border border-blue-200 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all font-bold"
@@ -839,7 +812,7 @@ export default function InvoicesPage() {
 
                                 <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/50 p-4 rounded-3xl border border-slate-200/50">
                                     <div>
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Chỉ số nước (Cũ)</label>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Chá»‰ sá»‘ nÆ°á»›c (CÅ©)</label>
                                         <input
                                             type="number"
                                             className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed outline-none transition-all"
@@ -848,7 +821,7 @@ export default function InvoicesPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Chỉ số nước (Mới nhất)</label>
+                                        <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Chá»‰ sá»‘ nÆ°á»›c (Má»›i nháº¥t)</label>
                                         <input
                                             type="number"
                                             className="w-full bg-white border border-emerald-200 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-400 outline-none transition-all font-bold"
@@ -861,49 +834,49 @@ export default function InvoicesPage() {
 
                                 <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex flex-col gap-2">
                                     <div className="flex items-center justify-between font-medium">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Tiêu thụ Điện</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">TiÃªu thá»¥ Äiá»‡n</p>
                                         <span className="text-sm font-black text-blue-600">+{Math.max(0, chiSoDien - chiSoDienCu)} kWh</span>
                                     </div>
                                     <div className="text-[10px] text-blue-500 font-bold text-right border-t border-blue-100 pt-1">
-                                        {(Math.max(0, chiSoDien - chiSoDienCu) * giaDien).toLocaleString('vi-VN')}vnđ
+                                        {(Math.max(0, chiSoDien - chiSoDienCu) * giaDien).toLocaleString('vi-VN')}vnÄ‘
                                     </div>
                                 </div>
 
                                 <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex flex-col gap-2">
                                     <div className="flex items-center justify-between font-medium">
-                                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Tiêu thụ Nước</p>
-                                        <span className="text-sm font-black text-emerald-600">+{Math.max(0, chiSoNuoc - chiSoNuocCu)} m³</span>
+                                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">TiÃªu thá»¥ NÆ°á»›c</p>
+                                        <span className="text-sm font-black text-emerald-600">+{Math.max(0, chiSoNuoc - chiSoNuocCu)} mÂ³</span>
                                     </div>
                                     <div className="text-[10px] text-emerald-600 font-bold text-right border-t border-emerald-100 pt-1">
-                                        {(Math.max(0, chiSoNuoc - chiSoNuocCu) * giaNuoc).toLocaleString('vi-VN')}vnđ
+                                        {(Math.max(0, chiSoNuoc - chiSoNuocCu) * giaNuoc).toLocaleString('vi-VN')}vnÄ‘
                                     </div>
                                 </div>
 
                                 <div className="sm:col-span-2 p-6 bg-slate-900 rounded-[2rem] text-white shadow-xl space-y-4">
                                     <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cấu trúc hóa đơn</p>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cáº¥u trÃºc hÃ³a Ä‘Æ¡n</p>
                                         <Calculator size={16} className="text-blue-400" />
                                     </div>
                                     <div className="space-y-2">
-                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiền phòng:</span> <span className="font-bold">{(tienPhong || 0).toLocaleString('vi-VN')}đ</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiền điện:</span> <span className="font-bold">{(tienDien || 0).toLocaleString('vi-VN')}đ</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiền nước:</span> <span className="font-bold">{(tienNuoc || 0).toLocaleString('vi-VN')}đ</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Dịch vụ:</span> <span className="font-bold">{(tienDichVu || 0).toLocaleString('vi-VN')}đ</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiá»n phÃ²ng:</span> <span className="font-bold">{(tienPhong || 0).toLocaleString('vi-VN')}Ä‘</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiá»n Ä‘iá»‡n:</span> <span className="font-bold">{(tienDien || 0).toLocaleString('vi-VN')}Ä‘</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiá»n nÆ°á»›c:</span> <span className="font-bold">{(tienNuoc || 0).toLocaleString('vi-VN')}Ä‘</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Dá»‹ch vá»¥:</span> <span className="font-bold">{(tienDichVu || 0).toLocaleString('vi-VN')}Ä‘</span></div>
                                     </div>
                                     <div className="pt-4 border-t border-white/10 flex justify-between items-end">
-                                        <span className="text-xs font-black text-blue-400 uppercase tracking-tighter">Tổng cộng tháng này:</span>
-                                        <span className="text-3xl font-black">{tongTien.toLocaleString('vi-VN')}đ</span>
+                                        <span className="text-xs font-black text-blue-400 uppercase tracking-tighter">Tá»•ng cá»™ng thÃ¡ng nÃ y:</span>
+                                        <span className="text-3xl font-black">{tongTien.toLocaleString('vi-VN')}Ä‘</span>
                                     </div>
                                 </div>
 
                                 <div className="space-y-4 p-4 bg-purple-50/50 rounded-2xl border border-purple-100 sm:col-span-2">
                                     <h3 className="text-sm font-bold text-purple-700 flex items-center gap-2">
-                                        <Plus size={16} /> Phí dịch vụ khác (vnđ)
+                                        <Plus size={16} /> PhÃ­ dá»‹ch vá»¥ khÃ¡c (vnÄ‘)
                                     </h3>
                                     <input
                                         type="number"
                                         className="w-full bg-white border border-purple-200 rounded-lg px-3 py-2 text-sm focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 outline-none transition-all"
-                                        placeholder="Phí vệ sinh, wifi, rác..."
+                                        placeholder="PhÃ­ vá»‡ sinh, wifi, rÃ¡c..."
                                         value={tienDichVu}
                                         onChange={(e) => setTienDichVu(Number(e.target.value))}
                                     />
@@ -912,7 +885,7 @@ export default function InvoicesPage() {
 
                             <button type="submit" className="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-3xl shadow-2xl transition-all shadow-slate-200 flex items-center justify-center gap-2">
                                 <Plus size={18} />
-                                Tạo và Lưu hóa đơn
+                                Táº¡o vÃ  LÆ°u hÃ³a Ä‘Æ¡n
                             </button>
                         </form>
                     </div>
@@ -926,7 +899,7 @@ export default function InvoicesPage() {
                         <div className="p-4 sm:p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                             <h2 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-3">
                                 <Edit2 size={24} className="text-blue-600" />
-                                Chỉnh sửa hóa đơn
+                                Chá»‰nh sá»­a hÃ³a Ä‘Æ¡n
                             </h2>
                             <button onClick={() => setIsEditModalOpen(false)} className="p-2 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200">
                                 <X size={20} className="text-slate-400" />
@@ -936,7 +909,7 @@ export default function InvoicesPage() {
                         <form onSubmit={handleUpdateInvoice} className="p-4 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Hợp đồng / Phòng</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Há»£p Ä‘á»“ng / PhÃ²ng</label>
                                     <input
                                         className="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none text-slate-500 cursor-not-allowed"
                                         value={`${currentInvoice?.idHopDong?.idPhong?.tenPhong} - ${currentInvoice?.idHopDong?.idKhach?.hoVaTen}`}
@@ -945,7 +918,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Ngày lập</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">NgÃ y láº­p</label>
                                     <input
                                         type="date"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
@@ -956,7 +929,7 @@ export default function InvoicesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tiền phòng (vnđ)</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tiá»n phÃ²ng (vnÄ‘)</label>
                                     <input
                                         type="number"
                                         className="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none text-slate-500 cursor-not-allowed"
@@ -967,7 +940,7 @@ export default function InvoicesPage() {
 
                                 <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/50 p-4 rounded-3xl border border-slate-200/50">
                                     <div>
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Chỉ số điện (Cũ)</label>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Chá»‰ sá»‘ Ä‘iá»‡n (CÅ©)</label>
                                         <input
                                             type="number"
                                             className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed outline-none transition-all"
@@ -976,7 +949,7 @@ export default function InvoicesPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Chỉ số điện (Mới nhất)</label>
+                                        <label className="block text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Chá»‰ sá»‘ Ä‘iá»‡n (Má»›i nháº¥t)</label>
                                         <input
                                             type="number"
                                             className="w-full bg-white border border-blue-200 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all font-bold"
@@ -989,7 +962,7 @@ export default function InvoicesPage() {
 
                                 <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/50 p-4 rounded-3xl border border-slate-200/50">
                                     <div>
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Chỉ số nước (Cũ)</label>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Chá»‰ sá»‘ nÆ°á»›c (CÅ©)</label>
                                         <input
                                             type="number"
                                             className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed outline-none transition-all"
@@ -998,7 +971,7 @@ export default function InvoicesPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Chỉ số nước (Mới nhất)</label>
+                                        <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Chá»‰ sá»‘ nÆ°á»›c (Má»›i nháº¥t)</label>
                                         <input
                                             type="number"
                                             className="w-full bg-white border border-emerald-200 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-400 outline-none transition-all font-bold"
@@ -1011,48 +984,48 @@ export default function InvoicesPage() {
 
                                 <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex flex-col gap-2">
                                     <div className="flex items-center justify-between font-medium">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Tiêu thụ Điện</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">TiÃªu thá»¥ Äiá»‡n</p>
                                         <span className="text-sm font-black text-blue-600">+{Math.max(0, chiSoDien - chiSoDienCu)} kWh</span>
                                     </div>
                                     <div className="text-[10px] text-blue-500 font-bold text-right border-t border-blue-100 pt-1">
-                                        {(Math.max(0, chiSoDien - chiSoDienCu) * giaDien).toLocaleString('vi-VN')}vnđ
+                                        {(Math.max(0, chiSoDien - chiSoDienCu) * giaDien).toLocaleString('vi-VN')}vnÄ‘
                                     </div>
                                 </div>
 
                                 <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex flex-col gap-2">
                                     <div className="flex items-center justify-between font-medium">
-                                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Tiêu thụ Nước</p>
-                                        <span className="text-sm font-black text-emerald-600">+{Math.max(0, chiSoNuoc - chiSoNuocCu)} m³</span>
+                                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">TiÃªu thá»¥ NÆ°á»›c</p>
+                                        <span className="text-sm font-black text-emerald-600">+{Math.max(0, chiSoNuoc - chiSoNuocCu)} mÂ³</span>
                                     </div>
                                     <div className="text-[10px] text-emerald-600 font-bold text-right border-t border-emerald-100 pt-1">
-                                        {(Math.max(0, chiSoNuoc - chiSoNuocCu) * giaNuoc).toLocaleString('vi-VN')}vnđ
+                                        {(Math.max(0, chiSoNuoc - chiSoNuocCu) * giaNuoc).toLocaleString('vi-VN')}vnÄ‘
                                     </div>
                                 </div>
 
                                 <div className="sm:col-span-2 p-6 bg-slate-900 rounded-[2rem] text-white shadow-xl space-y-4">
                                     <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cấu trúc hóa đơn</p>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cáº¥u trÃºc hÃ³a Ä‘Æ¡n</p>
                                         <Calculator size={16} className="text-blue-400" />
                                     </div>
                                     <div className="space-y-2">
-                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiền phòng:</span> <span className="font-bold">{(tienPhong || 0).toLocaleString('vi-VN')}đ</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiền điện:</span> <span className="font-bold">{(tienDien || 0).toLocaleString('vi-VN')}đ</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiền nước:</span> <span className="font-bold">{(tienNuoc || 0).toLocaleString('vi-VN')}đ</span></div>
-                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Dịch vụ:</span> <span className="font-bold">{(tienDichVu || 0).toLocaleString('vi-VN')}đ</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiá»n phÃ²ng:</span> <span className="font-bold">{(tienPhong || 0).toLocaleString('vi-VN')}Ä‘</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiá»n Ä‘iá»‡n:</span> <span className="font-bold">{(tienDien || 0).toLocaleString('vi-VN')}Ä‘</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Tiá»n nÆ°á»›c:</span> <span className="font-bold">{(tienNuoc || 0).toLocaleString('vi-VN')}Ä‘</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-slate-400">Dá»‹ch vá»¥:</span> <span className="font-bold">{(tienDichVu || 0).toLocaleString('vi-VN')}Ä‘</span></div>
                                     </div>
                                     <div className="pt-4 border-t border-white/10 flex justify-between items-end">
-                                        <span className="text-xs font-black text-blue-400 uppercase tracking-tighter">Tổng cộng tháng này:</span>
-                                        <span className="text-3xl font-black">{tongTien.toLocaleString('vi-VN')}đ</span>
+                                        <span className="text-xs font-black text-blue-400 uppercase tracking-tighter">Tá»•ng cá»™ng thÃ¡ng nÃ y:</span>
+                                        <span className="text-3xl font-black">{tongTien.toLocaleString('vi-VN')}Ä‘</span>
                                     </div>
                                 </div>
                                 <div className="space-y-4 p-4 bg-purple-50/50 rounded-2xl border border-purple-100 sm:col-span-2">
                                     <h3 className="text-sm font-bold text-purple-700 flex items-center gap-2">
-                                        <Plus size={16} /> Phí dịch vụ khác (vnđ)
+                                        <Plus size={16} /> PhÃ­ dá»‹ch vá»¥ khÃ¡c (vnÄ‘)
                                     </h3>
                                     <input
                                         type="number"
                                         className="w-full bg-white border border-purple-200 rounded-lg px-3 py-2 text-sm focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 outline-none transition-all"
-                                        placeholder="Phí vệ sinh, wifi, rác..."
+                                        placeholder="PhÃ­ vá»‡ sinh, wifi, rÃ¡c..."
                                         value={tienDichVu}
                                         onChange={(e) => setTienDichVu(Number(e.target.value))}
                                     />
@@ -1061,7 +1034,7 @@ export default function InvoicesPage() {
 
                             <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-3xl shadow-2xl transition-all shadow-blue-100 flex items-center justify-center gap-2">
                                 <Edit2 size={18} />
-                                Cập nhật hóa đơn
+                                Cáº­p nháº­t hÃ³a Ä‘Æ¡n
                             </button>
                         </form>
                     </div>
@@ -1079,8 +1052,8 @@ export default function InvoicesPage() {
                                     <Receipt size={24} />
                                 </div>
                                 <div>
-                                    <h2 className="text-2xl font-black tracking-tight text-slate-800">Chi tiết hóa đơn</h2>
-                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Mã HĐ: #INV-{currentInvoice!._id.slice(-8).toUpperCase()}</p>
+                                    <h2 className="text-2xl font-black tracking-tight text-slate-800">Chi tiáº¿t hÃ³a Ä‘Æ¡n</h2>
+                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">MÃ£ HÄ: #INV-{currentInvoice!._id.slice(-8).toUpperCase()}</p>
                                 </div>
                             </div>
                             <button
@@ -1095,23 +1068,23 @@ export default function InvoicesPage() {
                             {/* Status and Info Grid */}
                             <div className="flex flex-col md:flex-row justify-between items-start gap-8">
                                 <div className="space-y-1 text-slate-800">
-                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Thời gian lập</p>
-                                    <p className="text-lg font-bold">Tháng {new Date(currentInvoice!.ngayThangNam).getMonth() + 1}, {new Date(currentInvoice!.ngayThangNam).getFullYear()}</p>
-                                    <p className="text-xs text-slate-500">Người lập: Quản trị viên</p>
+                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Thá»i gian láº­p</p>
+                                    <p className="text-lg font-bold">ThÃ¡ng {new Date(currentInvoice!.ngayThangNam).getMonth() + 1}, {new Date(currentInvoice!.ngayThangNam).getFullYear()}</p>
+                                    <p className="text-xs text-slate-500">NgÆ°á»i láº­p: Quáº£n trá»‹ viÃªn</p>
                                 </div>
                                 <div className="text-right space-y-2">
                                     <span className={`inline-flex items-center gap-2 px-6 py-2 rounded-2xl text-xs font-black border shadow-sm ${getStatusStyle(currentInvoice!.trangThai)}`}>
                                         {currentInvoice!.trangThai === "Da_Thanh_Toan" ? <CheckCircle2 size={14} /> : <Clock size={14} />}
                                         {getStatusLabel(currentInvoice!.trangThai).toUpperCase()}
                                     </span>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter text-slate-400">Ngày tạo: {formatVi(currentInvoice!.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter text-slate-400">NgÃ y táº¡o: {formatVi(currentInvoice!.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                                 </div>
                             </div>
 
                             {/* Tenant and Room Details */}
                             <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 flex flex-col md:flex-row gap-10 text-slate-800">
                                 <div className="flex-1 space-y-4 border-b md:border-b-0 md:border-r border-slate-200 pb-6 md:pb-0 md:pr-10">
-                                    <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4">Thông tin khách thuê</h4>
+                                    <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4">ThÃ´ng tin khÃ¡ch thuÃª</h4>
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-lg font-black text-blue-600 shadow-sm border border-slate-200">
                                             {currentInvoice!.idHopDong?.idKhach?.hoVaTen?.charAt(0).toUpperCase()}
@@ -1123,10 +1096,10 @@ export default function InvoicesPage() {
                                     </div>
                                 </div>
                                 <div className="flex-1 space-y-4">
-                                    <h4 className="text-[10px] font-black text-purple-500 uppercase tracking-widest mb-4">Vị trí phòng</h4>
+                                    <h4 className="text-[10px] font-black text-purple-500 uppercase tracking-widest mb-4">Vá»‹ trÃ­ phÃ²ng</h4>
                                     <div className="space-y-1">
                                         <p className="text-xl font-black text-slate-800">{currentInvoice!.idHopDong?.idPhong?.tenPhong}</p>
-                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Dãy {currentInvoice!.idHopDong?.idPhong?.idDayPhong?.soDay} - {currentInvoice!.idHopDong?.idPhong?.idDayPhong?.viTri}</p>
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">DÃ£y {currentInvoice!.idHopDong?.idPhong?.idDayPhong?.soDay} - {currentInvoice!.idHopDong?.idPhong?.idDayPhong?.viTri}</p>
                                     </div>
                                 </div>
                             </div>
@@ -1135,74 +1108,74 @@ export default function InvoicesPage() {
                             <div className="space-y-6 text-slate-800">
                                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-3">
                                     <Calculator className="text-blue-600" size={18} />
-                                    Bảng kê chi tiết
+                                    Báº£ng kÃª chi tiáº¿t
                                 </h3>
                                 <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-sm">
                                     <table className="w-full min-w-[600px] text-left">
                                         <thead className="bg-slate-50 border-b border-slate-100">
                                             <tr>
-                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Mục chi phí</th>
-                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Chi tiết sử dụng</th>
-                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Thành tiền</th>
+                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Má»¥c chi phÃ­</th>
+                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Chi tiáº¿t sá»­ dá»¥ng</th>
+                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">ThÃ nh tiá»n</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
                                             {/* Room Rent */}
                                             <tr className="group">
                                                 <td className="px-6 py-5">
-                                                    <p className="font-bold text-slate-700">Tiền phòng</p>
-                                                    <p className="text-[10px] text-slate-400">Giá cố định hàng tháng</p>
+                                                    <p className="font-bold text-slate-700">Tiá»n phÃ²ng</p>
+                                                    <p className="text-[10px] text-slate-400">GiÃ¡ cá»‘ Ä‘á»‹nh hÃ ng thÃ¡ng</p>
                                                 </td>
-                                                <td className="px-6 py-5 text-right font-medium text-slate-500">1 tháng</td>
-                                                <td className="px-6 py-5 text-right font-black text-slate-800">{(currentInvoice!.tienPhong ?? 0).toLocaleString("vi-VN")}đ</td>
+                                                <td className="px-6 py-5 text-right font-medium text-slate-500">1 thÃ¡ng</td>
+                                                <td className="px-6 py-5 text-right font-black text-slate-800">{(currentInvoice!.tienPhong ?? 0).toLocaleString("vi-VN")}Ä‘</td>
                                             </tr>
                                             {/* Electricity */}
                                             <tr>
                                                 <td className="px-6 py-5 text-slate-700">
-                                                    <p className="font-bold">Tiền điện</p>
+                                                    <p className="font-bold">Tiá»n Ä‘iá»‡n</p>
                                                     <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-1">
-                                                        <span className="bg-slate-100 px-1.5 py-0.5 rounded">Cũ: {currentInvoice!.chiSoDienCu || 0}</span>
-                                                        <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Mới: {currentInvoice!.chiSoDienMoi || 0}</span>
+                                                        <span className="bg-slate-100 px-1.5 py-0.5 rounded">CÅ©: {currentInvoice!.chiSoDienCu || 0}</span>
+                                                        <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Má»›i: {currentInvoice!.chiSoDienMoi || 0}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-5 text-right font-medium text-slate-500">
                                                     <p>{(currentInvoice!.chiSoDienMoi || 0) - (currentInvoice!.chiSoDienCu || 0)} kWh</p>
-                                                    <p className="text-[10px]">x {currentInvoice!.giaDien?.toLocaleString("vi-VN") || 0}đ</p>
+                                                    <p className="text-[10px]">x {currentInvoice!.giaDien?.toLocaleString("vi-VN") || 0}Ä‘</p>
                                                 </td>
-                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice!.tienDien?.toLocaleString("vi-VN") || 0}đ</td>
+                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice!.tienDien?.toLocaleString("vi-VN") || 0}Ä‘</td>
                                             </tr>
                                             {/* Water */}
                                             <tr>
                                                 <td className="px-6 py-5 text-slate-700">
-                                                    <p className="font-bold">Tiền nước</p>
+                                                    <p className="font-bold">Tiá»n nÆ°á»›c</p>
                                                     <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-1">
-                                                        <span className="bg-slate-100 px-1.5 py-0.5 rounded">Cũ: {currentInvoice!.chiSoNuocCu || 0}</span>
-                                                        <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Mới: {currentInvoice!.chiSoNuocMoi || 0}</span>
+                                                        <span className="bg-slate-100 px-1.5 py-0.5 rounded">CÅ©: {currentInvoice!.chiSoNuocCu || 0}</span>
+                                                        <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">Má»›i: {currentInvoice!.chiSoNuocMoi || 0}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-5 text-right font-medium text-slate-500">
-                                                    <p>{(currentInvoice!.chiSoNuocMoi || 0) - (currentInvoice!.chiSoNuocCu || 0)} m³</p>
-                                                    <p className="text-[10px]">x {currentInvoice!.giaNuoc?.toLocaleString("vi-VN") || 0}đ</p>
+                                                    <p>{(currentInvoice!.chiSoNuocMoi || 0) - (currentInvoice!.chiSoNuocCu || 0)} mÂ³</p>
+                                                    <p className="text-[10px]">x {currentInvoice!.giaNuoc?.toLocaleString("vi-VN") || 0}Ä‘</p>
                                                 </td>
-                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice!.tienNuoc?.toLocaleString("vi-VN") || 0}đ</td>
+                                                <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice!.tienNuoc?.toLocaleString("vi-VN") || 0}Ä‘</td>
                                             </tr>
                                             {/* Service Fee */}
                                             {currentInvoice!.tienDichVu > 0 && (
                                                 <tr className="bg-purple-50/30">
                                                     <td className="px-6 py-5 text-slate-700">
-                                                        <p className="font-bold">Phí dịch vụ khác</p>
-                                                        <p className="text-[10px] text-slate-400">Vệ sinh, wifi, rác...</p>
+                                                        <p className="font-bold">PhÃ­ dá»‹ch vá»¥ khÃ¡c</p>
+                                                        <p className="text-[10px] text-slate-400">Vá»‡ sinh, wifi, rÃ¡c...</p>
                                                     </td>
                                                     <td className="px-6 py-5 text-right font-medium text-slate-500">-</td>
-                                                    <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice!.tienDichVu.toLocaleString("vi-VN")}đ</td>
+                                                    <td className="px-6 py-5 text-right font-black text-slate-800">{currentInvoice!.tienDichVu.toLocaleString("vi-VN")}Ä‘</td>
                                                 </tr>
                                             )}
                                         </tbody>
                                         <tfoot>
                                             <tr className="bg-blue-600 text-white">
-                                                <td className="px-6 py-6 font-black text-lg uppercase tracking-widest">Tổng cộng</td>
+                                                <td className="px-6 py-6 font-black text-lg uppercase tracking-widest">Tá»•ng cá»™ng</td>
                                                 <td colSpan={2} className="px-6 py-6 text-right font-black text-2xl sm:text-3xl">
-                                                    {(currentInvoice!.tongTien ?? 0).toLocaleString("vi-VN")}<span className="text-sm ml-1 opacity-70 italic font-medium">vnđ</span>
+                                                    {(currentInvoice!.tongTien ?? 0).toLocaleString("vi-VN")}<span className="text-sm ml-1 opacity-70 italic font-medium">vnÄ‘</span>
                                                 </td>
                                             </tr>
                                         </tfoot>
@@ -1217,18 +1190,18 @@ export default function InvoicesPage() {
                                 onClick={() => setIsDetailsModalOpen(false)}
                                 className="flex-1 bg-slate-900 hover:bg-black text-white font-black py-4 rounded-3xl shadow-xl transition-all active:scale-95"
                             >
-                                Đóng hóa đơn
+                                ÄÃ³ng hÃ³a Ä‘Æ¡n
                             </button>
-                            {(!isAdmin && currentInvoice!.trangThai === "Chua_Thanh_Toan") && (
+                            {(!isAdmin && currentInvoice!.trangThai !== "Da_Thanh_Toan") && (
                                 <button
                                     onClick={() => handlePayment(currentInvoice!)}
                                     className="px-10 bg-blue-600 text-white font-black py-4 rounded-3xl shadow-xl shadow-blue-200 transition-all active:scale-95 flex items-center gap-2 hover:bg-black"
                                 >
-                                    <CreditCard size={18} /> Thanh toán ngay
+                                    <CreditCard size={18} /> Thanh toÃ¡n ngay
                                 </button>
                             )}
                             <button className="px-10 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-600 hover:text-blue-600 font-bold py-4 rounded-3xl transition-all shadow-sm active:scale-95 flex items-center gap-2">
-                                <Receipt size={18} /> In hóa đơn
+                                <Receipt size={18} /> In hÃ³a Ä‘Æ¡n
                             </button>
                         </div>
                     </div>
@@ -1241,7 +1214,7 @@ export default function InvoicesPage() {
                         <div className="p-4 sm:p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 text-slate-800">
                             <h2 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-3">
                                 <Settings size={24} className="text-slate-600" />
-                                Thiết lập Thanh toán
+                                Thiáº¿t láº­p Thanh toÃ¡n
                             </h2>
                             <button onClick={() => setIsSettingsModalOpen(false)} className="p-2 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200">
                                 <X size={20} className="text-slate-400" />
@@ -1250,19 +1223,19 @@ export default function InvoicesPage() {
                         <form onSubmit={handleSaveSettings} className="p-4 sm:p-8 space-y-6">
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tên mã ngân hàng (Viết tắt)</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">TÃªn mÃ£ ngÃ¢n hÃ ng (Viáº¿t táº¯t)</label>
                                     <input
                                         type="text"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
-                                        placeholder="Ví dụ: MB, VCB, TCB..."
+                                        placeholder="VÃ­ dá»¥: MB, VCB, TCB..."
                                         value={cfgNganHang}
                                         onChange={(e) => setCfgNganHang(e.target.value)}
                                         required
                                     />
-                                    <p className="text-[10px] text-slate-400 font-medium mt-1">Viết mã viết tắt như MB, VCB, ICB, ACB, VPB, VPB, TCB, VPB.</p>
+                                    <p className="text-[10px] text-slate-400 font-medium mt-1">Viáº¿t mÃ£ viáº¿t táº¯t nhÆ° MB, VCB, ICB, ACB, VPB, VPB, TCB, VPB.</p>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Số tài khoản</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Sá»‘ tÃ i khoáº£n</label>
                                     <input
                                         type="text"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
@@ -1272,7 +1245,7 @@ export default function InvoicesPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Tên chủ tài khoản (Không dấu)</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">TÃªn chá»§ tÃ i khoáº£n (KhÃ´ng dáº¥u)</label>
                                     <input
                                         type="text"
                                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all uppercase font-bold"
@@ -1283,7 +1256,7 @@ export default function InvoicesPage() {
                                 </div>
                             </div>
                             <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-3xl shadow-2xl transition-all shadow-blue-100 flex items-center justify-center gap-2">
-                                Lưu thiết lập
+                                LÆ°u thiáº¿t láº­p
                             </button>
                         </form>
                     </div>
@@ -1292,3 +1265,4 @@ export default function InvoicesPage() {
         </div>
     );
 }
+

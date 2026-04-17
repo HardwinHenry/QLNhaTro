@@ -5,9 +5,11 @@ import RegisterPage from "./pages/RegisterPage";
 import HomePage from "./pages/HomePage";
 import RoomsPage from "./pages/RoomsPage";
 import InvoicesPage from "./pages/InvoicesPage";
+import InvoicePaymentPage from "./pages/InvoicePaymentPage";
 import ContractsPage from "./pages/ContractsPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import PaymentDashboardPage from "./pages/PaymentDashboardPage";
 import RoomDetailPage from "./pages/RoomDetailPage";
 import UtilitiesPage from "./pages/UtilitiesPage";
 import BookingsPage from "./pages/BookingsPage";
@@ -26,6 +28,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/invoice/:code" element={<InvoicePaymentPage />} />
 
         {/* Protected Routes - Tất cả user đã đăng nhập */}
         <Route element={<ProtectedRoute />}>
@@ -35,6 +38,7 @@ function App() {
             <Route path="/rented-rooms" element={<RentedRoomsPage />} />
             <Route path="/rooms/:id" element={<RoomDetailPage />} />
             <Route path="/invoices" element={<InvoicesPage />} />
+            <Route path="/payments" element={<PaymentDashboardPage />} />
             <Route path="/contracts" element={<ContractsPage />} />
             <Route path="/utilities" element={<UtilitiesPage />} />
             <Route path="/bookings" element={<BookingsPage />} />
