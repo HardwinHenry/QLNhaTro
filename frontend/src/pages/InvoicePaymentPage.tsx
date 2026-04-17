@@ -207,7 +207,7 @@ export default function InvoicePaymentPage() {
                                 <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 flex items-start gap-3">
                                     <Clock className="text-blue-600 mt-0.5" size={18} />
                                     <p className="text-sm text-blue-700">
-                                        Trạng thái đang được kiểm tra tự động mỗi 4 giây. Màn hình sẽ tự cập nhật khi thanh toán thành công.
+                                        Vui lòng hoàn tất thanh toán trước hạn để nhé.
                                     </p>
                                 </div>
 
