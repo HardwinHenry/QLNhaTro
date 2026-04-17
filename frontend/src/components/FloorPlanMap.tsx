@@ -162,44 +162,6 @@ export default function FloorPlanMap({ rooms, dayPhongs, highlightRoomId }: Floo
                                         <rect x={ox + 10} y={oy + 10} width={blueprintW} height={blueprintH} fill="#0000000a" rx="4" />
 
                                         {/* WEST ROAD (North -> South) */}
-                                        <g>
-                                            <rect
-                                                x={PAD} y={0}
-                                                width={westRoadW} height={svgH - 20}
-                                                fill="#f1f5f9"
-                                            />
-                                            {/* Street markings (vertical) */}
-                                            <line
-                                                x1={PAD + westRoadW / 2} y1={0}
-                                                x2={PAD + westRoadW / 2} y2={svgH - 20}
-                                                stroke="#e2e8f0" strokeWidth="2" strokeDasharray="15 15"
-                                            />
-                                            {/* North Label */}
-                                            <text
-                                                x={PAD + westRoadW / 2} y={15}
-                                                textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="900" letterSpacing="2"
-                                            >
-                                                BẮC (NORTH)
-                                            </text>
-                                            <path d={`M ${PAD + westRoadW / 2} 25 L ${PAD + westRoadW / 2} 35 M ${PAD + westRoadW / 2 - 5} 30 L ${PAD + westRoadW / 2} 25 L ${PAD + westRoadW / 2 + 5} 30`} fill="none" stroke="#94a3b8" strokeWidth="1.5" />
-
-                                            {/* South Label */}
-                                            <text
-                                                x={PAD + westRoadW / 2} y={svgH - 25}
-                                                textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="900" letterSpacing="2"
-                                            >
-                                                NAM (SOUTH)
-                                            </text>
-
-                                            {/* West Street Label (Vertical) */}
-                                            <text
-                                                x={PAD + 20} y={(svgH - 20) / 2}
-                                                textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="900" letterSpacing="4"
-                                                transform={`rotate(-90, ${PAD + 20}, ${(svgH - 20) / 2})`}
-                                            >
-                                                ĐƯỜNG TÂY (WEST STREET)
-                                            </text>
-                                        </g>
 
 
 
