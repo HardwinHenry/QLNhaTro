@@ -162,7 +162,8 @@ export const createHoaDon = async (req, res) => {
         const thangThanhToan = `${inputDate.getFullYear()}-${String(inputDate.getMonth() + 1).padStart(2, "0")}`;
         const dueDayRaw = Number.parseInt(process.env.INVOICE_DUE_DAY || "5", 10);
         const dueDay = Number.isFinite(dueDayRaw) ? Math.min(28, Math.max(1, dueDayRaw)) : 5;
-        const hanThanhToan = new Date(inputDate.getFullYear(), inputDate.getMonth(), dueDay, 23, 59, 59, 999);
+        // Due date is set to next month so newly created invoices are not immediately overdue.
+        const hanThanhToan = new Date(inputDate.getFullYear(), inputDate.getMonth() + 1, dueDay, 23, 59, 59, 999);
         const maThanhToan = await generateUniquePaymentCode(hopDong.idPhong, inputDate);
         const trangThaiBanDau = hanThanhToan.getTime() < Date.now() ? "Qua_Han" : "Chua_Thanh_Toan";
 

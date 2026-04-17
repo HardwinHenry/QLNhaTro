@@ -35,7 +35,8 @@ function getDueDateForMonth(month) {
 
   const year = Number.parseInt(yearText, 10);
   const monthIndex = Number.parseInt(monthText, 10) - 1;
-  return new Date(year, monthIndex, dueDay, 23, 59, 59, 999);
+  // Due date is set to next month so newly created invoices are not immediately overdue.
+  return new Date(year, monthIndex + 1, dueDay, 23, 59, 59, 999);
 }
 
 function normalizeCodePart(rawValue) {
@@ -493,4 +494,3 @@ export const exportPaymentsCsv = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
-
