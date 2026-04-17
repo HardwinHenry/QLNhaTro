@@ -13,7 +13,7 @@ import { auth } from "../middlewares/auth.js";
 import { upload } from "../middlewares/upload.js";
 import { getLatestCauHinh, updateCauHinh } from "../controllers/cauhinh.js";
 import { createYeuCauBaoTri, getAllYeuCauBaoTri, getYeuCauBaoTriByKhach, updateTrangThaiBaoTri, deleteYeuCauBaoTri } from "../controllers/baotri.js";
-import { handleSePayWebhook, sepayRateLimit } from "../controllers/sepayWebhook.js";
+import { handleSePayWebhook, parseSePayWebhookBody, sepayRateLimit } from "../controllers/sepayWebhook.js";
 import {
   exportPaymentsCsv,
   generateInvoicesByMonth,
@@ -25,8 +25,8 @@ import {
 const router = express.Router();
 
 // Public webhooks
-router.post("/webhook/sepay", sepayRateLimit, handleSePayWebhook);
-router.post("/payments/webhook", sepayRateLimit, handleSePayWebhook);
+router.post("/webhook/sepay", parseSePayWebhookBody, sepayRateLimit, handleSePayWebhook);
+router.post("/payments/webhook", parseSePayWebhookBody, sepayRateLimit, handleSePayWebhook);
 
 // Public invoice status routes
 router.get("/invoices/:code/status", getInvoiceStatusByCode);

@@ -27,7 +27,10 @@ function toSafeNumber(rawValue) {
 
 function normalizePaymentCode(code) {
   if (typeof code !== "string") return "";
-  return code.trim().toUpperCase();
+  return String(code)
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
 }
 
 export function normalizeSePayId(rawId) {
@@ -78,6 +81,30 @@ function normalizeTransferType(rawType) {
 
 function getStringValue(rawValue) {
   return typeof rawValue === "string" ? rawValue.trim() : "";
+}
+
+function getPaymentCodeCandidatesFromContent(content) {
+  const normalized = String(content || "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, " ");
+
+  const tokens = normalized
+    .split(/\s+/)
+    .map(normalizePaymentCode)
+    .filter((token) => token.length >= 6 && token.length <= 20);
+
+  if (tokens.length === 0) return [];
+
+  const uniqueTokens = [...new Set(tokens)];
+  const prefix = normalizePaymentCode(process.env.SEPAY_PAYMENT_PREFIX || "TRO").slice(0, 4);
+
+  return uniqueTokens.sort((a, b) => {
+    const aHasPrefix = prefix && a.startsWith(prefix);
+    const bHasPrefix = prefix && b.startsWith(prefix);
+    if (aHasPrefix && !bHasPrefix) return -1;
+    if (!aHasPrefix && bHasPrefix) return 1;
+    return b.length - a.length;
+  });
 }
 
 function parsePayload(payload) {
@@ -238,7 +265,8 @@ export async function processSePayPayload(payload, options = {}) {
         result: SEPAY_RESULTS.FAILED,
         message: "Thiếu trường id từ SePay.",
         sepayId,
-        source
+        source,
+        retryable: false
       };
     }
 
@@ -248,7 +276,8 @@ export async function processSePayPayload(payload, options = {}) {
         result: SEPAY_RESULTS.DUPLICATE,
         message: "Giao dịch đã tồn tại, bỏ qua xử lý trùng.",
         sepayId,
-        source
+        source,
+        retryable: false
       };
     }
 
@@ -268,7 +297,8 @@ export async function processSePayPayload(payload, options = {}) {
             result: SEPAY_RESULTS.DUPLICATE,
             message: "Giao dịch đã tồn tại, bỏ qua xử lý trùng.",
             sepayId,
-            source
+            source,
+            retryable: false
           };
         }
         throw error;
@@ -278,7 +308,8 @@ export async function processSePayPayload(payload, options = {}) {
         result: SEPAY_RESULTS.FAILED,
         message: validationError,
         sepayId,
-        source
+        source,
+        retryable: false
       };
     }
 
@@ -311,8 +342,22 @@ export async function processSePayPayload(payload, options = {}) {
         result: SEPAY_RESULTS.WRONG_DIRECTION,
         message: "transferType phải là \"in\".",
         sepayId: parsed.sepayId,
-        source
+        source,
+        retryable: false
       };
+    }
+
+    let invoice = null;
+    if (parsed.paymentCode) {
+      invoice = await HoaDon.findOne({ maThanhToan: parsed.paymentCode });
+    } else {
+      const codeCandidates = getPaymentCodeCandidatesFromContent(parsed.content);
+      if (codeCandidates.length > 0) {
+        invoice = await HoaDon.findOne({ maThanhToan: { $in: codeCandidates } });
+        if (invoice?.maThanhToan) {
+          parsed.paymentCode = normalizePaymentCode(invoice.maThanhToan);
+        }
+      }
     }
 
     if (!parsed.paymentCode) {
@@ -325,11 +370,11 @@ export async function processSePayPayload(payload, options = {}) {
         result: SEPAY_RESULTS.UNMATCHED_CODE,
         message: "Thiếu payment code trong payload SePay.",
         sepayId: parsed.sepayId,
-        source
+        source,
+        retryable: false
       };
     }
 
-    const invoice = await HoaDon.findOne({ maThanhToan: parsed.paymentCode });
     if (!invoice) {
       await finalizeTransaction(transaction, {
         result: SEPAY_RESULTS.UNMATCHED_CODE,
@@ -341,7 +386,8 @@ export async function processSePayPayload(payload, options = {}) {
         result: SEPAY_RESULTS.UNMATCHED_CODE,
         message: "Không có hóa đơn nào khớp payment code.",
         sepayId: parsed.sepayId,
-        source
+        source,
+        retryable: false
       };
     }
 
@@ -364,7 +410,8 @@ export async function processSePayPayload(payload, options = {}) {
         result: SEPAY_RESULTS.AMOUNT_MISMATCH,
         message: "Số tiền chuyển thấp hơn số tiền cần thanh toán.",
         sepayId: parsed.sepayId,
-        source
+        source,
+        retryable: false
       };
     }
 
@@ -390,7 +437,8 @@ export async function processSePayPayload(payload, options = {}) {
         result: SEPAY_RESULTS.ALREADY_PAID,
         message: "Hóa đơn đã thanh toán trước đó.",
         sepayId: parsed.sepayId,
-        source
+        source,
+        retryable: false
       };
     }
 
@@ -434,14 +482,16 @@ export async function processSePayPayload(payload, options = {}) {
       message: "Đã xác nhận thanh toán thành công.",
       sepayId: parsed.sepayId,
       invoiceId: invoice._id,
-      source
+      source,
+      retryable: false
     };
   } catch (error) {
     return {
       result: SEPAY_RESULTS.FAILED,
       message: error?.message || "Lỗi không xác định khi xử lý giao dịch SePay.",
       sepayId: normalizeSePayId(payload?.id),
-      source
+      source,
+      retryable: true
     };
   }
 }

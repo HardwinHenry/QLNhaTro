@@ -1,9 +1,11 @@
 import crypto from "node:crypto";
+import multer from "multer";
 import SePayWebhookLog from "../models/SePayWebhookLog.js";
 import { normalizeSePayId, processSePayPayload, SEPAY_RESULTS } from "../libs/sepayPayment.js";
 
 const rateLimitBuckets = new Map();
 const RATE_LIMIT_CLEANUP_THRESHOLD = 5000;
+const sepayMultipart = multer();
 
 function parseIntEnv(name, fallback) {
   const parsed = Number.parseInt(process.env[name] || "", 10);
@@ -42,6 +44,22 @@ function getApiKeyFromAuthorizationHeader(rawHeader) {
   const matched = rawHeader.trim().match(/^apikey\s+(.+)$/i);
   if (!matched?.[1]) return "";
   return matched[1].trim();
+}
+
+function getApiKeyFromRequest(req) {
+  const fromAuthorization = getApiKeyFromAuthorizationHeader(req.headers.authorization);
+  if (fromAuthorization) return fromAuthorization;
+
+  const rawHeader = req.headers["x-api-key"];
+  if (typeof rawHeader === "string") return rawHeader.trim();
+  if (Array.isArray(rawHeader)) return String(rawHeader[0] || "").trim();
+
+  return "";
+}
+
+function getAuthMode() {
+  const mode = String(process.env.SEPAY_AUTH_MODE || "api_key").trim().toLowerCase();
+  return mode === "none" ? "none" : "api_key";
 }
 
 async function updateWebhookLog(logId, updates) {
@@ -85,6 +103,14 @@ export const sepayRateLimit = (req, res, next) => {
   return next();
 };
 
+export const parseSePayWebhookBody = (req, res, next) => {
+  if (req.is("multipart/form-data")) {
+    return sepayMultipart.none()(req, res, next);
+  }
+
+  return next();
+};
+
 export const handleSePayWebhook = async (req, res) => {
   const payload = req.body && typeof req.body === "object" ? req.body : {};
   const sepayId = normalizeSePayId(payload?.id);
@@ -105,22 +131,25 @@ export const handleSePayWebhook = async (req, res) => {
   }
 
   try {
-    const configuredApiKey = String(process.env.SEPAY_API_KEY || "").trim();
-    if (!configuredApiKey) {
-      await updateWebhookLog(webhookLogId, {
-        result: SEPAY_RESULTS.FAILED,
-        message: "Thiếu SEPAY_API_KEY trong môi trường."
-      });
-      return res.status(500).json({ success: false, error: "Webhook not configured" });
-    }
+    const authMode = getAuthMode();
+    if (authMode === "api_key") {
+      const configuredApiKey = String(process.env.SEPAY_API_KEY || "").trim();
+      if (!configuredApiKey) {
+        await updateWebhookLog(webhookLogId, {
+          result: SEPAY_RESULTS.FAILED,
+          message: "Thiếu SEPAY_API_KEY trong môi trường."
+        });
+        return res.status(500).json({ success: false, error: "Webhook not configured" });
+      }
 
-    const receivedApiKey = getApiKeyFromAuthorizationHeader(req.headers.authorization);
-    if (!secureCompare(receivedApiKey, configuredApiKey)) {
-      await updateWebhookLog(webhookLogId, {
-        result: SEPAY_RESULTS.FAILED,
-        message: "Authorization không hợp lệ."
-      });
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+      const receivedApiKey = getApiKeyFromRequest(req);
+      if (!secureCompare(receivedApiKey, configuredApiKey)) {
+        await updateWebhookLog(webhookLogId, {
+          result: SEPAY_RESULTS.FAILED,
+          message: "Authorization không hợp lệ."
+        });
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
     }
 
     const processed = await processSePayPayload(payload, { source: "webhook" });
@@ -131,6 +160,10 @@ export const handleSePayWebhook = async (req, res) => {
       message: processed.message
     });
 
+    if (processed.result === SEPAY_RESULTS.FAILED && processed.retryable) {
+      return res.status(500).json({ success: false, error: "Retryable webhook processing error" });
+    }
+
     return res.status(200).json({ success: true });
   } catch (error) {
     await updateWebhookLog(webhookLogId, {
@@ -138,7 +171,6 @@ export const handleSePayWebhook = async (req, res) => {
       message: error?.message || "Lỗi hệ thống khi xử lý webhook."
     });
 
-    return res.status(200).json({ success: true });
+    return res.status(500).json({ success: false, error: "Webhook processing failed" });
   }
 };
-

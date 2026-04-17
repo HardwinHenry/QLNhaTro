@@ -31,22 +31,22 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const isAdmin = user?.vaiTro === "Chu_Tro";
 
     const menuItems = [
-        { icon: Home, label: "Trang chá»§", href: "/", roles: ["Chu_Tro", "Khach"] },
-        { icon: DoorOpen, label: "Xem PhÃ²ng", href: "/rooms", roles: ["Chu_Tro", "Khach"] },
-        { icon: Receipt, label: "HÃ³a Ä‘Æ¡n", href: "/invoices", roles: ["Chu_Tro", "Khach"] },
-        { icon: Zap, label: "Äiá»‡n & NÆ°á»›c", href: "/utilities", roles: ["Chu_Tro", "Khach"] },
-        { icon: Calendar, label: "Lá»‹ch xem phÃ²ng", href: "/bookings", roles: ["Chu_Tro", "Khach"] },
-        { icon: FileText, label: "Há»£p Ä‘á»“ng", href: "/contracts", roles: ["Chu_Tro", "Khach"] },
-        { icon: Wrench, label: "Báº£o trÃ¬", href: "/maintenance", roles: ["Chu_Tro", "Khach"] },
-        { icon: User, label: "CÃ¡ nhÃ¢n", href: "/profile", roles: ["Chu_Tro", "Khach"] },
+        { icon: Home, label: "Trang chủ", href: "/", roles: ["Chu_Tro", "Khach"] },
+        { icon: DoorOpen, label: "Xem Phòng", href: "/rooms", roles: ["Chu_Tro", "Khach"] },
+        { icon: Receipt, label: "Hóa đơn", href: "/invoices", roles: ["Chu_Tro", "Khach"] },
+        { icon: Zap, label: "Điện & Nước", href: "/utilities", roles: ["Chu_Tro", "Khach"] },
+        { icon: Calendar, label: "Lịch xem phòng", href: "/bookings", roles: ["Chu_Tro", "Khach"] },
+        { icon: FileText, label: "Hợp đồng", href: "/contracts", roles: ["Chu_Tro", "Khach"] },
+        { icon: Wrench, label: "Bảo trì", href: "/maintenance", roles: ["Chu_Tro", "Khach"] },
+        { icon: User, label: "Cá nhân", href: "/profile", roles: ["Chu_Tro", "Khach"] },
     ];
 
     const adminItems = [
-        { icon: Settings, label: "Báº£ng quáº£n trá»‹", href: "/admin", roles: ["Chu_Tro"] },
+        { icon: Settings, label: "Bảng quản trị", href: "/admin", roles: ["Chu_Tro"] },
         { icon: CircleDollarSign, label: "Thanh toán", href: "/payments", roles: ["Chu_Tro"] },
-        { icon: DoorOpen, label: "PhÃ²ng Ä‘ang thuÃª", href: "/rented-rooms", roles: ["Chu_Tro"] },
-        { icon: UsersIcon, label: "Quáº£n lÃ½ khÃ¡ch", href: "/customers", roles: ["Chu_Tro"] },
-        { icon: Package, label: "Quáº£n lÃ½ váº­t tÆ°", href: "/assets", roles: ["Chu_Tro"] },
+        { icon: DoorOpen, label: "Phòng đang thuê", href: "/rented-rooms", roles: ["Chu_Tro"] },
+        { icon: UsersIcon, label: "Quản lý khách", href: "/customers", roles: ["Chu_Tro"] },
+        { icon: Package, label: "Quản lý vật tư", href: "/assets", roles: ["Chu_Tro"] },
     ];
 
     return (
@@ -63,12 +63,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <path d="M3 9.5L12 3l9 6.5V21H3V9.5z" />
                         </svg>
                     </div>
-                    <span className="font-bold text-lg tracking-tight truncate">QL NhÃ  Trá»</span>
+                    <span className="font-bold text-lg tracking-tight truncate">QL Nhà Trọ</span>
                 </div>
                 <button
                     onClick={onClose}
                     className="lg:hidden p-2 rounded-lg hover:bg-blue-800 transition-colors"
-                    aria-label="ÄÃ³ng menu"
+                    aria-label="Đóng menu"
                 >
                     <X size={18} />
                 </button>
@@ -76,7 +76,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
             <nav className="flex-1 overflow-y-auto p-4 space-y-6">
                 <div>
-                    <p className="text-xs font-semibold text-blue-300 uppercase tracking-widest px-3 mb-2">Chá»©c nÄƒng</p>
+                    <p className="text-xs font-semibold text-blue-300 uppercase tracking-widest px-3 mb-2">Chức năng</p>
                     <div className="space-y-1">
                         {menuItems.map((item) => (
                             <Link
@@ -100,7 +100,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                 {isAdmin && (
                     <div>
-                        <p className="text-xs font-semibold text-blue-300 uppercase tracking-widest px-3 mb-2">Quáº£n trá»‹</p>
+                        <p className="text-xs font-semibold text-blue-300 uppercase tracking-widest px-3 mb-2">Quản trị</p>
                         <div className="space-y-1">
                             {adminItems.map((item) => (
                                 <Link
@@ -140,7 +140,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <div className="overflow-hidden">
                         <p className="text-sm font-semibold truncate">{user?.tenDangNhap}</p>
                         <p className="text-[10px] text-blue-300 uppercase tracking-wider">
-                            {isAdmin ? "Chá»§ trá»" : "KhÃ¡ch thuÃª"}
+                            {isAdmin ? "Chủ trọ" : "Khách thuê"}
                         </p>
                     </div>
                 </div>
@@ -148,11 +148,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     onClick={() => {
                         logout();
                         onClose();
-                        toast.success("ÄÄƒng xuáº¥t thÃ nh cÃ´ng");
+                        toast.success("Đăng xuất thành công");
                     }}
                     className="w-full flex items-center justify-center gap-2 bg-blue-800/50 hover:bg-red-600/20 hover:text-red-300 py-2 rounded-lg transition-all text-sm font-medium border border-blue-700/50 hover:border-red-500/30"
                 >
-                    <LogOut size={16} /> ÄÄƒng xuáº¥t
+                    <LogOut size={16} /> Đăng xuất
                 </button>
             </div>
         </aside>
