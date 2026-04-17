@@ -18,6 +18,7 @@ const isProduction = process.env.NODE_ENV === "production";
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public"))); // Serve public folder
 app.use("/uploads", express.static(path.join(__dirname, "../public/uploads"))); // Specifically serve uploads
 
