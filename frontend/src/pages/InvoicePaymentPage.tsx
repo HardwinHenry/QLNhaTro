@@ -204,6 +204,12 @@ export default function InvoicePaymentPage() {
                                     <p><span className="text-slate-500">Nội dung CK:</span> <span className="font-bold break-all">{invoice.paymentCode}</span></p>
                                 </div>
 
+                                <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 flex items-start gap-3">
+                                    <Clock className="text-blue-600 mt-0.5" size={18} />
+                                    <p className="text-sm text-blue-700">
+                                        Trạng thái đang được kiểm tra tự động mỗi 4 giây. Màn hình sẽ tự cập nhật khi thanh toán thành công.
+                                    </p>
+                                </div>
 
                                 {isOverdue && (
                                     <div className="rounded-2xl border border-red-200 bg-red-50 p-4 flex items-start gap-3">
