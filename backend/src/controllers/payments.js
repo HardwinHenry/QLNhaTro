@@ -255,10 +255,10 @@ export const getPublicInvoiceByCode = async (req, res) => {
       paymentCode: invoice.maThanhToan,
       room: invoice.idPhong
         ? {
-            id: invoice.idPhong._id,
-            roomNumber: invoice.idPhong.idPhong,
-            roomName: invoice.idPhong.tenPhong
-          }
+          id: invoice.idPhong._id,
+          roomNumber: invoice.idPhong.idPhong,
+          roomName: invoice.idPhong.tenPhong
+        }
         : null,
       month: invoice.thangThanhToan || null,
       amountDue: invoice.tongTien || 0,
@@ -267,10 +267,10 @@ export const getPublicInvoiceByCode = async (req, res) => {
       paidAt: invoice.ngayThanhToan || null,
       bank: cauHinh
         ? {
-            code: cauHinh.nganHang,
-            accountNumber: cauHinh.soTaiKhoan,
-            accountName: cauHinh.chuTaiKhoan
-          }
+          code: cauHinh.nganHang,
+          accountNumber: cauHinh.soTaiKhoan,
+          accountName: cauHinh.chuTaiKhoan
+        }
         : null
     });
   } catch (error) {
@@ -490,6 +490,44 @@ export const exportPaymentsCsv = async (req, res) => {
     res.setHeader("Content-Disposition", `attachment; filename="payments-${month}.csv"`);
 
     return res.send(`\uFEFF${csvContent}`);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const getRevenueStatistics = async (req, res) => {
+  try {
+    const year = req.query?.year || new Date().getFullYear().toString();
+    const invoices = await HoaDon.find({
+      trangThai: "Da_Thanh_Toan",
+      thangThanhToan: { $regex: `^${year}-` }
+    }).lean();
+
+    const monthlyRevenue = Array(12).fill(0);
+    let totalRevenue = 0;
+
+    invoices.forEach((invoice) => {
+      if (!invoice.thangThanhToan) return;
+      const monthPart = invoice.thangThanhToan.split("-")[1];
+      const monthIndex = Number.parseInt(monthPart, 10) - 1;
+      const amount = Number(invoice.soTienDaThanhToan || invoice.tongTien || 0);
+
+      if (monthIndex >= 0 && monthIndex < 12) {
+        monthlyRevenue[monthIndex] += amount;
+        totalRevenue += amount;
+      }
+    });
+
+    const revenueByMonth = monthlyRevenue.map((revenue, index) => ({
+      month: `${year}-${String(index + 1).padStart(2, "0")}`,
+      revenue
+    }));
+
+    return res.json({
+      year,
+      totalRevenue,
+      revenueByMonth
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

@@ -15,12 +15,13 @@ import { getLatestCauHinh, updateCauHinh } from "../controllers/cauhinh.js";
 import { createYeuCauBaoTri, getAllYeuCauBaoTri, getYeuCauBaoTriByKhach, updateTrangThaiBaoTri, deleteYeuCauBaoTri } from "../controllers/baotri.js";
 import { handleSePayWebhook, parseSePayWebhookBody, sepayRateLimit } from "../controllers/sepayWebhook.js";
 import {
-  exportPaymentsCsv,
-  generateInvoicesByMonth,
-  getInvoiceStatusByCode,
-  getInvoicesForLandlord,
-  getPaymentsReport,
-  getPublicInvoiceByCode
+    exportPaymentsCsv,
+    generateInvoicesByMonth,
+    getInvoiceStatusByCode,
+    getInvoicesForLandlord,
+    getPaymentsReport,
+    getPublicInvoiceByCode,
+    getRevenueStatistics
 } from "../controllers/payments.js";
 const router = express.Router();
 
@@ -79,6 +80,7 @@ router.post("/invoices/generate", auth(["Chu_Tro"]), generateInvoicesByMonth);
 router.get("/invoices", auth(["Chu_Tro"]), getInvoicesForLandlord);
 router.get("/payments/report", auth(["Chu_Tro"]), getPaymentsReport);
 router.get("/payments/export", auth(["Chu_Tro"]), exportPaymentsCsv);
+router.get("/payments/statistics", auth(["Chu_Tro"]), getRevenueStatistics);
 
 
 // DayPhong routes

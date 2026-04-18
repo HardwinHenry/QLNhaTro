@@ -43,6 +43,10 @@ export default function AdminDashboardPage() {
     });
     const [loading, setLoading] = useState(true);
 
+    const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear().toString());
+    const [revenueStats, setRevenueStats] = useState<{ month: string, revenue: number }[]>([]);
+    const [totalRevenueYear, setTotalRevenueYear] = useState(0);
+
     // Form states (Removed DayPhong/VatTu)
 
     // Managed Rooms State
@@ -125,6 +129,20 @@ export default function AdminDashboardPage() {
     useEffect(() => {
         fetchData();
     }, []);
+
+    const fetchRevenueStats = async () => {
+        try {
+            const data = await invoiceService.getRevenueStatistics(selectedYear);
+            setRevenueStats(data.revenueByMonth);
+            setTotalRevenueYear(data.totalRevenue);
+        } catch (error) {
+            console.error("Failed to fetch revenue stats", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchRevenueStats();
+    }, [selectedYear]);
 
     const handleOpenUtilityModal = async (room: Room) => {
         try {
@@ -281,6 +299,58 @@ export default function AdminDashboardPage() {
                 ))}
             </div>
 
+            {/* Revenue Statistics Chart */}
+            <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 lg:col-span-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+                            <BarChart3 className="text-blue-600" /> Thống kê doanh thu
+                        </h2>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">
+                            Tổng doanh thu năm {selectedYear}: <span className="text-emerald-600 text-sm">{totalRevenueYear.toLocaleString()}đ</span>
+                        </p>
+                    </div>
+                    <div>
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(e.target.value)}
+                            className="bg-slate-50 border border-slate-200 text-slate-700 text-sm font-black rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            {[...Array(5)].map((_, i) => {
+                                const year = new Date().getFullYear() - i;
+                                return <option key={year} value={year}>Năm {year}</option>;
+                            })}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="h-64 flex items-end justify-between gap-2 sm:gap-4 pt-10 border-b-2 border-slate-100 pb-2 relative">
+                    {/* Y-axis guiding lines (decorative) */}
+                    <div className="absolute inset-x-0 bottom-1/2 border-b border-dashed border-slate-200 -z-10"></div>
+                    <div className="absolute inset-x-0 bottom-full border-b border-dashed border-slate-200 -z-10"></div>
+
+                    {revenueStats.map((stat, i) => {
+                        const maxRevenue = Math.max(...revenueStats.map(s => s.revenue), 1);
+                        const heightPercent = Math.max((stat.revenue / maxRevenue) * 100, 2); // min 2% for visibility
+
+                        return (
+                            <div key={stat.month} className="flex-1 flex flex-col items-center gap-2 group relative">
+                                {/* Tooltip */}
+                                <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded-lg whitespace-nowrap z-10 pointer-events-none">
+                                    {stat.revenue.toLocaleString()}đ
+                                </div>
+                                {/* Bar */}
+                                <div
+                                    className="w-full max-w-[40px] bg-blue-500/80 hover:bg-blue-600 rounded-t-md transition-all duration-500 ease-out cursor-pointer"
+                                    style={{ height: `${heightPercent}%` }}
+                                ></div>
+                                {/* Label */}
+                                <span className="text-[10px] font-black text-slate-400 uppercase">T{i + 1}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
 
             {/* Rented Rooms Section */}
             <div className="bg-white p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 lg:col-span-2">

@@ -145,6 +145,14 @@ export interface GenerateInvoicesResponse {
     }>;
 }
 
+export interface RevenueStatisticsResponse {
+    year: string;
+    totalRevenue: number;
+    revenueByMonth: Array<{
+        month: string;
+        revenue: number;
+    }>;
+}
 
 export const invoiceService = {
     getAllHoaDons: async () => {
@@ -191,6 +199,12 @@ export const invoiceService = {
         const response = await api.get<Blob>("/payments/export", {
             params: { month },
             responseType: "blob"
+        });
+        return response.data;
+    },
+    getRevenueStatistics: async (year: string) => {
+        const response = await api.get<RevenueStatisticsResponse>("/payments/statistics", {
+            params: { year }
         });
         return response.data;
     }
