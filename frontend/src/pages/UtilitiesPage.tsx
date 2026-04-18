@@ -18,6 +18,7 @@ export default function UtilitiesPage() {
     // Price form states
     const [giaDien, setGiaDien] = useState(0);
     const [giaNuoc, setGiaNuoc] = useState(0);
+    const [ngayApDung, setNgayApDung] = useState(new Date().toISOString().split("T")[0]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -93,7 +94,7 @@ export default function UtilitiesPage() {
     const handleUpdateGia = async () => {
         try {
             await utilityService.updateGia({
-                ngayApDung: new Date().toISOString(),
+                ngayApDung: new Date(ngayApDung).toISOString(),
                 giaDien,
                 giaNuoc
             });
@@ -263,6 +264,18 @@ export default function UtilitiesPage() {
                                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-black focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
                                 value={giaNuoc}
                                 onChange={(e) => setGiaNuoc(Number(e.target.value))}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <History size={14} className="text-slate-500" /> Ngày áp dụng
+                            </label>
+                            <input
+                                type="date"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-black focus:ring-4 focus:ring-slate-500/10 focus:border-slate-400 outline-none transition-all"
+                                value={ngayApDung}
+                                onChange={(e) => setNgayApDung(e.target.value)}
                             />
                         </div>
 

@@ -119,16 +119,16 @@ export default function RoomsPage() {
             });
         };
 
+        const existingImages = Array.isArray(room.hinhAnh) 
+            ? room.hinhAnh 
+            : (room.hinhAnh ? (typeof room.hinhAnh === 'string' ? [room.hinhAnh] : []) : []);
+
         return {
             id: room._id,
             name: room.tenPhong,
             price: room.giaPhong,
             status: room.trangThai === "Trong" ? ("available" as const) : ("occupied" as const),
-            images: (Array.isArray(room.hinhAnh) && room.hinhAnh.length > 0)
-                ? room.hinhAnh.map(img => img.startsWith('/uploads') ? resolveBackendAssetUrl(img) : img)
-                : (typeof room.hinhAnh === 'string' && room.hinhAnh)
-                    ? [room.hinhAnh.startsWith('/uploads') ? resolveBackendAssetUrl(room.hinhAnh) : room.hinhAnh, ...getLocalImages(index).slice(1)]
-                    : getLocalImages(index),
+            images: existingImages.length > 0 ? existingImages : getLocalImages(index),
             area: room.dienTich,
             loaiPhong: room.loaiPhong,
             dayPhong: room.idDayPhong ? `Dãy ${room.idDayPhong.soDay}` : undefined,

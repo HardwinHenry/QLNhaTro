@@ -20,13 +20,10 @@ import { slotService, type BookingSlot } from "../services/slotService";
 import { useAuthStore } from "../store/authStore";
 import { formatVi } from "../utils/dateFormatter";
 import { toast } from "sonner";
-import { resolveBackendAssetUrl } from "../utils/url";
+import { resolveRoomImageUrl, loaiPhongLabels } from "../utils/url";
 import ImageViewer from "../components/ImageViewer";
 
-const loaiPhongLabels: Record<string, string> = {
-    Co_Gac: "Có gác",
-    Khong_Gac: "Không gác",
-};
+
 
 export default function RoomDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -110,11 +107,11 @@ export default function RoomDetailPage() {
         }
 
         if (rawImages.length > 0) {
-            return rawImages.map(img => img.startsWith('/uploads') ? resolveBackendAssetUrl(img) : img);
+            return rawImages.map(img => resolveRoomImageUrl(img));
         }
 
         // Placeholder images if none exist
-        return ["/Phong01.jpg", "/Phong02.jpg", "/Phong03.jpg"];
+        return ["/Phong01.jpg", "/Phong02.jpg", "/Phong03.jpg"].map(img => resolveRoomImageUrl(img));
     };
 
     const images = getImages();
@@ -179,6 +176,10 @@ export default function RoomDetailPage() {
                                 src={images[activeImage]}
                                 alt={room.tenPhong}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = "/RoomPlaceholder.jpg";
+                                }}
                             />
                             {room.trangThai !== "Trong" && (
                                 <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">

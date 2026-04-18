@@ -1,7 +1,7 @@
-import { Maximize, User, Trash2, Edit, Package, Layers } from "lucide-react";
 import { useNavigate } from "react-router";
-import { resolveBackendAssetUrl } from "../utils/url";
+import { resolveRoomImageUrl, loaiPhongLabels } from "../utils/url";
 import { useState } from "react";
+import { User, Edit, Trash2, Layers, Package, Maximize } from "lucide-react";
 import ImageViewer from "./ImageViewer";
 
 interface RoomCardProps {
@@ -27,10 +27,7 @@ interface RoomCardProps {
 }
 
 
-const loaiPhongLabels: Record<string, string> = {
-    Co_Gac: "Có gác",
-    Khong_Gac: "Không gác",
-};
+
 
 export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardProps) {
     const navigate = useNavigate();
@@ -51,9 +48,13 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
                     onClick={(e) => openViewer(e, 0)}
                 >
                     <img
-                        src={room.images[0]?.startsWith('/uploads') ? resolveBackendAssetUrl(room.images[0]) : (room.images[0] || "/RoomPlaceholder.jpg")}
+                        src={resolveRoomImageUrl(room.images[0])}
                         alt={`${room.name}-1`}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "/RoomPlaceholder.jpg";
+                        }}
                     />
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold text-blue-900 border border-white/50 shadow-sm">
                         {room.status === "available" ? "ĐANG TRỐNG" : "ĐÃ CHO THUÊ"}
@@ -65,9 +66,13 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
                         onClick={(e) => openViewer(e, 1)}
                     >
                         <img
-                            src={room.images[1] ? (room.images[1].startsWith('/uploads') ? resolveBackendAssetUrl(room.images[1]) : room.images[1]) : "/RoomPlaceholder.jpg"}
+                            src={resolveRoomImageUrl(room.images[1])}
                             alt={`${room.name}-2`}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = "/RoomPlaceholder.jpg";
+                            }}
                         />
                     </div>
                     <div
@@ -75,9 +80,13 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
                         onClick={(e) => openViewer(e, 2)}
                     >
                         <img
-                            src={room.images[2] ? (room.images[2].startsWith('/uploads') ? resolveBackendAssetUrl(room.images[2]) : room.images[2]) : "/RoomPlaceholder.jpg"}
+                            src={resolveRoomImageUrl(room.images[2])}
                             alt={`${room.name}-3`}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = "/RoomPlaceholder.jpg";
+                            }}
                         />
                         {room.images.length > 3 && (
                             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
@@ -90,7 +99,6 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
 
             {/* Content */}
             <div className="p-4 sm:p-5">
-                {/* ... existing content ... */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3">
                     <div>
                         <div className="flex items-center gap-2 mb-1">
@@ -174,7 +182,7 @@ export default function RoomCard({ room, isAdmin, onEdit, onDelete }: RoomCardPr
             </div>
 
             <ImageViewer
-                images={room.images.map(img => img.startsWith('/uploads') ? resolveBackendAssetUrl(img) : img)}
+                images={room.images.map(img => resolveRoomImageUrl(img))}
                 currentIndex={viewIndex}
                 isOpen={viewerOpen}
                 onClose={() => setViewerOpen(false)}

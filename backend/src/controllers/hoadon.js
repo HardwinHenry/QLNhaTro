@@ -121,6 +121,7 @@ export const createHoaDon = async (req, res) => {
             return res.status(400).json({ message: "Chỉ có thể tạo hóa đơn cho tháng hiện tại." });
         }
 
+
         // Validation: Must be within contract term
         const hopDong = await HopDong.findById(idHopDong);
         if (!hopDong) {
@@ -142,14 +143,19 @@ export const createHoaDon = async (req, res) => {
             tienDichVu = 0 
         } = req.body;
 
-        // Tự động lấy đơn giá mới nhất nếu thiếu
+        // Tự động lấy đơn giá mới nhất tại thời điểm lập hóa đơn nếu thiếu
         if (!giaDien || !giaNuoc) {
-            const latestGia = await GiaDienVaNuoc.findOne().sort({ ngayApDung: -1 });
+            const referenceDate = ngayThangNam ? new Date(ngayThangNam) : new Date();
+            const latestGia = await GiaDienVaNuoc.findOne({
+                ngayApDung: { $lte: referenceDate }
+            }).sort({ ngayApDung: -1 });
+
             if (latestGia) {
                 if (!giaDien) giaDien = latestGia.giaDien;
                 if (!giaNuoc) giaNuoc = latestGia.giaNuoc;
             }
         }
+
 
         // Tự động lấy tiền phòng từ hợp đồng nếu thiếu
         if (!tienPhong) {

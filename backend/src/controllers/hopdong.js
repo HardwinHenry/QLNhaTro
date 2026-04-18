@@ -19,9 +19,13 @@ export const createHopDong = async (req, res) => {
     try {
         const body = { ...req.body };
 
-        // Nếu không có giá điện nước trong body, lấy giá mới nhất
+        // Nếu không có giá điện nước trong body, lấy giá mới nhất tại thời điểm bắt đầu hợp đồng
         if (!body.giaDien || !body.giaNuoc) {
-            const latestGia = await GiaDienVaNuoc.findOne().sort({ ngayApDung: -1 });
+            const referenceDate = body.ngayBatDau ? new Date(body.ngayBatDau) : new Date();
+            const latestGia = await GiaDienVaNuoc.findOne({
+                ngayApDung: { $lte: referenceDate }
+            }).sort({ ngayApDung: -1 });
+            
             if (latestGia) {
                 if (!body.giaDien) body.giaDien = latestGia.giaDien;
                 if (!body.giaNuoc) body.giaNuoc = latestGia.giaNuoc;
