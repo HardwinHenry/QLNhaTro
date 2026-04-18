@@ -6,7 +6,7 @@ import { getAllHoaDons, createHoaDon, updateHoaDon, deleteHoaDon, requestPayment
 import { getAllDayPhongs, createDayPhong, updateDayPhong, deleteDayPhong } from "../controllers/dayphong.js";
 import { getAllVatTus, createVatTu, updateVatTu, deleteVatTu } from "../controllers/vattu.js";
 import { getAllChiSos, getLatestChiSoByPhong, getChiSoLookupByPhong, createChiSo, deleteAllChiSos, deleteChiSo } from "../controllers/chisodiennuoc.js";
-import { getLatestGia, updateGia, getAllGias } from "../controllers/giadiennuoc.js";
+import { getLatestGia, updateGia, getAllGias, deleteGia } from "../controllers/giadiennuoc.js";
 import { createYeuCau, getAllYeuCaus, confirmYeuCau, cancelYeuCau, updateYeuCau, deleteYeuCau } from "../controllers/datphong.js";
 import { createSlot, getAllSlots, deleteSlot, cleanupOldSlots } from "../controllers/lichxemphong.js";
 import { auth } from "../middlewares/auth.js";
@@ -106,6 +106,7 @@ router.delete("/chisodiennuoc/:id", auth(["Chu_Tro"]), deleteChiSo);
 router.get("/giadiennuoc/latest", auth(), getLatestGia);
 router.get("/giadiennuoc/history", auth(), getAllGias);
 router.post("/giadiennuoc", auth(["Chu_Tro"]), updateGia);
+router.delete("/giadiennuoc/:id", auth(["Chu_Tro"]), deleteGia);
 
 // Booking routes
 router.get("/datphong", auth(), getAllYeuCaus);

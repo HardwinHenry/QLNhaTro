@@ -48,7 +48,7 @@ export default function UtilitiesPage() {
 
     const handleDeleteChiSo = async (id: string | undefined) => {
         if (!id) return;
-        
+
         const result = await Swal.fire({
             title: 'Xác nhận xóa?',
             text: "Bạn có chắc chắn muốn xóa bản ghi chỉ số này không? Hành động này không thể hoàn tác.",
@@ -76,7 +76,7 @@ export default function UtilitiesPage() {
                     confirmButtonColor: '#2563eb',
                     timer: 1500
                 });
-                
+
                 // Refresh list
                 const chiSosData = await utilityService.getAllChiSos();
                 setChiSos(chiSosData);
@@ -109,6 +109,59 @@ export default function UtilitiesPage() {
             setActiveTab("history");
         } catch (error) {
             alert("Lỗi khi cập nhật giá");
+        }
+    };
+
+    const handleDeleteGia = async (id: string | undefined) => {
+        if (!id) return;
+
+        const result = await Swal.fire({
+            title: 'Xóa lịch sử giá?',
+            text: "Bạn có chắc chắn muốn xóa bản ghi giá này không? Hệ thống sẽ tự động cập nhật lại đơn giá hiện tại nếu cần.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Xóa ngay',
+            cancelButtonText: 'Hủy',
+            reverseButtons: true,
+            customClass: {
+                popup: 'rounded-[2rem] p-8',
+                confirmButton: 'rounded-xl font-bold px-6 py-3',
+                cancelButton: 'rounded-xl font-bold px-6 py-3'
+            }
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await utilityService.deleteGia(id);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Đã xóa!',
+                    text: 'Lịch sử giá đã được xóa thành công.',
+                    confirmButtonColor: '#2563eb',
+                    timer: 1500
+                });
+
+                // Refresh both current price and history
+                const [giaData, giaHistoryData] = await Promise.all([
+                    utilityService.getLatestGia(),
+                    utilityService.getAllGias()
+                ]);
+                setLatestGia(giaData);
+                setGiaHistory(giaHistoryData);
+                if (giaData) {
+                    setGiaDien(giaData.giaDien);
+                    setGiaNuoc(giaData.giaNuoc);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Không thể xóa lịch sử giá này.',
+                    confirmButtonColor: '#2563eb'
+                });
+            }
         }
     };
 
@@ -176,7 +229,7 @@ export default function UtilitiesPage() {
                                         <td className="px-8 py-4 text-slate-400 text-sm text-center font-medium italic">{item.createdAt ? formatVi(item.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "N/A"}</td>
                                         {isAdmin && (
                                             <td className="px-8 py-4 text-right">
-                                                <button 
+                                                <button
                                                     onClick={() => handleDeleteChiSo(item._id)}
                                                     className="p-3 bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm hover:shadow-red-200 border border-red-100 hover:border-red-500"
                                                     title="Xóa bản ghi"
@@ -237,106 +290,117 @@ export default function UtilitiesPage() {
                     <div className="lg:col-span-2 space-y-8">
                         {/* Edit Form */}
                         <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-200 shadow-xl space-y-8">
-                    <div className="text-center">
-                        <h2 className="text-2xl font-black text-slate-900">Thiết lập đơn giá</h2>
-                        <p className="text-slate-500 font-medium mt-2 italic">Giá này sẽ được tự động áp dụng khi tính hóa đơn</p>
-                    </div>
+                            <div className="text-center">
+                                <h2 className="text-2xl font-black text-slate-900">Thiết lập đơn giá</h2>
+                                <p className="text-slate-500 font-medium mt-2 italic">Giá này sẽ được tự động áp dụng khi tính hóa đơn</p>
+                            </div>
 
-                    <div className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                <Zap size={14} className="text-amber-500" /> Đơn giá điện (vnđ / kWh)
-                            </label>
-                            <input
-                                type="number"
-                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-black focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 outline-none transition-all"
-                                value={giaDien}
-                                onChange={(e) => setGiaDien(Number(e.target.value))}
-                            />
-                        </div>
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                        <Zap size={14} className="text-amber-500" /> Đơn giá điện (vnđ / kWh)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-black focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 outline-none transition-all"
+                                        value={giaDien}
+                                        onChange={(e) => setGiaDien(Number(e.target.value))}
+                                    />
+                                </div>
 
-                        <div className="space-y-2">
-                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                <Droplets size={14} className="text-blue-500" /> Đơn giá nước (vnđ / m³)
-                            </label>
-                            <input
-                                type="number"
-                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-black focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
-                                value={giaNuoc}
-                                onChange={(e) => setGiaNuoc(Number(e.target.value))}
-                            />
-                        </div>
+                                <div className="space-y-2">
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                        <Droplets size={14} className="text-blue-500" /> Đơn giá nước (vnđ / m³)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-black focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
+                                        value={giaNuoc}
+                                        onChange={(e) => setGiaNuoc(Number(e.target.value))}
+                                    />
+                                </div>
 
-                        <div className="space-y-2">
-                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                <History size={14} className="text-slate-500" /> Ngày áp dụng
-                            </label>
-                            <input
-                                type="date"
-                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-black focus:ring-4 focus:ring-slate-500/10 focus:border-slate-400 outline-none transition-all"
-                                value={ngayApDung}
-                                onChange={(e) => setNgayApDung(e.target.value)}
-                            />
-                        </div>
+                                <div className="space-y-2">
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                        <History size={14} className="text-slate-500" /> Ngày áp dụng
+                                    </label>
+                                    <input
+                                        type="date"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-black focus:ring-4 focus:ring-slate-500/10 focus:border-slate-400 outline-none transition-all"
+                                        value={ngayApDung}
+                                        min={giaHistory.length > 0 ? new Date(giaHistory[0].ngayApDung).toISOString().split("T")[0] : undefined}
+                                        onChange={(e) => setNgayApDung(e.target.value)}
+                                    />
+                                </div>
 
-                        <button
-                            onClick={handleUpdateGia}
-                            className="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-3xl shadow-2xl transition-all shadow-black/20 flex items-center justify-center gap-2 mt-4"
-                        >
-                            <Save size={18} />
-                            Cập nhật đơn giá mới
-                        </button>
-                    </div>
+                                <button
+                                    onClick={handleUpdateGia}
+                                    className="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-3xl shadow-2xl transition-all shadow-black/20 flex items-center justify-center gap-2 mt-4"
+                                >
+                                    <Save size={18} />
+                                    Cập nhật đơn giá mới
+                                </button>
+                            </div>
 
-                    <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden mt-8">
-                        <div className="p-8 border-b border-slate-100 bg-slate-50/50">
-                            <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                                <History size={20} className="text-blue-600" />
-                                Lịch sử thay đổi đơn giá
-                            </h3>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full min-w-[600px] text-left border-collapse">
-                                <thead>
-                                    <tr className="bg-slate-50/30">
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-slate-400">Ngày áp dụng</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-slate-400">Giá điện (vnđ)</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-slate-400">Giá nước (vnđ)</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right text-slate-400">Trạng thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 font-medium">
-                                    {giaHistory.map((item, index) => (
-                                        <tr key={item._id} className="hover:bg-slate-50/50 transition-colors">
-                                            <td className="px-8 py-5">
-                                                <p className="text-sm font-bold text-slate-700">{formatVi(item.ngayApDung)}</p>
-                                                <p className="text-[10px] text-slate-400">{formatVi(item.ngayApDung, { hour: '2-digit', minute: '2-digit' })}</p>
-                                            </td>
-                                            <td className="px-8 py-5">
-                                                <span className="text-amber-600 font-black text-sm">{item.giaDien.toLocaleString("vi-VN")}đ</span>
-                                                <span className="text-[10px] text-slate-400 ml-1 italic">/kWh</span>
-                                            </td>
-                                            <td className="px-8 py-5">
-                                                <span className="text-blue-600 font-black text-sm">{item.giaNuoc.toLocaleString("vi-VN")}đ</span>
-                                                <span className="text-[10px] text-slate-400 ml-1 italic">/m³</span>
-                                            </td>
-                                            <td className="px-8 py-5 text-right">
-                                                {index === 0 ? (
-                                                    <span className="inline-flex items-center px-4 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-black rounded-full border border-emerald-200">ĐANG ÁP DỤNG</span>
-                                                ) : (
-                                                    <span className="inline-flex items-center px-4 py-1 bg-slate-100 text-slate-400 text-[10px] font-black rounded-full border border-slate-200">HẾT HẠN</span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                            <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden mt-8">
+                                <div className="p-8 border-b border-slate-100 bg-slate-50/50">
+                                    <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                                        <History size={20} className="text-blue-600" />
+                                        Lịch sử thay đổi đơn giá
+                                    </h3>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full min-w-[600px] text-left border-collapse">
+                                        <thead>
+                                            <tr className="bg-slate-50/30">
+                                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-slate-400">Ngày áp dụng</th>
+                                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-slate-400">Giá điện (vnđ)</th>
+                                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-slate-400">Giá nước (vnđ)</th>
+                                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right text-slate-400">Trạng thái</th>
+                                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right text-slate-400">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 font-medium">
+                                            {giaHistory.map((item, index) => (
+                                                <tr key={item._id} className="hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-8 py-5">
+                                                        <p className="text-sm font-bold text-slate-700">{formatVi(item.ngayApDung)}</p>
+                                                        <p className="text-[10px] text-slate-400">{formatVi(item.ngayApDung, { hour: '2-digit', minute: '2-digit' })}</p>
+                                                    </td>
+                                                    <td className="px-8 py-5">
+                                                        <span className="text-amber-600 font-black text-sm">{item.giaDien.toLocaleString("vi-VN")}đ</span>
+                                                        <span className="text-[10px] text-slate-400 ml-1 italic">/kWh</span>
+                                                    </td>
+                                                    <td className="px-8 py-5">
+                                                        <span className="text-blue-600 font-black text-sm">{item.giaNuoc.toLocaleString("vi-VN")}đ</span>
+                                                        <span className="text-[10px] text-slate-400 ml-1 italic">/m³</span>
+                                                    </td>
+                                                    <td className="px-8 py-5 text-right">
+                                                        {index === 0 ? (
+                                                            <span className="inline-flex items-center px-4 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-black rounded-full border border-emerald-200">ĐANG ÁP DỤNG</span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center px-4 py-1 bg-slate-100 text-slate-400 text-[10px] font-black rounded-full border border-slate-200">HẾT HẠN</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-8 py-5 text-right">
+                                                        <button
+                                                            onClick={() => handleDeleteGia(item._id)}
+                                                            className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm border border-red-100"
+                                                            title="Xóa bản ghi"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    )}
+            )}
         </div>
     );
 }

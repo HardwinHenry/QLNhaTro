@@ -54,5 +54,9 @@ export const utilityService = {
     getChiSoGanNhat: async (idPhong: string) => {
         const response = await api.get<ChiSoDienNuoc>(`/chisodiennuoc/latest/${idPhong}`);
         return response.data;
+    },
+    deleteGia: async (id: string) => {
+        const response = await api.delete(`/giadiennuoc/${id}`);
+        return response.data;
     }
 };
