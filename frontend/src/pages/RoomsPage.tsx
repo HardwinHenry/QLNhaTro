@@ -8,7 +8,6 @@ import { dayPhongService, type DayPhong } from "../services/dayPhongService";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
 import RoomFormModal from "../components/RoomFormModal";
-import { resolveBackendAssetUrl } from "../utils/url";
 import { vatTuService, type VatTu } from "../services/vatTuService";
 
 
